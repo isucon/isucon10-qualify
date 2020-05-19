@@ -5,7 +5,9 @@ import string
 from faker import Faker
 fake = Faker('ja_JP')
 Faker.seed(19700101)
+random.seed(19700101)
 
+DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_FILE = "./db/1_DummyData.sql"
 RECORD_COUNT = 5000
 DOOR_MIN_CENTIMETER = 30
@@ -30,10 +32,13 @@ ESTATE_FEATURE_LIST = [
 ]
 
 if __name__ == '__main__':
+    with open(DESCRIPTION_LINES_FILE, mode='r') as description_lines:
+        desc_lines = description_lines.readlines()
+
     with open(OUTPUT_FILE, mode='w') as sqlfile:
         sqlfile.write(sqlCommands)
         for _ in range(RECORD_COUNT):
-            thumbnails = ','.join(['{}.png'.format(fake.sha256(raw_output=False)) for i in range(3)])
+            thumbnails = ','.join(['{}.jpg'.format(fake.sha256(raw_output=False)) for i in range(3)])
             name= fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name())
             #designer_id random int
             latitude, longitude = fake.local_latlng(country_code='JP', coords_only=True)
@@ -42,13 +47,15 @@ if __name__ == '__main__':
             door_height = random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER)
             door_width = random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER)
             view_count = random.randint(3000, 1000000)
+            description = random.choice(desc_lines)
             feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
             feature = ','.join(fake.words(nb=feature_length, ext_word_list=ESTATE_FEATURE_LIST, unique=True))
 
             sqlCommand = f"""
             insert into estate
-                (thumbnails, name, latitude, longitude, address, rent, door_height, door_width, view_count, feature)
-                values('{thumbnails}', '{name}', '{latitude}', '{longitude}', '{address}, '{rent}', '{door_height}', '{door_width}', '{view_count}', '{feature}');
+                (thumbnails, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, feature)
+                values('{thumbnails}', '{name}', '{latitude}', '{longitude}', '{address}, '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}',' '{feature}');
             """
+
 
             sqlfile.write(sqlCommand)

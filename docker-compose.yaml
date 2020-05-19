@@ -1,0 +1,14 @@
+version: "3"
+services:
+  mysql:
+    build: ./mysql/    
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/db:/docker-entrypoint-initdb.d 
+      - ./mysql/config/my.cnf:/etc/mysql/conf.d/my.cnf
+    image: isuumo_mysql 
+    environment:
+      MYSQL_ROOT_PASSWORD: root 
+      MYSQL_DATABASE: isuumo
+      MYSQL_USER: isucon
+      MYSQL_PASSWORD: isucon 
