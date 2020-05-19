@@ -1,0 +1,10 @@
+./mysql/db/1_DummyData.sql
+.DS_*
+*.log
+logs
+**/*.backup.*
+**/*.back.*
+
+node_modules
+bower_components
+
