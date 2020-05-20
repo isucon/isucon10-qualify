@@ -36,7 +36,7 @@ estate_table = """
 create table estate (
     thumbnails varchar(256),
     name varchar(64),
-    coordinate geometry not null SRID 6668,
+    coordinate geometry not null,
     address varchar(128),
     rent integer,
     door_height integer,
@@ -44,7 +44,7 @@ create table estate (
     view_count integer default 0,
     description text,
     feature varchar(256)
-);
+)ENGINE=MyISAM;
 """
 
 def generate_estate_dummy_data():
