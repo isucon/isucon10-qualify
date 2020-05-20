@@ -9,8 +9,8 @@ random.seed(19700101)
 
 DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_FILE = "./db/1_DummyData.sql"
-RECORD_COUNT = 5000
-BULK_INSERT_COUNT = 500
+RECORD_COUNT = 50
+BULK_INSERT_COUNT = 10
 DOOR_MIN_CENTIMETER = 30
 DOOR_MAX_CENTIMETER = 200
 sqlCommands = ""
@@ -47,6 +47,21 @@ create table estate (
 );
 """
 
+def generate_estate_dummy_data():
+    thumbnails = ','.join(['{}.jpg'.format(fake.sha256(raw_output=False)) for i in range(3)])
+    name= fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name())
+    #designer_id random int
+    latitude, longitude = fake.local_latlng(country_code='JP', coords_only=True)
+    address = fake.address()
+    rent = fake.pyint(min_value=5, max_value=20) * 10000
+    door_height = random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER)
+    door_width = random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER)
+    view_count = random.randint(3000, 1000000)
+    description = random.choice(desc_lines)
+    feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
+    feature = ','.join(fake.words(nb=feature_length, ext_word_list=ESTATE_FEATURE_LIST, unique=True))
+    return f"('{thumbnails}', '{name}', GeomFromText('POINT({latitude} {longitude})'), '{address}', '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{feature}')"
+
 if __name__ == '__main__':
     with open(DESCRIPTION_LINES_FILE, mode='r') as description_lines:
         desc_lines = description_lines.readlines()
@@ -54,32 +69,17 @@ if __name__ == '__main__':
     with open(OUTPUT_FILE, mode='w') as sqlfile:
         sqlfile.write(sqlCommands)
         sqlfile.write(estate_table)
-        remine = RECORD_COUNT%BULK_INSERT_COUNT
-        if remine:
+        if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(RECORD_COUNT, BULK_INSERT_COUNT))
+
+        bulk_list = []
         for _ in range(RECORD_COUNT//BULK_INSERT_COUNT):
-            bulk_list = []
-            for _ in range(BULK_INSERT_COUNT):
-                thumbnails = ','.join(['{}.jpg'.format(fake.sha256(raw_output=False)) for i in range(3)])
-                name= fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name())
-                #designer_id random int
-                latitude, longitude = fake.local_latlng(country_code='JP', coords_only=True)
-                address = fake.address()
-                rent = fake.pyint(min_value=5, max_value=20) * 10000
-                door_height = random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER)
-                door_width = random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER)
-                view_count = random.randint(3000, 1000000)
-                description = random.choice(desc_lines)
-                feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
-                feature = ','.join(fake.words(nb=feature_length, ext_word_list=ESTATE_FEATURE_LIST, unique=True))
+            bulk_list += [generate_estate_dummy_data() for i in range(BULK_INSERT_COUNT)]
 
-                bulk_list.append(f"""('{thumbnails}', '{name}', GeomFromText('POINT({latitude} {longitude})'), '{address}', '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{feature}')""")
+        sqlCommand = f"""
+        insert into estate
+            (thumbnails, name, coordinate, address, rent, door_height, door_width, view_count, description, feature)
+            values {', '.join(bulk_list)};
+        """
 
-            bulk_data = ', '.join(bulk_list)
-            sqlCommand = f"""
-            insert into estate
-                (thumbnails, name, coordinate, address, rent, door_height, door_width, view_count, description, feature)
-                values {bulk_data};
-            """
-
-            sqlfile.write(sqlCommand)
+        sqlfile.write(sqlCommand)
