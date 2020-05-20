@@ -54,7 +54,7 @@ if __name__ == '__main__':
             sqlCommand = f"""
             insert into estate
                 (thumbnails, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, feature)
-                values('{thumbnails}', '{name}', '{latitude}', '{longitude}', '{address}, '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}',' '{feature}');
+                values('{thumbnails}', '{name}', '{latitude}', '{longitude}', '{address}, '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{feature}');
             """
 
 
