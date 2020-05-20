@@ -14,7 +14,7 @@ BULK_INSERT_COUNT = 500
 DOOR_MIN_CENTIMETER = 30
 DOOR_MAX_CENTIMETER = 200
 sqlCommands = ""
-sqlCommands += "crete database isuumo;\nuse isuumo;\n"
+sqlCommands += "create database isuumo;\nuse isuumo;\n"
 
 BUILDING_NAME_LIST = [
     "{name}ISUビルディング",
@@ -54,6 +54,9 @@ if __name__ == '__main__':
     with open(OUTPUT_FILE, mode='w') as sqlfile:
         sqlfile.write(sqlCommands)
         sqlfile.write(estate_table)
+        remine = RECORD_COUNT%BULK_INSERT_COUNT
+        if remine:
+            raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(RECORD_COUNT, BULK_INSERT_COUNT))
         for _ in range(RECORD_COUNT//BULK_INSERT_COUNT):
             bulk_list = []
             for _ in range(BULK_INSERT_COUNT):
