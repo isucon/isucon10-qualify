@@ -9,8 +9,8 @@ random.seed(19700101)
 
 DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_FILE = "./db/1_DummyData.sql"
-RECORD_COUNT = 50
-BULK_INSERT_COUNT = 10
+RECORD_COUNT = 10 ** 4
+BULK_INSERT_COUNT = 500
 DOOR_MIN_CENTIMETER = 30
 DOOR_MAX_CENTIMETER = 200
 sqlCommands = ""
@@ -36,7 +36,7 @@ estate_table = """
 create table estate (
     thumbnails varchar(256),
     name varchar(64),
-    coordinate point not null,
+    coordinate geometry not null SRID 6668,
     address varchar(128),
     rent integer,
     door_height integer,
@@ -60,7 +60,7 @@ def generate_estate_dummy_data():
     description = random.choice(desc_lines)
     feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
     feature = ','.join(fake.words(nb=feature_length, ext_word_list=ESTATE_FEATURE_LIST, unique=True))
-    return f"('{thumbnails}', '{name}', GeomFromText('POINT({latitude} {longitude})'), '{address}', '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{feature}')"
+    return f"('{thumbnails}', '{name}', ST_GeomFromText('POINT({latitude} {longitude})', 6668), '{address}', '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{feature}')"
 
 if __name__ == '__main__':
     with open(DESCRIPTION_LINES_FILE, mode='r') as description_lines:
@@ -72,14 +72,13 @@ if __name__ == '__main__':
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(RECORD_COUNT, BULK_INSERT_COUNT))
 
-        bulk_list = []
         for _ in range(RECORD_COUNT//BULK_INSERT_COUNT):
-            bulk_list += [generate_estate_dummy_data() for i in range(BULK_INSERT_COUNT)]
+            bulk_list = [generate_estate_dummy_data() for i in range(BULK_INSERT_COUNT)]
+            sqlCommand = f"""
+            insert into estate
+                (thumbnails, name, coordinate, address, rent, door_height, door_width, view_count, description, feature)
+                values {', '.join(bulk_list)};
+            """
+            sqlfile.write(sqlCommand)
 
-        sqlCommand = f"""
-        insert into estate
-            (thumbnails, name, coordinate, address, rent, door_height, door_width, view_count, description, feature)
-            values {', '.join(bulk_list)};
-        """
-
-        sqlfile.write(sqlCommand)
+        sqlfile.write("create spatial index coord_index on estate (coordinate);")
