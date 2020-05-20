@@ -35,8 +35,7 @@ estate_table = """
 create table estate (
     thumbnails varchar(256),
     name varchar(64),
-    latitude float,
-    longitude float,
+    coordinate point not null,
     address varchar(128),
     rent integer,
     door_height integer,
@@ -70,8 +69,8 @@ if __name__ == '__main__':
 
             sqlCommand = f"""
             insert into estate
-                (thumbnails, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, feature)
-                values('{thumbnails}', '{name}', '{latitude}', '{longitude}', '{address}', '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{feature}');
+                (thumbnails, name, coordinate, address, rent, door_height, door_width, view_count, description, feature)
+                values('{thumbnails}', '{name}', GeomFromText('POINT({latitude} {longitude})'), '{address}', '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{feature}');
             """
 
 
