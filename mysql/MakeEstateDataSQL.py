@@ -13,7 +13,7 @@ RECORD_COUNT = 5000
 DOOR_MIN_CENTIMETER = 30
 DOOR_MAX_CENTIMETER = 200
 sqlCommands = ""
-sqlCommands += "use isuumo;\n"
+sqlCommands += "crete database isuumo;\nuse isuumo;\n"
 
 BUILDING_NAME_LIST = [
     "{name}ISUビルディング",
@@ -31,12 +31,29 @@ ESTATE_FEATURE_LIST = [
     "デザイナーズ物件",
 ]
 
+estate_table = """
+create table estate (
+    thumbnails varchar(256),
+    name varchar(64),
+    latitude float,
+    longitude float,
+    address varchar(128),
+    rent integer,
+    door_height integer,
+    door_width integer,
+    view_count integer default 0,
+    description text,
+    feature varchar(256)
+);
+"""
+
 if __name__ == '__main__':
     with open(DESCRIPTION_LINES_FILE, mode='r') as description_lines:
         desc_lines = description_lines.readlines()
 
     with open(OUTPUT_FILE, mode='w') as sqlfile:
         sqlfile.write(sqlCommands)
+        sqlfile.write(estate_table)
         for _ in range(RECORD_COUNT):
             thumbnails = ','.join(['{}.jpg'.format(fake.sha256(raw_output=False)) for i in range(3)])
             name= fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name())
@@ -54,7 +71,7 @@ if __name__ == '__main__':
             sqlCommand = f"""
             insert into estate
                 (thumbnails, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, feature)
-                values('{thumbnails}', '{name}', '{latitude}', '{longitude}', '{address}, '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{feature}');
+                values('{thumbnails}', '{name}', '{latitude}', '{longitude}', '{address}', '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{feature}');
             """
 
 
