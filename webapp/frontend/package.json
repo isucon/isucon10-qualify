@@ -30,11 +30,6 @@
       "react"
     ]
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint:fix"
-    }
-  },
   "dependencies": {
     "@material-ui/core": "^4.9.14",
     "next": "^9.4.2",
@@ -53,7 +48,6 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.20.0",
     "eslint-plugin-standard": "^4.0.1",
-    "husky": "^4.2.5",
     "standardx": "^5.0.0",
     "typescript": "^3.9.3"
   }
