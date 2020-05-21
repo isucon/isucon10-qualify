@@ -30,6 +30,11 @@
       "react"
     ]
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint:fix"
+    }
+  },
   "dependencies": {
     "@material-ui/core": "^4.9.14",
     "next": "^9.4.2",
