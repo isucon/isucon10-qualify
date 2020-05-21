@@ -1,0 +1,33 @@
+{
+  "name": "isucon10-qualify-portal",
+  "version": "1.0.0",
+  "description": "Portal",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "agreed:server": "agreed-server --path index.js --port 3010",
+    "agreed:ui": "agreed-ui --path ./agreed/index.js --port 3031",
+		"lint": "standard",
+		"lint:fix": "standard --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isucon10-qualify/isucon10-qualify-portal.git"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "standard --fix"
+    }
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/isucon10-qualify/isucon10-qualify-portal/issues"
+  },
+  "homepage": "https://github.com/isucon10-qualify/isucon10-qualify-portal#readme",
+  "devDependencies": {
+    "@agreed/cli": "^5.1.5",
+    "husky": "^4.2.5",
+    "standard": "^14.3.4"
+  }
+}
