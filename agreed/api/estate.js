@@ -10,11 +10,13 @@ module.exports = [
       values: {}
     },
     response: {
-      headers: {},
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       status: 200,
       body: {
         id: '{:id}',
-        thumbnails: '{:thumbnails}',
+        thumbnail: '{:thumbnail}',
         name: '{:name}',
         description: '{:description}',
         address: '{:address}',
@@ -29,10 +31,7 @@ module.exports = [
         type: 'object',
         properties: {
           id: 'number',
-          thumbnails: {
-            type: 'array',
-            items: 'string'
-          },
+          thumbnail: 'string',
           name: 'string',
           description: 'string',
           address: 'string',
@@ -46,11 +45,7 @@ module.exports = [
       },
       values: {
         id: 1,
-        thumbnails: [
-          '/assets/images/estate/3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg',
-          '/assets/images/estate/9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg',
-          '/assets/images/estate/1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg'
-        ],
+        thumbnail: '/images/estate/3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg',
         name: '公園前派出所',
         description: '両津勘吉',
         address: '東京都葛飾区亀有',
@@ -83,7 +78,9 @@ module.exports = [
       }
     },
     response: {
-      headers: {},
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: {
         estates: '{:estates}'
       },
@@ -96,10 +93,7 @@ module.exports = [
               type: 'object',
               properties: {
                 id: 'number',
-                thumbnails: {
-                  type: 'array',
-                  items: 'string'
-                },
+                thumbnail: 'string',
                 name: 'string',
                 description: 'string',
                 address: 'string',
@@ -108,10 +102,7 @@ module.exports = [
                 doorHeight: 'number',
                 doorWidth: 'number',
                 rent: 'number',
-                features: {
-                  type: 'array',
-                  items: 'string'
-                }
+                features: 'string'
               }
             }
           }
@@ -121,11 +112,7 @@ module.exports = [
         estates: [
           {
             id: 1,
-            thumbnails: [
-              '/assets/images/estate/3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg',
-              '/assets/images/estate/9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg',
-              '/assets/images/estate/1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg'
-            ],
+            thumbnail: '/images/estate/1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg',
             name: 'イスイスレジデンス南タワー',
             description: 'ビル群の中に佇む最高のお部屋、さらなるイスの高みへ',
             address: '東京都千代田区丸の内1丁目9-2',
@@ -134,16 +121,12 @@ module.exports = [
             doorHeight: 230,
             doorWidth: 120,
             rent: 2500000,
-            features: ['駅直結', 'バストイレ別'],
+            features: '駅直結,バストイレ別',
             view_count: 10000
           },
           {
             id: 5,
-            thumbnails: [
-              '/assets/images/estate/9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg',
-              '/assets/images/estate/3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg',
-              '/assets/images/estate/1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg'
-            ],
+            thumbnail: '/images/estate/9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg',
             name: '四丼往親空中イスコビル',
             description: '一階が金融機関になっております！',
             address: '東京都中央区京橋1丁目6-1',
@@ -152,10 +135,7 @@ module.exports = [
             doorHeight: 220,
             doorWidth: 150,
             rent: 2000000,
-            features: [
-              '音響攻撃あり',
-              'バストイレ別'
-            ]
+            features: '音響攻撃あり,バストイレ別'
           }
         ]
       }
@@ -194,7 +174,9 @@ module.exports = [
       }
     },
     response: {
-      headers: {},
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: {
         estates: '{:estates}'
       },
@@ -207,10 +189,7 @@ module.exports = [
               type: 'object',
               properties: {
                 id: 'number',
-                thumbnails: {
-                  type: 'array',
-                  items: 'string'
-                },
+                thumbnail: 'string',
                 name: 'string',
                 description: 'string',
                 address: 'string',
@@ -219,10 +198,7 @@ module.exports = [
                 doorHeight: 'number',
                 doorWidth: 'number',
                 rent: 'number',
-                features: {
-                  type: 'array',
-                  items: 'string'
-                }
+                features: 'string'
               }
             }
           }
@@ -232,11 +208,7 @@ module.exports = [
         estates: [
           {
             id: 1,
-            thumbnails: [
-              '/assets/images/estate/3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg',
-              '/assets/images/estate/9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg',
-              '/assets/images/estate/1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg'
-            ],
+            thumbnail: '/images/estate/9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg',
             name: 'イスイスレジデンス南タワー',
             description: 'ビル群の中に佇む最高のお部屋、さらなるイスの高みへ',
             address: '東京都千代田区丸の内1丁目9-2',
@@ -245,16 +217,12 @@ module.exports = [
             doorHeight: 230,
             doorWidth: 120,
             rent: 2500000,
-            features: ['駅直結', 'バストイレ別'],
+            features: '駅直結,バストイレ別',
             view_count: 10000
           },
           {
             id: 5,
-            thumbnails: [
-              '/assets/images/estate/9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg',
-              '/assets/images/estate/3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg',
-              '/assets/images/estate/1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg'
-            ],
+            thumbnail: '/images/estate/1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg',
             name: '四丼往親空中イスコビル',
             description: '一階が金融機関になっております！',
             address: '東京都中央区京橋1丁目6-1',
@@ -263,7 +231,7 @@ module.exports = [
             doorHeight: 220,
             doorWidth: 150,
             rent: 2000000,
-            features: ['音響攻撃あり', 'バストイレ別']
+            features: '音響攻撃あり,バストイレ別'
           }
         ]
       }
@@ -284,7 +252,9 @@ module.exports = [
       }
     },
     response: {
-      headers: {},
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       status: 200,
       body: 'OK',
       schema: {
