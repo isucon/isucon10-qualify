@@ -14,7 +14,7 @@ BULK_INSERT_COUNT = 500
 DOOR_MIN_CENTIMETER = 30
 DOOR_MAX_CENTIMETER = 200
 sqlCommands = ""
-sqlCommands += "create database isuumo;\nuse isuumo;\n"
+sqlCommands += "use isuumo;\n"
 
 BUILDING_NAME_LIST = [
     "{name}ISUビルディング",
@@ -32,21 +32,6 @@ ESTATE_FEATURE_LIST = [
     "デザイナーズ物件",
 ]
 
-estate_table = """
-create table estate (
-    thumbnails varchar(256),
-    name varchar(64),
-    coordinate geometry not null,
-    address varchar(128),
-    rent integer,
-    door_height integer,
-    door_width integer,
-    view_count integer default 0,
-    description text,
-    feature varchar(256)
-)ENGINE=MyISAM;
-"""
-
 def generate_estate_dummy_data():
     thumbnails = ','.join(['{}.jpg'.format(fake.sha256(raw_output=False)) for i in range(3)])
     name= fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name())
@@ -59,8 +44,8 @@ def generate_estate_dummy_data():
     view_count = random.randint(3000, 1000000)
     description = random.choice(desc_lines)
     feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
-    feature = ','.join(fake.words(nb=feature_length, ext_word_list=ESTATE_FEATURE_LIST, unique=True))
-    return f"('{thumbnails}', '{name}', ST_GeomFromText('POINT({latitude} {longitude})', 6668), '{address}', '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{feature}')"
+    features = ','.join(fake.words(nb=feature_length, ext_word_list=ESTATE_FEATURE_LIST, unique=True))
+    return f"('{thumbnails}', '{name}', '{latitude}' , '{longitude}', '{address}', '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{features}')"
 
 if __name__ == '__main__':
     with open(DESCRIPTION_LINES_FILE, mode='r') as description_lines:
@@ -68,7 +53,6 @@ if __name__ == '__main__':
 
     with open(OUTPUT_FILE, mode='w') as sqlfile:
         sqlfile.write(sqlCommands)
-        sqlfile.write(estate_table)
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(RECORD_COUNT, BULK_INSERT_COUNT))
 
@@ -76,9 +60,8 @@ if __name__ == '__main__':
             bulk_list = [generate_estate_dummy_data() for i in range(BULK_INSERT_COUNT)]
             sqlCommand = f"""
             insert into estate
-                (thumbnails, name, coordinate, address, rent, door_height, door_width, view_count, description, feature)
+                (thumbnails, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features)
                 values {', '.join(bulk_list)};
             """
             sqlfile.write(sqlCommand)
 
-        sqlfile.write("create spatial index coord_index on estate (coordinate);")

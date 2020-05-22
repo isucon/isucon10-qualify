@@ -28,13 +28,8 @@ module.exports = [
                 name: 'string',
                 description: 'string',
                 address: 'string',
-                coordinate: {
-                  type: 'object',
-                  properties: {
-                    latitude: 'number',
-                    longitude: 'number'
-                  }
-                },
+                latitude: 'number',
+                longitude: 'number',
                 doorHeight: 'number',
                 doorWidth: 'number',
                 rent: 'number',
@@ -56,10 +51,8 @@ module.exports = [
             name: 'イスイスレジデンス南タワー',
             description: 'ビル群の中に佇む最高のお部屋、さらなるイスの高みへ',
             address: '東京都千代田区丸の内1丁目9-2',
-            coordinate: {
-              latitude: 35.678637,
-              longitude: 139.767375
-            },
+            latitude: 35.678637,
+            longitude: 139.767375,
             doorHeight: 230,
             doorWidth: 120,
             rent: 2500000,
@@ -78,10 +71,8 @@ module.exports = [
             name: '四丼往親空中イスコビル',
             description: '一階が金融機関になっております！',
             address: '東京都中央区京橋1丁目6-1',
-            coordinate: {
-              latitude: 35.678617,
-              longitude: 139.767345
-            },
+            latitude: 35.678617,
+            longitude: 139.767345,
             doorHeight: 220,
             doorWidth: 150,
             rent: 2000000,
@@ -232,10 +223,8 @@ module.exports = [
             name: 'isuu megro',
             description: 'ビル群の中に佇む最高のお部屋、さらなるイスの高みへ',
             address: '東京都品川区上大崎2丁目13-30',
-            coordinate: {
-              latitude: 35.678637,
-              longitude: 139.767375
-            },
+            latitude: 35.678637,
+            longitude: 139.767375,
             doorHeight: 230,
             doorWidth: 120,
             rent: 2500000,
@@ -254,10 +243,8 @@ module.exports = [
             name: 'イスリック銀座7丁目ビル',
             description: '一階が車のディーラーになっております！',
             address: '東京都中央区銀座7-3-5',
-            coordinate: {
-              latitude: 35.678617,
-              longitude: 139.767345
-            },
+            latitude: 35.678617,
+            longitude: 139.767345,
             doorHeight: 220,
             doorWidth: 150,
             rent: 2000000,

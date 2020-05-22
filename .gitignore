@@ -1,4 +1,5 @@
-./mysql/db/1_DummyData.sql
+mysql/db/1_DummyData.sql
+mysql/data
 .DS_*
 *.log
 logs

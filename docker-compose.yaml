@@ -11,4 +11,6 @@ services:
       MYSQL_ROOT_PASSWORD: root 
       MYSQL_DATABASE: isuumo
       MYSQL_USER: isucon
-      MYSQL_PASSWORD: isucon 
+      MYSQL_PASSWORD: isucon
+    ports:
+      - "3306:3306"
