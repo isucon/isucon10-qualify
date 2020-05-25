@@ -61,6 +61,220 @@ module.exports = [
     }
   },
 
+  // `GET: /api/chair/range`
+  {
+    request: {
+      path: `${PATH}/range`,
+      method: 'GET',
+      query: {},
+      values: {}
+    },
+    response: {
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: {
+        price: '{:price}',
+        height: '{:height}',
+        width: '{:width}',
+        depth: '{:depth}'
+      },
+      schema: {
+        type: 'object',
+        properties: {
+          price: {
+            type: 'object',
+            properties: {
+              prefix: 'string',
+              suffix: 'string',
+              ranges: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: 'number',
+                    min: 'number',
+                    max: 'number'
+                  }
+                }
+              }
+            }
+          },
+          width: {
+            type: 'object',
+            properties: {
+              prefix: 'string',
+              suffix: 'string',
+              ranges: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: 'number',
+                    min: 'number',
+                    max: 'number'
+                  }
+                }
+              }
+            }
+          },
+          height: {
+            type: 'object',
+            properties: {
+              prefix: 'string',
+              suffix: 'string',
+              ranges: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: 'number',
+                    min: 'number',
+                    max: 'number'
+                  }
+                }
+              }
+            }
+          },
+          depth: {
+            type: 'object',
+            properties: {
+              prefix: 'string',
+              suffix: 'string',
+              ranges: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: 'number',
+                    min: 'number',
+                    max: 'number'
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      values: {
+        price: {
+          prefix: '',
+          suffix: '円',
+          ranges: [
+            {
+              id: 0,
+              min: -1,
+              max: 3000
+            },
+            {
+              id: 1,
+              min: 3001,
+              max: 6000
+            },
+            {
+              id: 2,
+              min: 6001,
+              max: 9000
+            },
+            {
+              id: 3,
+              min: 9001,
+              max: 12000
+            },
+            {
+              id: 4,
+              min: 12001,
+              max: 15000
+            },
+            {
+              id: 5,
+              min: 15001,
+              max: -1
+            }
+          ]
+        },
+        width: {
+          prefix: '',
+          suffix: 'cm',
+          ranges: [
+            {
+              id: 0,
+              min: -1,
+              max: 80
+            },
+            {
+              id: 1,
+              min: 81,
+              max: 110
+            },
+            {
+              id: 2,
+              min: 111,
+              max: 150
+            },
+            {
+              id: 3,
+              min: 151,
+              max: -1
+            }
+          ]
+        },
+        height: {
+          prefix: '',
+          suffix: 'cm',
+          ranges: [
+            {
+              id: 0,
+              min: -1,
+              max: 80
+            },
+            {
+              id: 1,
+              min: 81,
+              max: 110
+            },
+            {
+              id: 2,
+              min: 111,
+              max: 150
+            },
+            {
+              id: 3,
+              min: 151,
+              max: -1
+            }
+          ]
+        },
+        depth: {
+          prefix: '',
+          suffix: 'cm',
+          ranges: [
+            {
+              id: 0,
+              min: -1,
+              max: 80
+            },
+            {
+              id: 1,
+              min: 81,
+              max: 110
+            },
+            {
+              id: 2,
+              min: 111,
+              max: 150
+            },
+            {
+              id: 3,
+              min: 151,
+              max: -1
+            }
+          ]
+        }
+      }
+    }
+  },
+
   // GET: /api/chair/search
   {
     request: {

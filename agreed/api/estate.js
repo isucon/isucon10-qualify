@@ -59,6 +59,165 @@ module.exports = [
     }
   },
 
+  // `GET: /api/estate/range`
+  {
+    request: {
+      path: `${PATH}/range`,
+      method: 'GET',
+      query: {},
+      values: {}
+    },
+    response: {
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: {
+        doorWidth: '{:doorWidth}',
+        doorHeight: '{:doorHeight}',
+        rent: '{:rent}'
+      },
+      schema: {
+        type: 'object',
+        properties: {
+          doorWidth: {
+            type: 'object',
+            properties: {
+              prefix: 'string',
+              suffix: 'string',
+              ranges: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: 'number',
+                    min: 'number',
+                    max: 'number'
+                  }
+                }
+              }
+            }
+          },
+          doorHeight: {
+            type: 'object',
+            properties: {
+              prefix: 'string',
+              suffix: 'string',
+              ranges: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: 'number',
+                    min: 'number',
+                    max: 'number'
+                  }
+                }
+              }
+            }
+          },
+          rent: {
+            type: 'object',
+            properties: {
+              prefix: 'string',
+              suffix: 'string',
+              ranges: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: 'number',
+                    min: 'number',
+                    max: 'number'
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      values: {
+        doorWidth: {
+          prefix: '',
+          suffix: 'cm',
+          ranges: [
+            {
+              id: 0,
+              min: -1,
+              max: 80
+            },
+            {
+              id: 1,
+              min: 81,
+              max: 110
+            },
+            {
+              id: 2,
+              min: 111,
+              max: 150
+            },
+            {
+              id: 3,
+              min: 151,
+              max: -1
+            }
+          ]
+        },
+        doorHeight: {
+          prefix: '',
+          suffix: 'cm',
+          ranges: [
+            {
+              id: 0,
+              min: -1,
+              max: 80
+            },
+            {
+              id: 1,
+              min: 81,
+              max: 110
+            },
+            {
+              id: 2,
+              min: 111,
+              max: 150
+            },
+            {
+              id: 3,
+              min: 151,
+              max: -1
+            }
+          ]
+        },
+        rent: {
+          prefix: '',
+          suffix: '円',
+          ranges: [
+            {
+              id: 0,
+              min: -1,
+              max: 50000
+            },
+            {
+              id: 1,
+              min: 50001,
+              max: 100000
+            },
+            {
+              id: 2,
+              min: 100001,
+              max: 150000
+            },
+            {
+              id: 3,
+              min: 150001,
+              max: -1
+            }
+          ]
+        }
+      }
+    }
+  },
+
   // `GET: /api/estate/search`
   {
     request: {
