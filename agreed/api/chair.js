@@ -12,9 +12,6 @@ module.exports = [
       }
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       status: 200,
       body: {
         id: '{:id}',
@@ -70,9 +67,6 @@ module.exports = [
       values: {}
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       body: {
         price: '{:price}',
         height: '{:height}',
@@ -300,9 +294,6 @@ module.exports = [
       }
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       body: {
         chairs: '{:chairs}'
       },
@@ -366,9 +357,6 @@ module.exports = [
       }
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       body: 'OK',
       schema: {
         type: 'string'

@@ -10,9 +10,6 @@ module.exports = [
       values: {}
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       status: 200,
       body: {
         id: '{:id}',
@@ -68,9 +65,6 @@ module.exports = [
       values: {}
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       body: {
         doorWidth: '{:doorWidth}',
         doorHeight: '{:doorHeight}',
@@ -237,9 +231,6 @@ module.exports = [
       }
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       body: {
         estates: '{:estates}'
       },
@@ -333,9 +324,6 @@ module.exports = [
       }
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       body: {
         estates: '{:estates}'
       },
@@ -411,9 +399,6 @@ module.exports = [
       }
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       status: 200,
       body: 'OK',
       schema: {

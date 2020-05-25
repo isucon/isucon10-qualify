@@ -10,9 +10,6 @@ module.exports = [
       values: {}
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       status: 200,
       body: {
         estates: '{:estates}'
@@ -83,9 +80,6 @@ module.exports = [
       values: {}
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       status: 200,
       body: {
         chairs: '{:chairs}'
@@ -150,9 +144,6 @@ module.exports = [
       }
     },
     response: {
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       status: 200,
       body: {
         estates: '{:estates}'

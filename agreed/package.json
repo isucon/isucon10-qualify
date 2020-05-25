@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "agreed:server": "agreed-server --path index.js --port 3010",
-    "agreed:ui": "agreed-ui --path ./agreed/index.js --port 3031",
+    "preagreed:server": "node -p \"JSON.stringify(require('./index.js'))\" > .dist.json",
+    "agreed:server": "node ./server.js",
+    "agreed:ui": "agreed-ui --path ./index.js --port 3031",
     "lint": "standard",
     "lint:fix": "standard --fix"
   },
@@ -21,7 +22,12 @@
   },
   "homepage": "https://github.com/isucon10-qualify/isucon10-qualify-portal#readme",
   "devDependencies": {
-    "@agreed/cli": "^5.1.5",
     "standard": "^14.3.4"
+  },
+  "dependencies": {
+    "agreed-server": "^3.0.1",
+    "agreed-ui": "^0.2.8",
+    "cors": "^2.8.5",
+    "morgan": "^1.10.0"
   }
 }
