@@ -1,4 +1,5 @@
-mysql/db/1_DummyData.sql
+mysql/db/1_DummyEstateData.sql
+mysql/db/2_DummyChairData.sql
 mysql/data
 .DS_*
 *.log

@@ -7,8 +7,8 @@ fake = Faker('ja_JP')
 Faker.seed(19700101)
 random.seed(19700101)
 
-DESCRIPTION_LINES_FILE = "./description.txt"
-OUTPUT_FILE = "./db/1_DummyData.sql"
+DESCRIPTION_LINES_FILE = "./description_estate.txt"
+OUTPUT_FILE = "./db/1_DummyEstateData.sql"
 RECORD_COUNT = 10 ** 4
 BULK_INSERT_COUNT = 500
 DOOR_MIN_CENTIMETER = 30
@@ -33,19 +33,19 @@ ESTATE_FEATURE_LIST = [
 ]
 
 def generate_estate_dummy_data():
-    thumbnails = ','.join(['{}.jpg'.format(fake.sha256(raw_output=False)) for i in range(3)])
+    thumbnail = '/images/estate/{}.jpg'.format(fake.sha256(raw_output=False))
     name= fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name())
     #designer_id random int
     latitude, longitude = fake.local_latlng(country_code='JP', coords_only=True)
     address = fake.address()
-    rent = fake.pyint(min_value=5, max_value=20) * 10000
+    rent = random.randint(50000, 200000) 
     door_height = random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER)
     door_width = random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER)
     view_count = random.randint(3000, 1000000)
     description = random.choice(desc_lines)
     feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
     features = ','.join(fake.words(nb=feature_length, ext_word_list=ESTATE_FEATURE_LIST, unique=True))
-    return f"('{thumbnails}', '{name}', '{latitude}' , '{longitude}', '{address}', '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{features}')"
+    return f"('{thumbnail}', '{name}', '{latitude}' , '{longitude}', '{address}', '{rent}', '{door_height}', '{door_width}', '{view_count}', '{description}', '{features}')"
 
 if __name__ == '__main__':
     with open(DESCRIPTION_LINES_FILE, mode='r') as description_lines:
@@ -64,4 +64,3 @@ if __name__ == '__main__':
                 values {', '.join(bulk_list)};
             """
             sqlfile.write(sqlCommand)
-
