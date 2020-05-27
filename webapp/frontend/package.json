@@ -7,8 +7,8 @@
     "dev": "next",
     "build": "next build",
     "start": "next start",
-    "lint": "standardx **/*.ts **/*.tsx",
-    "lint:fix": "standardx --fix **/*.ts **/*.tsx",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,38 +17,32 @@
   },
   "author": "",
   "license": "ISC",
-  "eslintConfig": {
-    "rules": {
-      "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": "error"
-    }
-  },
-  "standardx": {
-    "parser": "@typescript-eslint/parser",
-    "plugins": [
-      "@typescript-eslint/eslint-plugin",
-      "react"
-    ]
-  },
   "dependencies": {
     "@material-ui/core": "^4.9.14",
+    "@types/next": "^9.0.0",
+    "google-map-react": "^1.1.7",
+    "leaflet": "^1.6.0",
     "next": "^9.4.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "styled-components": "^5.1.0"
+    "react-leaflet": "^2.7.0",
+    "react-no-ssr": "^1.1.0"
   },
   "devDependencies": {
     "@types/node": "^14.0.4",
     "@types/react": "^16.9.35",
+    "@types/react-leaflet": "^2.5.1",
     "@typescript-eslint/eslint-plugin": "^2.34.0",
-    "@typescript-eslint/parser": "^2.34.0",
-    "eslint": "^7.0.0",
+    "@typescript-eslint/parser": "^3.0.1",
+    "eslint": "^7.1.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-config-standard-react": "^9.2.0",
+    "eslint-config-standard-with-typescript": "^16.0.0",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.20.0",
     "eslint-plugin-standard": "^4.0.1",
-    "standardx": "^5.0.0",
     "typescript": "^3.9.3"
   }
 }
