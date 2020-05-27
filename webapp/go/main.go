@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -16,10 +15,9 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-var (
-	db   *sqlx.DB
-	SRID = 6668
-)
+const SRID = 6668
+
+var db *sqlx.DB
 
 var estateRentRanges = []*RangeInt{
 	{
@@ -243,224 +241,132 @@ func getEstateDetail(c echo.Context) error {
 		c.Echo().Logger.Debug("Database Execution error :", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	tx, err := db.Begin()
+	if err != nil {
+		c.Echo().Logger.Debug("faild to create transaction : ", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
 
-	_, err = db.Exec("UPDATE estate SET view_count = ? WHERE id = ?", estate.ViewCount+1, id)
+	_, err = tx.Exec("UPDATE estate SET view_count = ? WHERE id = ?", estate.ViewCount+1, id)
 	if err != nil {
 		c.Echo().Logger.Debug("view_count update failed :", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	err = tx.Commit()
+	if err != nil {
+		c.Echo().Logger.Debug("transaction commit error : ", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	return c.JSON(http.StatusOK, estate.ToEstate())
 }
 
-func getDoorHeightRange(heightRangeID string) (specifyRange *RangeInt, err error) {
+func getRange(RangeID string, Ranges []*RangeInt) (specifyRange *RangeInt, err error) {
 	specifyRange = nil
 
-	heightRangeIndex, err := strconv.Atoi(heightRangeID)
+	RangeIndex, err := strconv.Atoi(RangeID)
 	if err != nil {
 		return
 	}
-
-	switch heightRangeIndex {
-	case 0:
-		specifyRange = estateDoorWidthRanges[heightRangeIndex]
-	case 1:
-		specifyRange = estateDoorWidthRanges[heightRangeIndex]
-	case 2:
-		specifyRange = estateDoorWidthRanges[heightRangeIndex]
-	case 3:
-		specifyRange = estateDoorWidthRanges[heightRangeIndex]
-	default:
-		err = fmt.Errorf("Unexpected DoorHeight Range")
+	if RangeIndex < len(Ranges) && RangeIndex > 0 {
+		specifyRange = Ranges[RangeIndex]
+	} else {
+		err = fmt.Errorf("Unexpected Range ID")
 	}
 
 	return
-}
-
-func getDoorWidthRange(widthRangeID string) (specifyRange *RangeInt, err error) {
-	specifyRange = nil
-
-	widthRangeIndex, err := strconv.Atoi(widthRangeID)
-	if err != nil {
-		return
-	}
-
-	switch widthRangeIndex {
-	case 0:
-		specifyRange = estateDoorWidthRanges[widthRangeIndex]
-	case 1:
-		specifyRange = estateDoorWidthRanges[widthRangeIndex]
-	case 2:
-		specifyRange = estateDoorWidthRanges[widthRangeIndex]
-	case 3:
-		specifyRange = estateDoorWidthRanges[widthRangeIndex]
-	default:
-		err = fmt.Errorf("Unexpected DoorWidth Range")
-	}
-
-	return
-}
-
-func getRentRange(rent string) (specifyRange *RangeInt, err error) {
-	specifyRange = nil
-
-	rentRangeIndex, err := strconv.Atoi(rent)
-	if err != nil {
-		return
-	}
-
-	switch rentRangeIndex {
-	case 0:
-		specifyRange = estateRentRanges[rentRangeIndex]
-	case 1:
-		specifyRange = estateRentRanges[rentRangeIndex]
-	case 2:
-		specifyRange = estateRentRanges[rentRangeIndex]
-	case 3:
-		specifyRange = estateRentRanges[rentRangeIndex]
-	default:
-		err = fmt.Errorf("Unexpected Rent Range")
-	}
-
-	return
-
 }
 
 func searchEstates(c echo.Context) error {
-	var optwidth, optheight, optfeature, optrent bool
+	var searchOption bool
 	var doorHeight, doorWidth, estateRent *RangeInt
-	estateFeatures := []string{}
 	var err error
 
+	var searchQueryArray []string
+
 	if c.QueryParam("doorHeightRangeId") != "" {
-		doorHeight, err = getDoorHeightRange(c.QueryParam("doorHeightRangeId"))
+		doorHeight, err = getRange(c.QueryParam("doorHeightRangeId"), estateDoorHeightRanges)
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		optheight = true
+
+		hmin := doorHeight.Min
+		hmax := doorHeight.Max
+		if hmin != -1 {
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_height >= %v ", hmin))
+		}
+		if hmax != -1 {
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_height < %v ", hmax))
+		}
+
+		searchOption = true
 	}
 
 	if c.QueryParam("doorWidthRangeId") != "" {
-		doorWidth, err = getDoorWidthRange(c.QueryParam("doorWidthRangeId"))
+		doorWidth, err = getRange(c.QueryParam("doorWidthRangeId"), estateDoorWidthRanges)
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		optwidth = true
-	}
 
-	if c.QueryParam("features") != "" {
-		estateFeatures = strings.Split(c.QueryParam("features"), ",")
-		optfeature = true
+		wmin := doorWidth.Min
+		wmax := doorWidth.Max
+		if wmin != -1 {
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_width >= %v ", wmin))
+		}
+		if wmax != -1 {
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_width < %v ", wmax))
+		}
+
+		searchOption = true
 	}
 
 	if c.QueryParam("rentRangeId") != "" {
-		estateRent, err = getRentRange(c.QueryParam("rentRangeId"))
+		estateRent, err = getRange(c.QueryParam("rentRangeId"), estateRentRanges)
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		optrent = true
-	}
+		searchOption = true
 
-	if !(optheight || optwidth || optfeature || optrent) {
-		return c.String(http.StatusBadRequest, "search condition not found")
-	}
-
-	var searchquery string
-	if optheight {
-		hmin := doorHeight.Min
-		hmax := doorHeight.Max
-		if hmin == -1 {
-			searchquery += fmt.Sprintf("door_height < %v ", hmax)
-		} else if hmax == -1 {
-			searchquery += fmt.Sprintf("door_height >= %v ", hmin)
-		} else {
-			searchquery += fmt.Sprintf("door_height >= %v and door_height < %v", hmin, hmax)
-		}
-	}
-
-	if optheight && optwidth {
-		searchquery += "and "
-	}
-
-	if optwidth {
-		wmin := doorWidth.Min
-		wmax := doorWidth.Max
-		if wmin == -1 {
-			searchquery += fmt.Sprintf("door_width < %v ", wmax)
-		} else if wmax == -1 {
-			searchquery += fmt.Sprintf("door_width >= %v ", wmin)
-		} else {
-			searchquery += fmt.Sprintf("door_width >= %v and door_width < %v ", wmin, wmax)
-		}
-	}
-
-	if (optheight || optwidth) && optrent {
-		searchquery += "and "
-	}
-
-	if optrent {
 		rmin := estateRent.Min
 		rmax := estateRent.Max
-		if rmin == -1 {
-			searchquery += fmt.Sprintf("rent < %v ", rmax)
-		} else if rmax == -1 {
-			searchquery += fmt.Sprintf("rent >= %v ", rmin)
-		} else {
-			searchquery += fmt.Sprintf("rent >= %v and rent < %v", rmin, rmax)
+		if rmin != -1 {
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_width >= %v ", rmin))
 		}
+		if rmax != -1 {
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_width < %v ", rmax))
+		}
+
+	}
+
+	if c.QueryParam("features") != "" {
+		for _, f := range strings.Split(c.QueryParam("features"), ",") {
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("features like '%%%v%%'", f))
+		}
+		searchOption = true
+	}
+
+	if !searchOption {
+		return c.String(http.StatusBadRequest, "search condition not found")
 	}
 
 	var estates EstateSearchResponse
 	sqlstr := "select * from estate where "
+	searchQuery := strings.Join(searchQueryArray, " and ")
 
-	if optfeature {
-		for _, f := range estateFeatures {
-			var likequery string
-			if optheight || optwidth || optrent {
-				likequery = "and "
-			}
-			likequery += fmt.Sprintf("features like '%%%v%%'", f)
+	rows, err := db.Queryx(sqlstr + searchQuery)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
 
-			rows, err := db.Queryx(sqlstr + searchquery + likequery)
-			if err != nil {
-				c.Logger().Error(err)
-				return c.String(http.StatusInternalServerError, err.Error())
-			}
-
-			for rows.Next() {
-				e := &EstateSchema{}
-				uniq := true
-				err := rows.StructScan(e)
-				if err != nil {
-					c.Logger().Error(err)
-					return c.String(http.StatusInternalServerError, err.Error())
-				}
-				for _, est := range estates.Estates {
-					if reflect.DeepEqual(est, e) {
-						uniq = false
-					}
-				}
-				if uniq {
-					estates.Estates = append(estates.Estates, e.ToEstate())
-				}
-			}
-		}
-	} else {
-		rows, err := db.Queryx(sqlstr + searchquery)
+	for rows.Next() {
+		e := EstateSchema{}
+		err := rows.StructScan(&e)
 		if err != nil {
 			c.Logger().Error(err)
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
-
-		for rows.Next() {
-			e := EstateSchema{}
-			err := rows.StructScan(&e)
-			if err != nil {
-				c.Logger().Error(err)
-				return c.String(http.StatusInternalServerError, err.Error())
-			}
-			estates.Estates = append(estates.Estates, e.ToEstate())
-		}
+		estates.Estates = append(estates.Estates, e.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, estates)
@@ -490,51 +396,6 @@ func searchRecommendEstate(c echo.Context) error {
 	return c.JSON(http.StatusOK, recommentEstates)
 }
 
-//TODO: グラハムスキャンの実装
-func coordinatesToPolygon(coordinates Coordinates) error {
-	// グラハムスキャンして、Polygonにして返す
-
-	return nil
-}
-
-func getBoundingBox(coordinates []Coordinate) BoundingBox {
-	//latitude := make([]float64)
-	//ここをソートにしてみると n log(n)になりそう
-	boundingBox := BoundingBox{
-		LatitudeRange: RangeFloat{
-			Min: coordinates[0].Latitude, Max: coordinates[0].Latitude,
-		},
-		LongitudeRange: RangeFloat{
-			Min: coordinates[0].Longitude, Max: coordinates[0].Longitude,
-		},
-	}
-	for _, coordinate := range coordinates {
-		if boundingBox.LatitudeRange.Min > coordinate.Latitude {
-			boundingBox.LatitudeRange.Min = coordinate.Latitude
-		}
-		if boundingBox.LatitudeRange.Max < coordinate.Latitude {
-			boundingBox.LatitudeRange.Max = coordinate.Latitude
-		}
-		if boundingBox.LongitudeRange.Min > coordinate.Longitude {
-			boundingBox.LongitudeRange.Min = coordinate.Longitude
-		}
-		if boundingBox.LongitudeRange.Max < coordinate.Longitude {
-			boundingBox.LongitudeRange.Max = coordinate.Longitude
-		}
-	}
-	return boundingBox
-}
-
-func coordinatesToText(coordinates Coordinates) string {
-	// return such as POLYGON((35 137,35 140,37 140, 37 137,35 137)),6668)
-	// for _, c := range coordinates { fmt.Spritf("")	}
-	PolygonArray := make([]string, 0, len(coordinates.Coordinates))
-	for _, coordinate := range coordinates.Coordinates {
-		PolygonArray = append(PolygonArray, fmt.Sprintf("%f %f", coordinate.Latitude, coordinate.Longitude))
-	}
-	return fmt.Sprintf("'POLYGON((%s))', %d", strings.Join(PolygonArray, ","), SRID)
-}
-
 func searchEstateNazotte(c echo.Context) error {
 	coordinates := Coordinates{}
 	err := c.Bind(&coordinates)
@@ -542,38 +403,47 @@ func searchEstateNazotte(c echo.Context) error {
 		c.Echo().Logger.Debug("post search estate nazotte failed :", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	err = coordinatesToPolygon(coordinates)
+	err = coordinates.coordinatesToPolygon()
 	if err != nil {
 		c.Echo().Logger.Debug("request coordinates are not WKT Polygon", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	boundingBox := getBoundingBox(coordinates.Coordinates)
-	estates := []EstateSchema{}
-	respEstates := []EstateSchema{}
+	b := coordinates.getBoundingBox()
+	estatesInBoundingBox := []EstateSchema{}
 
-	err = db.Select(&estates, "SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude< ? AND longitude> ?", boundingBox.LatitudeRange.Max, boundingBox.LatitudeRange.Min, boundingBox.LongitudeRange.Max, boundingBox.LongitudeRange.Min)
+	q := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude< ? AND longitude> ?`
+
+	err = db.Select(&estatesInBoundingBox, q, b.LatitudeRange.Max, b.LatitudeRange.Min, b.LongitudeRange.Max, b.LongitudeRange.Min)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Debug("select * from estate where latitude ...", err)
+		return c.NoContent(http.StatusNoContent)
+	} else if err != nil {
+		c.Echo().Logger.Debug("database execution error : ", err)
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	for _, estate := range estates {
+	estatesInPolygon := []EstateSchema{}
+	for _, estate := range estatesInBoundingBox {
 		validatedEstate := EstateSchema{}
-		point := "'" + fmt.Sprintf("POINT(%f %f)", estate.Latitude, estate.Longitude) + "'"
-		polygonValidateSQL := fmt.Sprintf("SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s, %v))", coordinatesToText(coordinates), point, SRID)
-		err = db.Get(&validatedEstate, polygonValidateSQL, estate.ID)
+
+		point := fmt.Sprintf("'POINT(%f %f)'", estate.Latitude, estate.Longitude)
+		q := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s, %v))`
+		q = fmt.Sprintf(q, coordinates.coordinatesToText(), point, SRID)
+
+		err = db.Get(&validatedEstate, q, estate.ID)
 		if err == sql.ErrNoRows {
-			//c.Echo().Logger.Debug("No Rows")
+			c.Echo().Logger.Debug("This estate is not in the polygon")
 		} else if err != nil {
-			c.Echo().Logger.Debug("db access is failed on executing validate estate isWithinPolygon", err)
+			c.Echo().Logger.Debug("db access is failed on executing validate if estate is in polygon", err)
 			return c.NoContent(http.StatusInternalServerError)
 		} else {
-			respEstates = append(respEstates, validatedEstate)
+			estatesInPolygon = append(estatesInPolygon, validatedEstate)
 		}
 	}
 
-	re := make([]Estate, 0, len(respEstates))
-	for _, estate := range respEstates {
+	re := make([]Estate, 0, len(estatesInPolygon))
+	for _, estate := range estatesInPolygon {
 		re = append(re, estate.ToEstate())
 	}
 
@@ -609,4 +479,48 @@ func responseEstateRange(c echo.Context) error {
 		},
 	}
 	return c.JSON(http.StatusOK, ranges)
+}
+
+//TODO: グラハムスキャンの実装
+func (cs Coordinates) coordinatesToPolygon() error {
+	// グラハムスキャンして、Polygonにして返す
+
+	return nil
+}
+
+func (cs Coordinates) getBoundingBox() BoundingBox {
+	coordinates := cs.Coordinates
+	boundingBox := BoundingBox{
+		LatitudeRange: RangeFloat{
+			Min: coordinates[0].Latitude, Max: coordinates[0].Latitude,
+		},
+		LongitudeRange: RangeFloat{
+			Min: coordinates[0].Longitude, Max: coordinates[0].Longitude,
+		},
+	}
+	for _, coordinate := range coordinates {
+		if boundingBox.LatitudeRange.Min > coordinate.Latitude {
+			boundingBox.LatitudeRange.Min = coordinate.Latitude
+		}
+		if boundingBox.LatitudeRange.Max < coordinate.Latitude {
+			boundingBox.LatitudeRange.Max = coordinate.Latitude
+		}
+		if boundingBox.LongitudeRange.Min > coordinate.Longitude {
+			boundingBox.LongitudeRange.Min = coordinate.Longitude
+		}
+		if boundingBox.LongitudeRange.Max < coordinate.Longitude {
+			boundingBox.LongitudeRange.Max = coordinate.Longitude
+		}
+	}
+	return boundingBox
+}
+
+func (cs Coordinates) coordinatesToText() string {
+	// return such as POLYGON((35 137,35 140,37 140, 37 137,35 137)),6668)
+	// for _, c := range coordinates { fmt.Spritf("")	}
+	PolygonArray := make([]string, 0, len(cs.Coordinates))
+	for _, c := range cs.Coordinates {
+		PolygonArray = append(PolygonArray, fmt.Sprintf("%f %f", c.Latitude, c.Longitude))
+	}
+	return fmt.Sprintf("'POLYGON((%s))', %d", strings.Join(PolygonArray, ","), SRID)
 }
