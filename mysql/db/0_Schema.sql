@@ -2,7 +2,7 @@ use isuumo;
 
 create table estate (
     id integer primary key auto_increment,
-    thumbnails varchar(256) not null,
+    thumbnail varchar(256) not null,
     name varchar(64) not null,
     latitude double not null,
     longitude double not null,

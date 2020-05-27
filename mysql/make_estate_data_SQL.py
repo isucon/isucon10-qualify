@@ -60,7 +60,7 @@ if __name__ == '__main__':
             bulk_list = [generate_estate_dummy_data() for i in range(BULK_INSERT_COUNT)]
             sqlCommand = f"""
             insert into estate
-                (thumbnails, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features)
+                (thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features)
                 values {', '.join(bulk_list)};
             """
             sqlfile.write(sqlCommand)
