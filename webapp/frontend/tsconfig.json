@@ -19,8 +19,10 @@
     "jsx": "preserve",
     "baseUrl": "./src",
     "paths": {
-      "@types": ["types.ts"],
-    }
+      "@types": ["types/index.d.ts"],
+      "monotone-convex-hull-2d": ["types/monotone-convex-hull-2d.d.ts"],
+    },
+    "typeRoots": ["types", "node_modules/@types"],
   },
   "exclude": [
     "node_modules"

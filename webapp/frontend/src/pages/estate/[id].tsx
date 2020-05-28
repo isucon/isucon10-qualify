@@ -2,19 +2,29 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import {
+  Paper,
   Container,
   Box,
   TextField,
-  Button,
-  CircularProgress
+  Button
 } from '@material-ui/core'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
+import { Loading } from '../../components/Loading'
 
 import type { FunctionComponent } from 'react'
 import type { Estate, Coordinate } from '@types'
 import type { Theme } from '@material-ui/core/styles'
 
-const useStyles = makeStyles((theme: Theme) =>
+const usePageStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    page: {
+      margin: theme.spacing(2),
+      padding: theme.spacing(4)
+    }
+  })
+)
+
+const useEstateDetailStyles = makeStyles((theme: Theme) =>
   createStyles({
     column: {
       marginTop: theme.spacing(4),
@@ -43,8 +53,14 @@ interface Props {
 }
 
 const EstateDetail: FunctionComponent<Props> = ({ estate }) => {
-  const classes = useStyles()
-  const LeafletMap = dynamic(async () => await import('../../components/LeafletMap'))
+  const classes = useEstateDetailStyles()
+  const LeafletMap = dynamic(
+    async () => {
+      const module = await import('../../components/LeafletMap')
+      return module.LeafletMap
+    },
+    { ssr: false }
+  )
   const estateCoordinate: Coordinate = {
     latitude: estate.latitude,
     longitude: estate.longitude
@@ -100,6 +116,7 @@ const EstateDetail: FunctionComponent<Props> = ({ estate }) => {
         <LeafletMap
           className={classes.map}
           center={estateCoordinate}
+          zoom={10}
           markerPositions={[estateCoordinate]}
         />
       </Box>
@@ -126,16 +143,12 @@ const EstateDetail: FunctionComponent<Props> = ({ estate }) => {
   )
 }
 
-const Loading: FunctionComponent = () => (
-  <Box width={1} height='100vh' display='flex' justifyContent='center' alignItems='center'>
-    <CircularProgress />
-  </Box>
-)
-
 const EstateDetailPage: FunctionComponent = () => {
   const [estate, setEstate] = useState<Estate | null>(null)
   const router = useRouter()
   const { id } = router.query
+
+  const classes = usePageStyles()
 
   useEffect(() => {
     if (!id) return
@@ -146,13 +159,15 @@ const EstateDetailPage: FunctionComponent = () => {
   }, [id])
 
   return (
-    <Container maxWidth='md'>
-      {estate ? (
-        <EstateDetail estate={estate} />
-      ) : (
-        <Loading />
-      )}
-    </Container>
+    <Paper className={classes.page}>
+      <Container maxWidth='md'>
+        {estate ? (
+          <EstateDetail estate={estate} />
+        ) : (
+          <Loading />
+        )}
+      </Container>
+    </Paper>
   )
 }
 

@@ -1,24 +1,13 @@
 import { useEffect } from 'react'
 import Head from 'next/head'
-import { ThemeProvider, makeStyles, createStyles } from '@material-ui/core/styles'
+import { ThemeProvider } from '@material-ui/core/styles'
 import CssBaseline from '@material-ui/core/CssBaseline'
-import Paper from '@material-ui/core/Paper'
 import theme from '../plugins/theme'
 
 import type { FC } from 'react'
 import type { AppProps } from 'next/app'
-import type { Theme } from '@material-ui/core/styles'
 
 import 'leaflet/dist/leaflet.css'
-
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    page: {
-      margin: theme.spacing(2),
-      padding: theme.spacing(4)
-    }
-  })
-)
 
 const MyApp: FC<AppProps> = props => {
   const { Component, pageProps } = props
@@ -42,16 +31,6 @@ const MyApp: FC<AppProps> = props => {
       .catch(error => console.error('failed to set marker icons.', error))
   }, [])
 
-  const Page: FC = props => {
-    const classes = useStyles()
-
-    return (
-      <Paper className={classes.page}>
-        <Component {...props} />
-      </Paper>
-    )
-  }
-
   return (
     <>
       <Head>
@@ -60,7 +39,7 @@ const MyApp: FC<AppProps> = props => {
       </Head>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Page {...pageProps} />
+        <Component {...pageProps} />
       </ThemeProvider>
     </>
   )
