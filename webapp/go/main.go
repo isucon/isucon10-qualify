@@ -193,7 +193,7 @@ func ConnectDB() (*sqlx.DB, error) {
 	dbname := getEnv("MYSQL_DBNAME", "isuumo")
 	password := getEnv("MYSQL_PASS", "isucon")
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", user, password, host, port, dbname)
-	return sqlx.Connect("mysql", dsn)
+	return sqlx.Open("mysql", dsn)
 }
 
 func main() {
@@ -242,6 +242,7 @@ func getEstateDetail(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	tx, err := db.Begin()
+	defer tx.Rollback()
 	if err != nil {
 		c.Echo().Logger.Debug("faild to create transaction : ", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -261,12 +262,12 @@ func getEstateDetail(c echo.Context) error {
 	return c.JSON(http.StatusOK, estate.ToEstate())
 }
 
-func getRange(RangeID string, Ranges []*RangeInt) (specifyRange *RangeInt, err error) {
-	specifyRange = nil
+func getRange(RangeID string, Ranges []*RangeInt) (*RangeInt, error) {
+	specifyRange := &RangeInt{}
 
 	RangeIndex, err := strconv.Atoi(RangeID)
 	if err != nil {
-		return
+		return nil, err
 	}
 	if RangeIndex < len(Ranges) && RangeIndex > 0 {
 		specifyRange = Ranges[RangeIndex]
@@ -274,7 +275,7 @@ func getRange(RangeID string, Ranges []*RangeInt) (specifyRange *RangeInt, err e
 		err = fmt.Errorf("Unexpected Range ID")
 	}
 
-	return
+	return specifyRange, nil
 }
 
 func searchEstates(c echo.Context) error {
@@ -283,6 +284,7 @@ func searchEstates(c echo.Context) error {
 	var err error
 
 	var searchQueryArray []string
+	var searchQueryParameter []interface{}
 
 	if c.QueryParam("doorHeightRangeId") != "" {
 		doorHeight, err = getRange(c.QueryParam("doorHeightRangeId"), estateDoorHeightRanges)
@@ -290,13 +292,13 @@ func searchEstates(c echo.Context) error {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		hmin := doorHeight.Min
-		hmax := doorHeight.Max
-		if hmin != -1 {
-			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_height >= %v ", hmin))
+		if doorHeight.Min != -1 {
+			searchQueryArray = append(searchQueryArray, "door_height >= ? ")
+			searchQueryParameter = append(searchQueryParameter, doorHeight.Min)
 		}
-		if hmax != -1 {
-			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_height < %v ", hmax))
+		if doorHeight.Max != -1 {
+			searchQueryArray = append(searchQueryArray, "door_height < ? ")
+			searchQueryParameter = append(searchQueryParameter, doorHeight.Max)
 		}
 
 		searchOption = true
@@ -308,13 +310,13 @@ func searchEstates(c echo.Context) error {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		wmin := doorWidth.Min
-		wmax := doorWidth.Max
-		if wmin != -1 {
-			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_width >= %v ", wmin))
+		if doorWidth.Min != -1 {
+			searchQueryArray = append(searchQueryArray, "door_width >= ? ")
+			searchQueryParameter = append(searchQueryParameter, doorWidth.Min)
 		}
-		if wmax != -1 {
-			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_width < %v ", wmax))
+		if doorWidth.Max != -1 {
+			searchQueryArray = append(searchQueryArray, "door_width < ? ")
+			searchQueryParameter = append(searchQueryParameter, doorWidth.Max)
 		}
 
 		searchOption = true
@@ -327,20 +329,21 @@ func searchEstates(c echo.Context) error {
 		}
 		searchOption = true
 
-		rmin := estateRent.Min
-		rmax := estateRent.Max
-		if rmin != -1 {
-			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_width >= %v ", rmin))
+		if estateRent.Min != -1 {
+			searchQueryArray = append(searchQueryArray, "door_width >= ? ")
+			searchQueryParameter = append(searchQueryParameter, estateRent.Min)
 		}
-		if rmax != -1 {
-			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_width < %v ", rmax))
+		if estateRent.Max != -1 {
+			searchQueryArray = append(searchQueryArray, "door_width < ? ")
+			searchQueryParameter = append(searchQueryParameter, estateRent.Max)
 		}
 
 	}
 
 	if c.QueryParam("features") != "" {
 		for _, f := range strings.Split(c.QueryParam("features"), ",") {
-			searchQueryArray = append(searchQueryArray, fmt.Sprintf("features like '%%%v%%'", f))
+			searchQueryArray = append(searchQueryArray, "features like concat('%', ?, '%')")
+			searchQueryParameter = append(searchQueryParameter, f)
 		}
 		searchOption = true
 	}
@@ -353,20 +356,10 @@ func searchEstates(c echo.Context) error {
 	sqlstr := "select * from estate where "
 	searchQuery := strings.Join(searchQueryArray, " and ")
 
-	rows, err := db.Queryx(sqlstr + searchQuery)
+	err = db.Select(&estates.Estates, sqlstr+searchQuery, searchQueryParameter...)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
-	for rows.Next() {
-		e := EstateSchema{}
-		err := rows.StructScan(&e)
-		if err != nil {
-			c.Logger().Error(err)
-			return c.String(http.StatusInternalServerError, err.Error())
-		}
-		estates.Estates = append(estates.Estates, e.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, estates)
@@ -378,19 +371,10 @@ func searchRecommendEstate(c echo.Context) error {
 
 	sqlstr := `select * from estate order by view_count desc limit ?`
 
-	rows, err := db.Queryx(sqlstr, limit)
+	err := db.Select(&recommentEstates, sqlstr, limit)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
-	for rows.Next() {
-		e := EstateSchema{}
-		if err := rows.StructScan(&e); err != nil {
-			c.Logger().Error(err)
-			return c.String(http.StatusInternalServerError, err.Error())
-		}
-		recommentEstates = append(recommentEstates, e.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, recommentEstates)
