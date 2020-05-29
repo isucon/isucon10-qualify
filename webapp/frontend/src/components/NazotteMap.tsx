@@ -61,7 +61,7 @@ export const NazzoteMap: FC<Props> = ({ center, zoom, ...props }) => {
     setVertexes(() => [[latlng.lat, latlng.lng]])
     setDragging(true)
     setResultEstates(() => [])
-  }, [mode, isDragging])
+  }, [mode])
 
   const onNazotte = useCallback<LeafletEventCallback>(({ latlng }) => {
     if (mode !== 'nazotte' || !isDragging) return
@@ -94,7 +94,7 @@ export const NazzoteMap: FC<Props> = ({ center, zoom, ...props }) => {
       .then(async response => await response.json())
       .then(({ estates }) => { setResultEstates(estates as Estate[]) })
       .catch(console.error)
-  }, [mode, isDragging, vertexes])
+  }, [mode, vertexes])
 
   const onFabClick = useCallback(() => {
     setMode(mode => mode === 'drag' ? 'nazotte' : 'drag')

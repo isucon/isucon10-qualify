@@ -3,7 +3,8 @@ module.exports = {
   extends: [
     'standard',
     'standard-react',
-    'standard-with-typescript'
+    'standard-with-typescript',
+    "plugin:react-hooks/recommended"
   ],
   plugins: [],
   rules: {
