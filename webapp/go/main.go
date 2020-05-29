@@ -393,7 +393,7 @@ func searchEstateNazotte(c echo.Context) error {
 
 	q := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ?`
 
-	err = db.Select(&estatesInBoundingBox, q, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.TopLeftCorner.Longitude, b.BottomRightCorner.Longitude)
+	err = db.Select(&estatesInBoundingBox, q, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Debug("select * from estate where latitude ...", err)
 		return c.NoContent(http.StatusNoContent)
@@ -412,7 +412,7 @@ func searchEstateNazotte(c echo.Context) error {
 
 		err = db.Get(&validatedEstate, q, estate.ID)
 		if err == sql.ErrNoRows {
-			c.Echo().Logger.Debug("This estate is not in the polygon")
+			// c.Echo().Logger.Debug("This estate is not in the polygon")
 		} else if err != nil {
 			c.Echo().Logger.Debug("db access is failed on executing validate if estate is in polygon", err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -482,14 +482,14 @@ func (cs Coordinates) getBoundingBox() BoundingBox {
 		if boundingBox.TopLeftCorner.Latitude < coordinate.Latitude {
 			boundingBox.TopLeftCorner.Latitude = coordinate.Latitude
 		}
-		if boundingBox.TopLeftCorner.Longitude < coordinate.Longitude {
+		if boundingBox.TopLeftCorner.Longitude > coordinate.Longitude {
 			boundingBox.TopLeftCorner.Longitude = coordinate.Longitude
 		}
 
 		if boundingBox.BottomRightCorner.Latitude > coordinate.Latitude {
 			boundingBox.BottomRightCorner.Latitude = coordinate.Latitude
 		}
-		if boundingBox.BottomRightCorner.Longitude > coordinate.Longitude {
+		if boundingBox.BottomRightCorner.Longitude < coordinate.Longitude {
 			boundingBox.BottomRightCorner.Longitude = coordinate.Longitude
 		}
 	}
