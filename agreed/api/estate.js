@@ -84,8 +84,11 @@ module.exports = [
                   type: 'object',
                   properties: {
                     id: 'number',
-                    min: 'number',
-                    max: 'number'
+                    range: {
+                      type: 'object',
+                      min: 'number',
+                      max: 'number'
+                    }
                   }
                 }
               }
@@ -102,8 +105,11 @@ module.exports = [
                   type: 'object',
                   properties: {
                     id: 'number',
-                    min: 'number',
-                    max: 'number'
+                    range: {
+                      type: 'object',
+                      min: 'number',
+                      max: 'number'
+                    }
                   }
                 }
               }
@@ -120,8 +126,11 @@ module.exports = [
                   type: 'object',
                   properties: {
                     id: 'number',
-                    min: 'number',
-                    max: 'number'
+                    range: {
+                      type: 'object',
+                      min: 'number',
+                      max: 'number'
+                    }
                   }
                 }
               }
@@ -136,23 +145,31 @@ module.exports = [
           ranges: [
             {
               id: 0,
-              min: -1,
-              max: 80
+              range: {
+                min: -1,
+                max: 80
+              }
             },
             {
               id: 1,
-              min: 81,
-              max: 110
+              range: {
+                min: 81,
+                max: 110
+              }
             },
             {
               id: 2,
-              min: 111,
-              max: 150
+              range: {
+                min: 111,
+                max: 150
+              }
             },
             {
               id: 3,
-              min: 151,
-              max: -1
+              range: {
+                min: 151,
+                max: -1
+              }
             }
           ]
         },
@@ -162,23 +179,31 @@ module.exports = [
           ranges: [
             {
               id: 0,
-              min: -1,
-              max: 80
+              range: {
+                min: -1,
+                max: 80
+              }
             },
             {
               id: 1,
-              min: 81,
-              max: 110
+              range: {
+                min: 81,
+                max: 110
+              }
             },
             {
               id: 2,
-              min: 111,
-              max: 150
+              range: {
+                min: 111,
+                max: 150
+              }
             },
             {
               id: 3,
-              min: 151,
-              max: -1
+              range: {
+                min: 151,
+                max: -1
+              }
             }
           ]
         },
@@ -188,23 +213,31 @@ module.exports = [
           ranges: [
             {
               id: 0,
-              min: -1,
-              max: 50000
+              range: {
+                min: -1,
+                max: 50000
+              }
             },
             {
               id: 1,
-              min: 50001,
-              max: 100000
+              range: {
+                min: 50001,
+                max: 100000
+              }
             },
             {
               id: 2,
-              min: 100001,
-              max: 150000
+              range: {
+                min: 100001,
+                max: 150000
+              }
             },
             {
               id: 3,
-              min: 150001,
-              max: -1
+              range: {
+                min: 150001,
+                max: -1
+              }
             }
           ]
         }
