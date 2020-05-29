@@ -289,8 +289,8 @@ type Range struct {
 }
 
 type RangeIntResponce struct {
-	ID    int64    `json:"id"`
-	Range RangeInt `json:"range`
+	ID    int64 `json:"id"`
+	Range Range `json:"range`
 }
 
 type RangeResponse struct {
@@ -419,7 +419,7 @@ func getChairDetail(c echo.Context) error {
 
 func searchChairs(c echo.Context) error {
 	var searchOption bool
-	var chairHeight, chairWidth, chairDepth, chairPrice *RangeInt
+	var chairHeight, chairWidth, chairDepth, chairPrice *Range
 	var err error
 
 	var searchQueryArray []string
