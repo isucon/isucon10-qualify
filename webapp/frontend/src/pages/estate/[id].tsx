@@ -76,7 +76,7 @@ const EstateDetail: FunctionComponent<Props> = ({ estate }) => {
       return
     }
 
-    await fetch(`http://localhost:3010/api/estate/req_doc/${estate.id}`, {
+    await fetch(`${process.env.API_SERVER_NAME ?? ''}/api/estate/req_doc/${estate.id}`, {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json'
@@ -152,7 +152,7 @@ const EstateDetailPage: FunctionComponent = () => {
 
   useEffect(() => {
     if (!id) return
-    fetch(`http://localhost:3010/api/estate/${id.toString()}`, { mode: 'cors' })
+    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/estate/${id.toString()}`, { mode: 'cors' })
       .then(async response => await response.json())
       .then(estate => setEstate(estate as Estate))
       .catch(error => { throw error })

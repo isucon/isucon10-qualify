@@ -80,7 +80,7 @@ export const NazzoteMap: FC<Props> = ({ center, zoom, ...props }) => {
     setDragging(false)
     setMode('drag')
 
-    fetch('http://localhost:3010/api/estate/nazotte', {
+    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/estate/nazotte`, {
       method: 'POST',
       mode: 'cors',
       headers: {

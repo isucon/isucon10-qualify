@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "next",
-    "build": "next build",
+    "build": "cross-env API_SERVER_HOST=\"localhost\" API_SERVER_PORT=\"3010\" next build",
     "start": "next start",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
@@ -21,6 +21,7 @@
     "@material-ui/core": "^4.9.14",
     "@material-ui/icons": "^4.9.1",
     "@types/next": "^9.0.0",
+    "cross-env": "^7.0.2",
     "google-map-react": "^1.1.7",
     "leaflet": "^1.6.0",
     "monotone-convex-hull-2d": "^1.0.1",
