@@ -21,22 +21,18 @@ var db *sqlx.DB
 
 var estateRentRanges = []*RangeInt{
 	{
-		ID:  0,
 		Min: -1,
 		Max: 50000,
 	},
 	{
-		ID:  1,
 		Min: 50000,
 		Max: 100000,
 	},
 	{
-		ID:  2,
 		Min: 100000,
 		Max: 150000,
 	},
 	{
-		ID:  3,
 		Min: 150000,
 		Max: -1,
 	},
@@ -44,22 +40,18 @@ var estateRentRanges = []*RangeInt{
 
 var estateDoorHeightRanges = []*RangeInt{
 	{
-		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
-		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
-		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
-		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
@@ -67,22 +59,18 @@ var estateDoorHeightRanges = []*RangeInt{
 
 var estateDoorWidthRanges = []*RangeInt{
 	{
-		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
-		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
-		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
-		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
@@ -155,15 +143,19 @@ type RangeFloat struct {
 }
 
 type RangeInt struct {
-	ID  int64 `json:"id"`
 	Min int64 `json:"min"`
 	Max int64 `json:"max"`
 }
 
+type RangeIntWithID struct {
+	ID    int      `json:"id"`
+	Range RangeInt `json:"range"`
+}
+
 type RangeResponse struct {
-	Prefix string      `json:"prefix"`
-	Suffix string      `json:"suffix"`
-	Ranges []*RangeInt `json:"ranges"`
+	Prefix string            `json:"prefix"`
+	Suffix string            `json:"suffix"`
+	Ranges []*RangeIntWithID `json:"ranges"`
 }
 
 type RangeResponseMap struct {
@@ -449,19 +441,29 @@ func responseEstateRange(c echo.Context) error {
 		DoorHeight: RangeResponse{
 			Prefix: "",
 			Suffix: "cm",
-			Ranges: estateDoorHeightRanges,
 		},
 		DoorWidth: RangeResponse{
 			Prefix: "",
 			Suffix: "cm",
-			Ranges: estateDoorWidthRanges,
 		},
 		Rent: RangeResponse{
 			Prefix: "",
 			Suffix: "円",
-			Ranges: estateRentRanges,
 		},
 	}
+
+	for i, r := range estateDoorHeightRanges {
+		ranges.DoorHeight.Ranges = append(ranges.DoorHeight.Ranges, &RangeIntWithID{ID: i, Range: *r})
+	}
+
+	for i, r := range estateDoorWidthRanges {
+		ranges.DoorWidth.Ranges = append(ranges.DoorWidth.Ranges, &RangeIntWithID{ID: i, Range: *r})
+	}
+
+	for i, r := range estateRentRanges {
+		ranges.Rent.Ranges = append(ranges.Rent.Ranges, &RangeIntWithID{ID: i, Range: *r})
+	}
+
 	return c.JSON(http.StatusOK, ranges)
 }
 
