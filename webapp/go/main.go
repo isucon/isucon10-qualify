@@ -391,7 +391,7 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []EstateSchema{}
 
-	q := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude< ? AND longitude > ?`
+	q := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ?`
 
 	err = db.Select(&estatesInBoundingBox, q, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.TopLeftCorner.Longitude, b.BottomRightCorner.Longitude)
 	if err == sql.ErrNoRows {
