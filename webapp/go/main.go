@@ -19,58 +19,70 @@ const SRID = 6668
 
 var db *sqlx.DB
 
-var estateRentRanges = []*RangeInt{
+var estateRentRanges = []*Range{
 	{
+		ID:  0,
 		Min: -1,
 		Max: 50000,
 	},
 	{
+		ID:  1,
 		Min: 50000,
 		Max: 100000,
 	},
 	{
+		ID:  2,
 		Min: 100000,
 		Max: 150000,
 	},
 	{
+		ID:  3,
 		Min: 150000,
 		Max: -1,
 	},
 }
 
-var estateDoorHeightRanges = []*RangeInt{
+var estateDoorHeightRanges = []*Range{
 	{
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
 }
 
-var estateDoorWidthRanges = []*RangeInt{
+var estateDoorWidthRanges = []*Range{
 	{
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
@@ -137,25 +149,16 @@ type Coordinates struct {
 	Coordinates []Coordinate `json:"coordinates"`
 }
 
-type RangeFloat struct {
-	Min float64
-	Max float64
-}
-
-type RangeInt struct {
+type Range struct {
+	ID  int64 `json:"id"`
 	Min int64 `json:"min"`
 	Max int64 `json:"max"`
 }
 
-type RangeIntWithID struct {
-	ID    int      `json:"id"`
-	Range RangeInt `json:"range"`
-}
-
 type RangeResponse struct {
-	Prefix string            `json:"prefix"`
-	Suffix string            `json:"suffix"`
-	Ranges []*RangeIntWithID `json:"ranges"`
+	Prefix string   `json:"prefix"`
+	Suffix string   `json:"suffix"`
+	Ranges []*Range `json:"ranges"`
 }
 
 type RangeResponseMap struct {
@@ -165,8 +168,8 @@ type RangeResponseMap struct {
 }
 
 type BoundingBox struct {
-	LatitudeRange  RangeFloat
-	LongitudeRange RangeFloat
+	TopLeftCorner     Coordinate
+	BottomRightCorner Coordinate
 }
 
 func getEnv(key, defaultValue string) string {
@@ -254,8 +257,8 @@ func getEstateDetail(c echo.Context) error {
 	return c.JSON(http.StatusOK, estate.ToEstate())
 }
 
-func getRange(RangeID string, Ranges []*RangeInt) (*RangeInt, error) {
-	specifyRange := &RangeInt{}
+func getRange(RangeID string, Ranges []*Range) (*Range, error) {
+	specifyRange := &Range{}
 
 	RangeIndex, err := strconv.Atoi(RangeID)
 	if err != nil {
@@ -272,7 +275,7 @@ func getRange(RangeID string, Ranges []*RangeInt) (*RangeInt, error) {
 
 func searchEstates(c echo.Context) error {
 	var searchOption bool
-	var doorHeight, doorWidth, estateRent *RangeInt
+	var doorHeight, doorWidth, estateRent *Range
 	var err error
 
 	var searchQueryArray []string
@@ -388,9 +391,9 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []EstateSchema{}
 
-	q := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude< ? AND longitude> ?`
+	q := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude< ? AND longitude > ?`
 
-	err = db.Select(&estatesInBoundingBox, q, b.LatitudeRange.Max, b.LatitudeRange.Min, b.LongitudeRange.Max, b.LongitudeRange.Min)
+	err = db.Select(&estatesInBoundingBox, q, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.TopLeftCorner.Longitude, b.BottomRightCorner.Longitude)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Debug("select * from estate where latitude ...", err)
 		return c.NoContent(http.StatusNoContent)
@@ -441,27 +444,18 @@ func responseEstateRange(c echo.Context) error {
 		DoorHeight: RangeResponse{
 			Prefix: "",
 			Suffix: "cm",
+			Ranges: estateDoorHeightRanges,
 		},
 		DoorWidth: RangeResponse{
 			Prefix: "",
 			Suffix: "cm",
+			Ranges: estateDoorWidthRanges,
 		},
 		Rent: RangeResponse{
 			Prefix: "",
 			Suffix: "円",
+			Ranges: estateRentRanges,
 		},
-	}
-
-	for i, r := range estateDoorHeightRanges {
-		ranges.DoorHeight.Ranges = append(ranges.DoorHeight.Ranges, &RangeIntWithID{ID: i, Range: *r})
-	}
-
-	for i, r := range estateDoorWidthRanges {
-		ranges.DoorWidth.Ranges = append(ranges.DoorWidth.Ranges, &RangeIntWithID{ID: i, Range: *r})
-	}
-
-	for i, r := range estateRentRanges {
-		ranges.Rent.Ranges = append(ranges.Rent.Ranges, &RangeIntWithID{ID: i, Range: *r})
 	}
 
 	return c.JSON(http.StatusOK, ranges)
@@ -477,25 +471,26 @@ func (cs Coordinates) coordinatesToPolygon() error {
 func (cs Coordinates) getBoundingBox() BoundingBox {
 	coordinates := cs.Coordinates
 	boundingBox := BoundingBox{
-		LatitudeRange: RangeFloat{
-			Min: coordinates[0].Latitude, Max: coordinates[0].Latitude,
+		TopLeftCorner: Coordinate{
+			Latitude: coordinates[0].Latitude, Longitude: coordinates[0].Latitude,
 		},
-		LongitudeRange: RangeFloat{
-			Min: coordinates[0].Longitude, Max: coordinates[0].Longitude,
+		BottomRightCorner: Coordinate{
+			Latitude: coordinates[0].Longitude, Longitude: coordinates[0].Longitude,
 		},
 	}
 	for _, coordinate := range coordinates {
-		if boundingBox.LatitudeRange.Min > coordinate.Latitude {
-			boundingBox.LatitudeRange.Min = coordinate.Latitude
+		if boundingBox.TopLeftCorner.Latitude < coordinate.Latitude {
+			boundingBox.TopLeftCorner.Latitude = coordinate.Latitude
 		}
-		if boundingBox.LatitudeRange.Max < coordinate.Latitude {
-			boundingBox.LatitudeRange.Max = coordinate.Latitude
+		if boundingBox.TopLeftCorner.Longitude < coordinate.Longitude {
+			boundingBox.TopLeftCorner.Longitude = coordinate.Longitude
 		}
-		if boundingBox.LongitudeRange.Min > coordinate.Longitude {
-			boundingBox.LongitudeRange.Min = coordinate.Longitude
+
+		if boundingBox.BottomRightCorner.Latitude > coordinate.Latitude {
+			boundingBox.BottomRightCorner.Latitude = coordinate.Latitude
 		}
-		if boundingBox.LongitudeRange.Max < coordinate.Longitude {
-			boundingBox.LongitudeRange.Max = coordinate.Longitude
+		if boundingBox.BottomRightCorner.Longitude > coordinate.Longitude {
+			boundingBox.BottomRightCorner.Longitude = coordinate.Longitude
 		}
 	}
 	return boundingBox
