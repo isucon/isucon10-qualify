@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic'
 import { Container, Paper } from '@material-ui/core'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
-import { Loading } from '../../components/Loading'
+import { Loading } from '../../../components/Loading'
 
 import type { Coordinate } from '@types'
 import type { Theme } from '@material-ui/core/styles'
@@ -24,7 +24,7 @@ const NazottePage = () => {
   const classes = useStyles()
   const NazotteMap = dynamic(
     async () => {
-      const module = await import('../../components/NazotteMap')
+      const module = await import('../../../components/NazotteMap')
       return module.NazzoteMap
     },
     { loading: () => <Loading />, ssr: false }

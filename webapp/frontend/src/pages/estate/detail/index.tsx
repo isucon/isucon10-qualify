@@ -9,7 +9,8 @@ import {
   Button
 } from '@material-ui/core'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
-import { Loading } from '../../components/Loading'
+import { Loading } from '../../../components/Loading'
+import Error from 'next/error'
 
 import type { FunctionComponent } from 'react'
 import type { Estate, Coordinate } from '@types'
@@ -56,7 +57,7 @@ const EstateDetail: FunctionComponent<Props> = ({ estate }) => {
   const classes = useEstateDetailStyles()
   const LeafletMap = dynamic(
     async () => {
-      const module = await import('../../components/LeafletMap')
+      const module = await import('../../../components/LeafletMap')
       return module.LeafletMap
     },
     { ssr: false }
@@ -143,10 +144,10 @@ const EstateDetail: FunctionComponent<Props> = ({ estate }) => {
   )
 }
 
-const EstateDetailPage: FunctionComponent = () => {
+const EstateDetailPage = () => {
   const [estate, setEstate] = useState<Estate | null>(null)
   const router = useRouter()
-  const { id } = router.query
+  const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id
 
   const classes = usePageStyles()
 
@@ -157,6 +158,8 @@ const EstateDetailPage: FunctionComponent = () => {
       .then(estate => setEstate(estate as Estate))
       .catch(error => { throw error })
   }, [id])
+
+  if (!id) return <Error statusCode={404} title='Page /estate/detail is required id query like /estate/detail?id=1' />
 
   return (
     <Paper className={classes.page}>
