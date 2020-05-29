@@ -365,9 +365,7 @@ func main() {
 
 	// Recommended Handler
 	e.GET("/api/recommended_estate", searchRecommendEstate)
-
-	// should make this handler func with mano
-	//e.GET("/api/recommended_estate/:id", searchRecommendEstateWithChair)
+	e.GET("/api/recommended_estate/:id", searchRecommendEstateWithChair)
 
 	e.GET("/api/recommendes_chair", searchRecommendChair)
 
@@ -765,6 +763,44 @@ func searchRecommendEstate(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, recommentEstates)
+}
+
+func searchRecommendEstateWithChair(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	chair := ChairSchema{}
+	sqlstr := `select * from chair where id = ?`
+
+	err = db.Get(&chair, sqlstr, id)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	limit := 20
+	recommendEstates := make([]EstateSchema, 0, limit)
+	w := chair.Width
+	h := chair.Height
+	d := chair.Depth
+	sqlstr = `SELECT * FROM estate where (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) order by view_count desc limit ?`
+	err = db.Select(&recommendEstates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, limit)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	re := make([]Estate, 0, limit)
+
+	for _, estate := range recommendEstates {
+		re = append(re, estate.ToEstate())
+	}
+
+	return c.JSON(http.StatusOK, re)
 }
 
 func searchEstateNazotte(c echo.Context) error {
