@@ -1,0 +1,48 @@
+version: "3"
+services:
+  mysql:
+    build: ./mysql
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/db:/docker-entrypoint-initdb.d
+      - ./mysql/config/my.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: isuumo
+      MYSQL_USER: isucon
+      MYSQL_PASSWORD: isucon
+    ports:
+      - "3306:3306"
+
+  api-server:
+    build: ./go
+    entrypoint:
+      - dockerize
+      - -timeout
+      - 60s
+      - -wait
+      - tcp://mysql:3306
+    environment:
+      MYSQL_DATABASE: isuumo
+      MYSQL_USER: isucon
+      MYSQL_PASSWORD: isucon
+      MYSQL_HOST: mysql
+      SERVER_PORT: 1323
+    ports:
+      - "1323:1323"
+    depends_on:
+      - mysql
+    command: /go/src/isuumo/isuumo
+
+  frontend:
+    build: ./frontend
+    environment:
+      API_SERVER_HOST: api-server
+      API_SERVER_PORT: 1323
+    ports:
+      - "3000:3000"
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "8080:80"

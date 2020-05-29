@@ -21,22 +21,22 @@ var db *sqlx.DB
 
 var estateRentRanges = []*Range{
 	{
-		ID:  0,
+		// ID:  0,
 		Min: -1,
 		Max: 50000,
 	},
 	{
-		ID:  1,
+		// ID:  1,
 		Min: 50000,
 		Max: 100000,
 	},
 	{
-		ID:  2,
+		// ID:  2,
 		Min: 100000,
 		Max: 150000,
 	},
 	{
-		ID:  3,
+		// ID:  3,
 		Min: 150000,
 		Max: -1,
 	},
@@ -44,22 +44,22 @@ var estateRentRanges = []*Range{
 
 var estateDoorHeightRanges = []*Range{
 	{
-		ID:  0,
+		// ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
-		ID:  1,
+		// ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
-		ID:  2,
+		// ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
-		ID:  3,
+		// ID:  3,
 		Min: 150,
 		Max: -1,
 	},
@@ -67,25 +67,158 @@ var estateDoorHeightRanges = []*Range{
 
 var estateDoorWidthRanges = []*Range{
 	{
-		ID:  0,
+		// ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
-		ID:  1,
+		// ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
-		ID:  2,
+		// ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
-		ID:  3,
+		// ID:  3,
 		Min: 150,
 		Max: -1,
 	},
+}
+
+var ChairPriceRanges = []*RangeInt{
+	{
+		Min: -1,
+		Max: 3000,
+	},
+	{
+		Min: 3000,
+		Max: 6000,
+	},
+	{
+		Min: 6000,
+		Max: 9000,
+	},
+	{
+		Min: 9000,
+		Max: 12000,
+	},
+	{
+		Min: 12000,
+		Max: 15000,
+	},
+	{
+		Min: 15000,
+		Max: -1,
+	},
+}
+var ChairHeightRanges = []*RangeInt{
+	{
+		Min: -1,
+		Max: 80,
+	},
+	{
+		Min: 80,
+		Max: 110,
+	},
+	{
+		Min: 110,
+		Max: 150,
+	},
+	{
+		Min: 150,
+		Max: -1,
+	},
+}
+
+var ChairWidthRanges = []*RangeInt{
+	{
+		Min: -1,
+		Max: 80,
+	},
+	{
+		Min: 80,
+		Max: 110,
+	},
+	{
+		Min: 110,
+		Max: 150,
+	},
+	{
+		Min: 150,
+		Max: -1,
+	},
+}
+
+var ChairDepthRanges = []*RangeInt{
+	{
+		Min: -1,
+		Max: 80,
+	},
+	{
+		Min: 80,
+		Max: 110,
+	},
+	{
+		Min: 110,
+		Max: 150,
+	},
+	{
+		Min: 150,
+		Max: -1,
+	},
+}
+
+type ChairSchema struct {
+	ID          int64  `db:"id"`
+	Thumbnail   string `db:"thumbnail"`
+	Name        string `db:"name"`
+	Description string `db:"description"`
+	Price       int64  `db:"price"`
+	Height      int64  `db:"height"`
+	Width       int64  `db:"width"`
+	Depth       int64  `db:"depth"`
+	ViewCount   int64  `db:"view_count"`
+	Stock       int64  `db:"stock"`
+	Color       string `db:"color"`
+	Features    string `db:"features"`
+	Kind        string `db:"kind"`
+}
+
+type Chair struct {
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Thumbnail   string `json:"thumbnail"`
+	Price       int64  `json:"price"`
+	Height      int64  `json:"height"`
+	Width       int64  `json:"width"`
+	Depth       int64  `json:"depth"`
+	Color       string `json:"color"`
+	Features    string `json:"features"`
+	Kind        string `json:"kind"`
+}
+
+type ChairSearchResponce struct {
+	Chairs []Chair `json:"chairs"`
+}
+
+func (cs *ChairSchema) ToChair() *Chair {
+	return &Chair{
+		ID:          cs.ID,
+		Name:        cs.Name,
+		Description: cs.Description,
+		Thumbnail:   cs.Thumbnail,
+		Price:       cs.Price,
+		Height:      cs.Height,
+		Width:       cs.Width,
+		Depth:       cs.Depth,
+		Color:       cs.Color,
+		Features:    cs.Features,
+		Kind:        cs.Kind,
+	}
 }
 
 //EstateSchema estate tableに格納されている物件データ
@@ -155,16 +288,28 @@ type Range struct {
 	Max int64 `json:"max"`
 }
 
+type RangeIntResponce struct {
+	ID    int64    `json:"id"`
+	Range RangeInt `json:"range`
+}
+
 type RangeResponse struct {
 	Prefix string   `json:"prefix"`
 	Suffix string   `json:"suffix"`
 	Ranges []*Range `json:"ranges"`
 }
 
-type RangeResponseMap struct {
+type RangeResponseEstateMap struct {
 	DoorWidth  RangeResponse `json:"doorWidth"`
 	DoorHeight RangeResponse `json:"doorHeight"`
 	Rent       RangeResponse `json:"rent"`
+}
+
+type RangeResponseChairMap struct {
+	Width  RangeResponse `json:"width"`
+	Height RangeResponse `json:"height"`
+	Depth  RangeResponse `json:"depth"`
+	Price  RangeResponse `json:"price"`
 }
 
 type BoundingBox struct {
@@ -201,6 +346,12 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	// Chair Handler
+	e.GET("/api/chair/:id", getChairDetail)
+	e.GET("/api/chair/search", searchChairs)
+	e.POST("/api/chair/buy/:id", buyChair)
+	e.GET("/api/chair/range", responseChairRange)
+
 	// Estate Handler
 	e.GET("/api/estate/:id", getEstateDetail)
 	e.GET("/api/estate/search", searchEstates)
@@ -210,6 +361,9 @@ func main() {
 
 	// Recommended Handler
 	e.GET("/api/recommended_estate", searchRecommendEstate)
+	e.GET("/api/recommended_estate/:id", searchRecommendEstateWithChair)
+
+	e.GET("/api/recommendes_chair", searchRecommendChair)
 
 	var err error
 	db, err = ConnectDB()
@@ -223,11 +377,243 @@ func main() {
 	e.Logger.Fatal(e.Start(serverPort))
 }
 
+func getChairDetail(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.Echo().Logger.Debug("Request parameter \"id\" parse error : ", err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	chair := ChairSchema{}
+	q := `select * from chair where id = ?`
+	err = db.Get(chair, q, id)
+	if err != nil {
+		c.Echo().Logger.Debug("Faild to get the chair from id", err)
+		return c.NoContent(http.StatusInternalServerError)
+	} else if chair.Stock <= 0 {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	tx, err := db.Begin()
+	defer tx.Rollback()
+	if err != nil {
+		c.Echo().Logger.Debug("faild to create transaction : ", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	_, err = tx.Exec("UPDATE chair SET = ? WHERE id = ?", chair.ViewCount+1, id)
+	if err != nil {
+		c.Echo().Logger.Debug("view_count update failed :", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		c.Echo().Logger.Debug("transaction commit error : ", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	return c.JSON(http.StatusOK, chair.ToChair())
+
+}
+
+func searchChairs(c echo.Context) error {
+	var searchOption bool
+	var chairHeight, chairWidth, chairDepth, chairPrice *RangeInt
+	var err error
+
+	var searchQueryArray []string
+	queryParams := make([]interface{}, 0)
+
+	if c.QueryParam("priceRangeId") != "" {
+		chairPrice, err = getRange(c.QueryParam("priceRangeId"), ChairPriceRanges)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		searchOption = true
+
+		if chairPrice.Min != -1 {
+			searchQueryArray = append(searchQueryArray, "chair_width >= ? ")
+			queryParams = append(queryParams, chairPrice.Min)
+		}
+		if chairPrice.Max != -1 {
+			searchQueryArray = append(searchQueryArray, "chair_width < %v ")
+			queryParams = append(queryParams, chairPrice.Max)
+		}
+	}
+
+	if c.QueryParam("heightRangeId") != "" {
+		chairHeight, err = getRange(c.QueryParam("heightRangeId"), ChairHeightRanges)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		if chairHeight.Min != -1 {
+			searchQueryArray = append(searchQueryArray, "chair_height >= ? ")
+			queryParams = append(queryParams, chairHeight.Min)
+		}
+		if chairHeight.Max != -1 {
+			searchQueryArray = append(searchQueryArray, "chair_height < ? ")
+			queryParams = append(queryParams, chairHeight.Max)
+		}
+
+		searchOption = true
+	}
+
+	if c.QueryParam("widthRangeId") != "" {
+		chairWidth, err = getRange(c.QueryParam("widthRangeId"), ChairWidthRanges)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		if chairWidth.Min != -1 {
+			searchQueryArray = append(searchQueryArray, "chair_width >= ? ")
+			queryParams = append(queryParams, chairWidth.Min)
+		}
+		if chairWidth.Max != -1 {
+			searchQueryArray = append(searchQueryArray, "chair_width < ? ")
+			queryParams = append(queryParams, chairWidth.Max)
+		}
+
+		searchOption = true
+	}
+
+	if c.QueryParam("depthRangeId") != "" {
+		chairDepth, err = getRange(c.QueryParam("depthRangeId"), ChairDepthRanges)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		if chairDepth.Min != -1 {
+			searchQueryArray = append(searchQueryArray, "chair_width >= ? ")
+			queryParams = append(queryParams, chairDepth.Min)
+		}
+		if chairDepth.Max != -1 {
+			searchQueryArray = append(searchQueryArray, "chair_width < ? ")
+			queryParams = append(queryParams, chairDepth.Max)
+		}
+
+		searchOption = true
+	}
+
+	if c.QueryParam("color") != "" {
+		searchQueryArray = append(searchQueryArray, "color = ?")
+		queryParams = append(queryParams, c.QueryParam("color"))
+	}
+
+	if c.QueryParam("features") != "" {
+		for _, f := range strings.Split(c.QueryParam("features"), ",") {
+			searchQueryArray = append(searchQueryArray, "features like concat('%', ?, '%')")
+			queryParams = append(queryParams, f)
+		}
+		searchOption = true
+	}
+
+	if !searchOption {
+		return c.String(http.StatusBadRequest, "search condition not found")
+	} else {
+		searchQueryArray = append(searchQueryArray, "stock > 0")
+	}
+
+	var chairs ChairSearchResponce
+	sqlstr := "select * from chair where "
+	searchCondition := strings.Join(searchQueryArray, " and ")
+
+	searchedchairs := []ChairSchema{}
+	err = db.Select(&searchedchairs, sqlstr+searchCondition, queryParams...)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	for _, c := range searchedchairs {
+		chairs.Chairs = append(chairs.Chairs, *c.ToChair())
+	}
+
+	return c.JSON(http.StatusOK, chairs)
+}
+
+func buyChair(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.Echo().Logger.Debug("post request document failed :", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	var chair ChairSchema
+	err = db.Get(&chair, "Select * fron chair where id = ?", id)
+	if err != nil {
+		c.Echo().Logger.Debug("DB Execution Error: on getting a chair by id", err)
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		c.Echo().Logger.Debug("faild to create transaction : ", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("UPDATE chair SET = ? WHERE id = ?", chair.Stock-1, id)
+	if err != nil {
+		c.Echo().Logger.Debug("view_count update failed :", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	err = tx.Commit()
+	if err != nil {
+		c.Echo().Logger.Debug("transaction commit error : ", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusOK)
+}
+
+func responseChairRange(c echo.Context) error {
+	ranges := RangeResponseChairMap{
+		Height: RangeResponse{
+			Prefix: "",
+			Suffix: "cm",
+			Ranges: ChairHeightRanges,
+		},
+		Width: RangeResponse{
+			Prefix: "",
+			Suffix: "cm",
+			Ranges: ChairWidthRanges,
+		},
+		Depth: RangeResponse{
+			Prefix: "",
+			Suffix: "cm",
+			Ranges: ChairDepthRanges,
+		},
+		Price: RangeResponse{
+			Prefix: "",
+			Suffix: "円",
+			Ranges: ChairPriceRanges,
+		},
+	}
+	return c.JSON(http.StatusOK, ranges)
+}
+
+func searchRecommendChair(c echo.Context) error {
+	limit := 20 // should be const val
+	recommendChairs := make([]Estate, 0, limit)
+
+	sqlstr := `select * from chair where stock >= 1 order by view_count desc limit ?`
+
+	err := db.Select(&recommendChairs, sqlstr, limit)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, recommendChairs)
+}
+
 func getEstateDetail(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.Echo().Logger.Debug("Request parameter \"id\" parse error :", err)
-		return c.NoContent(http.StatusInternalServerError)
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	var estate EstateSchema
@@ -375,6 +761,44 @@ func searchRecommendEstate(c echo.Context) error {
 	return c.JSON(http.StatusOK, recommentEstates)
 }
 
+func searchRecommendEstateWithChair(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	chair := ChairSchema{}
+	sqlstr := `select * from chair where id = ?`
+
+	err = db.Get(&chair, sqlstr, id)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	limit := 20
+	recommendEstates := make([]EstateSchema, 0, limit)
+	w := chair.Width
+	h := chair.Height
+	d := chair.Depth
+	sqlstr = `SELECT * FROM estate where (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) order by view_count desc limit ?`
+	err = db.Select(&recommendEstates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, limit)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	re := make([]Estate, 0, limit)
+
+	for _, estate := range recommendEstates {
+		re = append(re, estate.ToEstate())
+	}
+
+	return c.JSON(http.StatusOK, re)
+}
+
 func searchEstateNazotte(c echo.Context) error {
 	coordinates := Coordinates{}
 	err := c.Bind(&coordinates)
@@ -440,7 +864,7 @@ func postEstateRequestDocument(c echo.Context) error {
 }
 
 func responseEstateRange(c echo.Context) error {
-	ranges := RangeResponseMap{
+	ranges := RangeResponseEstateMap{
 		DoorHeight: RangeResponse{
 			Prefix: "",
 			Suffix: "cm",
