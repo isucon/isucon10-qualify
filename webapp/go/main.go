@@ -858,11 +858,13 @@ func searchEstateNazotte(c echo.Context) error {
 		q = fmt.Sprintf(q, coordinates.coordinatesToText(), point, SRID)
 
 		err = db.Get(&validatedEstate, q, estate.ID)
-		if err == sql.ErrNoRows {
-			// c.Echo().Logger.Debug("This estate is not in the polygon")
-		} else if err != nil {
-			c.Echo().Logger.Debug("db access is failed on executing validate if estate is in polygon", err)
-			return c.NoContent(http.StatusInternalServerError)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				continue
+			} else {
+				c.Echo().Logger.Debug("db access is failed on executing validate if estate is in polygon", err)
+				return c.NoContent(http.StatusInternalServerError)
+			}
 		} else {
 			estatesInPolygon = append(estatesInPolygon, validatedEstate)
 		}
