@@ -281,7 +281,9 @@ module.exports = [
         depthRangeId: '{:depth}',
         color: '{:color}',
         features: '{:features}',
-        kind: '{:kind}'
+        kind: '{:kind}',
+        page: '{:page}',
+        perPage: '{:perPage}'
       },
       values: {
         priceRangeId: 2,
@@ -290,14 +292,18 @@ module.exports = [
         depthRangeId: 1,
         color: '黒',
         features: 'リクライニング,肘掛け',
-        kind: 'エルゴノミクス'
+        kind: 'エルゴノミクス',
+        page: 0,
+        perPage: 20
       }
     },
     response: {
       body: {
+        count: '{:count}',
         chairs: '{:chairs}'
       },
       values: {
+        count: 2000,
         chairs: [
           {
             id: 1,

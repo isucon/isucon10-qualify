@@ -221,22 +221,28 @@ module.exports = [
         rentRangeId: '{:priceRangeId}',
         doorHeightRangeId: '{:doorHeightId}',
         doorWidthRangeId: '{:doorWidthId}',
-        features: '{:features}'
+        features: '{:features}',
+        page: '{:page}',
+        perPage: '{:perPage}'
       },
       values: {
         rentRangeId: 2,
         doorHeightRangeId: 3,
         doorWidthRangeId: 2,
-        features: 'バストイレ別,DIY可'
+        features: 'バストイレ別,DIY可',
+        page: 0,
+        perPage: 20
       }
     },
     response: {
       body: {
+        count: '{:count}',
         estates: '{:estates}'
       },
       schema: {
         type: 'object',
-        items: {
+        properties: {
+          count: 'number',
           estates: {
             type: 'array',
             items: {
@@ -259,6 +265,7 @@ module.exports = [
         }
       },
       values: {
+        count: 2000,
         estates: [
           {
             id: 1,
