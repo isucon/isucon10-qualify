@@ -19,153 +19,171 @@ const SRID = 6668
 
 var db *sqlx.DB
 
-var estateRentRanges = []*RangeInt{
+var estateRentRanges = []*Range{
 	{
-		// ID:  0,
+		ID:  0,
 		Min: -1,
 		Max: 50000,
 	},
 	{
-		// ID:  1,
+		ID:  1,
 		Min: 50000,
 		Max: 100000,
 	},
 	{
-		// ID:  2,
+		ID:  2,
 		Min: 100000,
 		Max: 150000,
 	},
 	{
-		// ID:  3,
+		ID:  3,
 		Min: 150000,
 		Max: -1,
 	},
 }
 
-var estateDoorHeightRanges = []*RangeInt{
+var estateDoorHeightRanges = []*Range{
 	{
-		// ID:  0,
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
-		// ID:  1,
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
-		// ID:  2,
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
-		// ID:  3,
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
 }
 
-var estateDoorWidthRanges = []*RangeInt{
+var estateDoorWidthRanges = []*Range{
 	{
-		// ID:  0,
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
-		// ID:  1,
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
-		// ID:  2,
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
-		// ID:  3,
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
 }
 
-var ChairPriceRanges = []*RangeInt{
+var ChairPriceRanges = []*Range{
 	{
+		ID:  0,
 		Min: -1,
 		Max: 3000,
 	},
 	{
+		ID:  1,
 		Min: 3000,
 		Max: 6000,
 	},
 	{
+		ID:  2,
 		Min: 6000,
 		Max: 9000,
 	},
 	{
+		ID:  3,
 		Min: 9000,
 		Max: 12000,
 	},
 	{
+		ID:  4,
 		Min: 12000,
 		Max: 15000,
 	},
 	{
+		ID:  5,
 		Min: 15000,
 		Max: -1,
 	},
 }
-var ChairHeightRanges = []*RangeInt{
+var ChairHeightRanges = []*Range{
 	{
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
 }
 
-var ChairWidthRanges = []*RangeInt{
+var ChairWidthRanges = []*Range{
 	{
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
 }
 
-var ChairDepthRanges = []*RangeInt{
+var ChairDepthRanges = []*Range{
 	{
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
@@ -282,25 +300,21 @@ type Coordinates struct {
 	Coordinates []Coordinate `json:"coordinates"`
 }
 
-type RangeFloat struct {
-	Min float64
-	Max float64
-}
-
-type RangeInt struct {
+type Range struct {
+	ID  int64 `json:"id"`
 	Min int64 `json:"min"`
 	Max int64 `json:"max"`
 }
 
 type RangeIntResponce struct {
-	ID    int64    `json:"id"`
-	Range RangeInt `json:"range`
+	ID    int64 `json:"id"`
+	Range Range `json:"range`
 }
 
 type RangeResponse struct {
-	Prefix string      `json:"prefix"`
-	Suffix string      `json:"suffix"`
-	Ranges []*RangeInt `json:"ranges"`
+	Prefix string   `json:"prefix"`
+	Suffix string   `json:"suffix"`
+	Ranges []*Range `json:"ranges"`
 }
 
 type RangeResponseEstateMap struct {
@@ -317,8 +331,8 @@ type RangeResponseChairMap struct {
 }
 
 type BoundingBox struct {
-	LatitudeRange  RangeFloat
-	LongitudeRange RangeFloat
+	TopLeftCorner     Coordinate
+	BottomRightCorner Coordinate
 }
 
 func getEnv(key, defaultValue string) string {
@@ -423,7 +437,7 @@ func getChairDetail(c echo.Context) error {
 
 func searchChairs(c echo.Context) error {
 	var searchOption bool
-	var chairHeight, chairWidth, chairDepth, chairPrice *RangeInt
+	var chairHeight, chairWidth, chairDepth, chairPrice *Range
 	var err error
 
 	var searchQueryArray []string
@@ -647,8 +661,8 @@ func getEstateDetail(c echo.Context) error {
 	return c.JSON(http.StatusOK, estate.ToEstate())
 }
 
-func getRange(RangeID string, Ranges []*RangeInt) (*RangeInt, error) {
-	specifyRange := &RangeInt{}
+func getRange(RangeID string, Ranges []*Range) (*Range, error) {
+	specifyRange := &Range{}
 
 	RangeIndex, err := strconv.Atoi(RangeID)
 	if err != nil {
@@ -665,7 +679,7 @@ func getRange(RangeID string, Ranges []*RangeInt) (*RangeInt, error) {
 
 func searchEstates(c echo.Context) error {
 	var searchOption bool
-	var doorHeight, doorWidth, estateRent *RangeInt
+	var doorHeight, doorWidth, estateRent *Range
 	var err error
 
 	var searchQueryArray []string
@@ -738,13 +752,18 @@ func searchEstates(c echo.Context) error {
 	}
 
 	var estates EstateSearchResponse
-	sqlstr := "select * from estate where "
+	matchestates := []EstateSchema{}
 	searchQuery := strings.Join(searchQueryArray, " and ")
+	sqlstr := "select * from estate where " + searchQuery
 
-	err = db.Select(&estates.Estates, sqlstr+searchQuery, searchQueryParameter...)
+	err = db.Select(&matchestates, sqlstr, searchQueryParameter...)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	for _, e := range matchestates {
+		estates.Estates = append(estates.Estates, e.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, estates)
@@ -819,9 +838,9 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []EstateSchema{}
 
-	q := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude< ? AND longitude> ?`
+	q := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ?`
 
-	err = db.Select(&estatesInBoundingBox, q, b.LatitudeRange.Max, b.LatitudeRange.Min, b.LongitudeRange.Max, b.LongitudeRange.Min)
+	err = db.Select(&estatesInBoundingBox, q, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Debug("select * from estate where latitude ...", err)
 		return c.NoContent(http.StatusNoContent)
@@ -839,11 +858,13 @@ func searchEstateNazotte(c echo.Context) error {
 		q = fmt.Sprintf(q, coordinates.coordinatesToText(), point, SRID)
 
 		err = db.Get(&validatedEstate, q, estate.ID)
-		if err == sql.ErrNoRows {
-			c.Echo().Logger.Debug("This estate is not in the polygon")
-		} else if err != nil {
-			c.Echo().Logger.Debug("db access is failed on executing validate if estate is in polygon", err)
-			return c.NoContent(http.StatusInternalServerError)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				continue
+			} else {
+				c.Echo().Logger.Debug("db access is failed on executing validate if estate is in polygon", err)
+				return c.NoContent(http.StatusInternalServerError)
+			}
 		} else {
 			estatesInPolygon = append(estatesInPolygon, validatedEstate)
 		}
@@ -885,6 +906,7 @@ func responseEstateRange(c echo.Context) error {
 			Ranges: estateRentRanges,
 		},
 	}
+
 	return c.JSON(http.StatusOK, ranges)
 }
 
@@ -898,25 +920,26 @@ func (cs Coordinates) coordinatesToPolygon() error {
 func (cs Coordinates) getBoundingBox() BoundingBox {
 	coordinates := cs.Coordinates
 	boundingBox := BoundingBox{
-		LatitudeRange: RangeFloat{
-			Min: coordinates[0].Latitude, Max: coordinates[0].Latitude,
+		TopLeftCorner: Coordinate{
+			Latitude: coordinates[0].Latitude, Longitude: coordinates[0].Latitude,
 		},
-		LongitudeRange: RangeFloat{
-			Min: coordinates[0].Longitude, Max: coordinates[0].Longitude,
+		BottomRightCorner: Coordinate{
+			Latitude: coordinates[0].Longitude, Longitude: coordinates[0].Longitude,
 		},
 	}
 	for _, coordinate := range coordinates {
-		if boundingBox.LatitudeRange.Min > coordinate.Latitude {
-			boundingBox.LatitudeRange.Min = coordinate.Latitude
+		if boundingBox.TopLeftCorner.Latitude < coordinate.Latitude {
+			boundingBox.TopLeftCorner.Latitude = coordinate.Latitude
 		}
-		if boundingBox.LatitudeRange.Max < coordinate.Latitude {
-			boundingBox.LatitudeRange.Max = coordinate.Latitude
+		if boundingBox.TopLeftCorner.Longitude > coordinate.Longitude {
+			boundingBox.TopLeftCorner.Longitude = coordinate.Longitude
 		}
-		if boundingBox.LongitudeRange.Min > coordinate.Longitude {
-			boundingBox.LongitudeRange.Min = coordinate.Longitude
+
+		if boundingBox.BottomRightCorner.Latitude > coordinate.Latitude {
+			boundingBox.BottomRightCorner.Latitude = coordinate.Latitude
 		}
-		if boundingBox.LongitudeRange.Max < coordinate.Longitude {
-			boundingBox.LongitudeRange.Max = coordinate.Longitude
+		if boundingBox.BottomRightCorner.Longitude < coordinate.Longitude {
+			boundingBox.BottomRightCorner.Longitude = coordinate.Longitude
 		}
 	}
 	return boundingBox
