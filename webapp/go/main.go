@@ -21,22 +21,22 @@ var db *sqlx.DB
 
 var estateRentRanges = []*Range{
 	{
-		// ID:  0,
+		ID:  0,
 		Min: -1,
 		Max: 50000,
 	},
 	{
-		// ID:  1,
+		ID:  1,
 		Min: 50000,
 		Max: 100000,
 	},
 	{
-		// ID:  2,
+		ID:  2,
 		Min: 100000,
 		Max: 150000,
 	},
 	{
-		// ID:  3,
+		ID:  3,
 		Min: 150000,
 		Max: -1,
 	},
@@ -44,22 +44,22 @@ var estateRentRanges = []*Range{
 
 var estateDoorHeightRanges = []*Range{
 	{
-		// ID:  0,
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
-		// ID:  1,
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
-		// ID:  2,
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
-		// ID:  3,
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
@@ -67,105 +67,123 @@ var estateDoorHeightRanges = []*Range{
 
 var estateDoorWidthRanges = []*Range{
 	{
-		// ID:  0,
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
-		// ID:  1,
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
-		// ID:  2,
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
-		// ID:  3,
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
 }
 
-var ChairPriceRanges = []*RangeInt{
+var ChairPriceRanges = []*Range{
 	{
+		ID:  0,
 		Min: -1,
 		Max: 3000,
 	},
 	{
+		ID:  1,
 		Min: 3000,
 		Max: 6000,
 	},
 	{
+		ID:  2,
 		Min: 6000,
 		Max: 9000,
 	},
 	{
+		ID:  3,
 		Min: 9000,
 		Max: 12000,
 	},
 	{
+		ID:  4,
 		Min: 12000,
 		Max: 15000,
 	},
 	{
+		ID:  5,
 		Min: 15000,
 		Max: -1,
 	},
 }
-var ChairHeightRanges = []*RangeInt{
+var ChairHeightRanges = []*Range{
 	{
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
 }
 
-var ChairWidthRanges = []*RangeInt{
+var ChairWidthRanges = []*Range{
 	{
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
 }
 
-var ChairDepthRanges = []*RangeInt{
+var ChairDepthRanges = []*Range{
 	{
+		ID:  0,
 		Min: -1,
 		Max: 80,
 	},
 	{
+		ID:  1,
 		Min: 80,
 		Max: 110,
 	},
 	{
+		ID:  2,
 		Min: 110,
 		Max: 150,
 	},
 	{
+		ID:  3,
 		Min: 150,
 		Max: -1,
 	},
@@ -734,13 +752,18 @@ func searchEstates(c echo.Context) error {
 	}
 
 	var estates EstateSearchResponse
-	sqlstr := "select * from estate where "
+	matchestates := []EstateSchema{}
 	searchQuery := strings.Join(searchQueryArray, " and ")
+	sqlstr := "select * from estate where " + searchQuery
 
-	err = db.Select(&estates.Estates, sqlstr+searchQuery, searchQueryParameter...)
+	err = db.Select(&matchestates, sqlstr, searchQueryParameter...)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	for _, e := range matchestates {
+		estates.Estates = append(estates.Estates, e.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, estates)
