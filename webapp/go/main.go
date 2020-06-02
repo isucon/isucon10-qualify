@@ -383,6 +383,11 @@ func main() {
 
 	e.GET("/api/recommendes_chair", searchRecommendChair)
 
+	// should make this handler func with mano
+	//e.GET("/api/recommended_estate/:id", searchRecommendEstateWithChair)
+
+	e.GET("/api/recommendes_chair", searchRecommendChair)
+
 	var err error
 	db, err = ConnectDB()
 	if err != nil {
@@ -404,7 +409,7 @@ func getChairDetail(c echo.Context) error {
 
 	chair := ChairSchema{}
 	q := `select * from chair where id = ?`
-	err = db.Get(chair, q, id)
+	err = db.Get(&chair, q, id)
 	if err != nil {
 		c.Echo().Logger.Debug("Faild to get the chair from id", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -419,7 +424,7 @@ func getChairDetail(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	_, err = tx.Exec("UPDATE chair SET = ? WHERE id = ?", chair.ViewCount+1, id)
+	_, err = tx.Exec("UPDATE chair SET view_count = ? WHERE id = ?", chair.ViewCount+1, id)
 	if err != nil {
 		c.Echo().Logger.Debug("view_count update failed :", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -452,11 +457,11 @@ func searchChairs(c echo.Context) error {
 		searchOption = true
 
 		if chairPrice.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "chair_width >= ? ")
+			searchQueryArray = append(searchQueryArray, "width >= ? ")
 			queryParams = append(queryParams, chairPrice.Min)
 		}
 		if chairPrice.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "chair_width < %v ")
+			searchQueryArray = append(searchQueryArray, "width < ? ")
 			queryParams = append(queryParams, chairPrice.Max)
 		}
 	}
@@ -468,11 +473,11 @@ func searchChairs(c echo.Context) error {
 		}
 
 		if chairHeight.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "chair_height >= ? ")
+			searchQueryArray = append(searchQueryArray, "height >= ? ")
 			queryParams = append(queryParams, chairHeight.Min)
 		}
 		if chairHeight.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "chair_height < ? ")
+			searchQueryArray = append(searchQueryArray, "height < ? ")
 			queryParams = append(queryParams, chairHeight.Max)
 		}
 
@@ -486,11 +491,11 @@ func searchChairs(c echo.Context) error {
 		}
 
 		if chairWidth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "chair_width >= ? ")
+			searchQueryArray = append(searchQueryArray, "width >= ? ")
 			queryParams = append(queryParams, chairWidth.Min)
 		}
 		if chairWidth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "chair_width < ? ")
+			searchQueryArray = append(searchQueryArray, "width < ? ")
 			queryParams = append(queryParams, chairWidth.Max)
 		}
 
@@ -504,11 +509,11 @@ func searchChairs(c echo.Context) error {
 		}
 
 		if chairDepth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "chair_width >= ? ")
+			searchQueryArray = append(searchQueryArray, "width >= ? ")
 			queryParams = append(queryParams, chairDepth.Min)
 		}
 		if chairDepth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "chair_width < ? ")
+			searchQueryArray = append(searchQueryArray, "width < ? ")
 			queryParams = append(queryParams, chairDepth.Max)
 		}
 
@@ -560,7 +565,7 @@ func buyChair(c echo.Context) error {
 	}
 
 	var chair ChairSchema
-	err = db.Get(&chair, "Select * fron chair where id = ?", id)
+	err = db.Get(&chair, "SELECT * from chair where id = ?", id)
 	if err != nil {
 		c.Echo().Logger.Debug("DB Execution Error: on getting a chair by id", err)
 		return c.NoContent(http.StatusNotFound)
@@ -573,7 +578,7 @@ func buyChair(c echo.Context) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("UPDATE chair SET = ? WHERE id = ?", chair.Stock-1, id)
+	_, err = tx.Exec("UPDATE chair SET view_count = ? WHERE id = ?", chair.Stock-1, id)
 	if err != nil {
 		c.Echo().Logger.Debug("view_count update failed :", err)
 		return c.NoContent(http.StatusInternalServerError)

@@ -2,13 +2,14 @@
 import random
 import time
 import string
+import os
 from faker import Faker
 fake = Faker("ja_JP")
 Faker.seed(19700101)
 random.seed(19700101)
-
-DESCRIPTION_LINES_FILE = "./description_chair.txt"
-OUTPUT_FILE = "./db/2_DummyChairData.sql"
+base_dir = os.path.dirname(__file__)
+DESCRIPTION_LINES_FILE = os.path.join(base_dir, "description_chair.txt")
+OUTPUT_FILE = os.path.join(base_dir, "db/2_DummyChairData.sql")
 RECORD_COUNT = 10 ** 4
 BULK_INSERT_COUNT = 500
 CHAIR_MIN_CENTIMETER = 30
