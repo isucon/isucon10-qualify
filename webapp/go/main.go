@@ -380,12 +380,6 @@ func main() {
 	// Recommended Handler
 	e.GET("/api/recommended_estate", searchRecommendEstate)
 	e.GET("/api/recommended_estate/:id", searchRecommendEstateWithChair)
-
-	e.GET("/api/recommendes_chair", searchRecommendChair)
-
-	// should make this handler func with mano
-	//e.GET("/api/recommended_estate/:id", searchRecommendEstateWithChair)
-
 	e.GET("/api/recommendes_chair", searchRecommendChair)
 
 	var err error
