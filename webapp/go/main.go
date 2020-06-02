@@ -555,11 +555,11 @@ func searchChairs(c echo.Context) error {
 	sqlstr := "select * from chair where "
 	searchCondition := strings.Join(searchQueryArray, " and ")
 
-	limitoffset := " limit ? offset ?"
+	limitOffset := " limit ? offset ?"
 	queryParams = append(queryParams, perpage, page*perpage)
 
 	searchedchairs := []ChairSchema{}
-	err = db.Select(&searchedchairs, sqlstr+searchCondition+limitoffset, queryParams...)
+	err = db.Select(&searchedchairs, sqlstr+searchCondition+limitOffset, queryParams...)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
