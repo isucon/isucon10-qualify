@@ -555,7 +555,7 @@ func searchChairs(c echo.Context) error {
 	sqlstr := "select * from chair where "
 	searchCondition := strings.Join(searchQueryArray, " and ")
 
-	limitOffset := " limit ? offset ?"
+	limitOffset := " order by view_count desc limit ? offset ?"
 	queryParams = append(queryParams, perpage, page*perpage)
 
 	searchedchairs := []ChairSchema{}
