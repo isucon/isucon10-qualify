@@ -156,7 +156,7 @@ const EstateDetailPage = () => {
     fetch(`${process.env.API_SERVER_NAME ?? ''}/api/estate/${id.toString()}`, { mode: 'cors' })
       .then(async response => await response.json())
       .then(estate => setEstate(estate as Estate))
-      .catch(error => { throw error })
+      .catch(console.error)
   }, [id])
 
   if (!id) return <Error statusCode={404} title='Page /estate/detail is required id query like /estate/detail?id=1' />
