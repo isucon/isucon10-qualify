@@ -42,8 +42,12 @@ services:
         - -wait
         - http://api-server:1323/api/chair/1
       environment:
+        MYSQL_DATABASE: isuumo
+        MYSQL_USER: isucon
+        MYSQL_PASSWORD: isucon
+        MYSQL_HOST: mysql
         API_PORT: 1323
         API_HOST: api-server
       depends_on:
         - api-server
-      command: go test ./...
+      command: go test ./... -v

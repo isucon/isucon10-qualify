@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strconv"
 	"testing"
 
@@ -13,27 +12,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//ToDo: DBとmainの自動起動の仕組み
-//Seedも外部設定できるとよき
-
-func getEnv(key, defaultValue string) string {
-	val := os.Getenv(key)
-	if val != "" {
-		return val
-	}
-	return defaultValue
-}
-
-var port = getEnv("API_PORT", "1323")
-var host = getEnv("API_HOST", "localhost")
-var url = fmt.Sprintf("http://%s:%s", host, port)
-
 func TestGetChairDetail(t *testing.T) {
 	client := new(http.Client)
 
 	t.Run("[GET]/api/chair/:id, id=10, to get info of chair", func(t *testing.T) {
 		expectedID := 10
 		path := "/api/chair/" + strconv.Itoa(expectedID)
+		url := getURL()
 		req, _ := http.NewRequest("GET", url+path, nil)
 
 		resp, err := client.Do(req)
@@ -59,6 +44,7 @@ func TestBuyChair(t *testing.T) {
 	t.Run("[POST] /api/chair/buy/:id, id=10, to post buy", func(t *testing.T) {
 		expectedID := 10
 		path := "/api/chair/buy/" + strconv.Itoa(expectedID)
+		url := getURL()
 		req, _ := http.NewRequest("POST", url+path, nil)
 
 		resp, _ := client.Do(req)
@@ -73,6 +59,7 @@ func TestResponseChairRange(t *testing.T) {
 	client := new(http.Client)
 	t.Run("[GET] /api/chair/range, to get chair range", func(t *testing.T) {
 		path := "/api/chair/range"
+		url := getURL()
 		req, _ := http.NewRequest("GET", url+path, nil)
 
 		resp, _ := client.Do(req)
@@ -87,6 +74,7 @@ func TestSearchChairs(t *testing.T) {
 	client := new(http.Client)
 	t.Run("[GET] /api/chair/search, to get chair list restricted by props", func(t *testing.T) {
 		path := "/api/chair/search"
+		url := getURL()
 		req, _ := http.NewRequest("GET", url+path, nil)
 		params := req.URL.Query()
 		params.Add("priceRangeId", "1")
@@ -105,7 +93,6 @@ func TestSearchChairs(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		//ToDo: countでなんとかする?
 		fmt.Printf("number: %d", len(actualChairs.Chairs))
 	})
 }
