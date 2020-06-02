@@ -402,8 +402,8 @@ func getChairDetail(c echo.Context) error {
 	}
 
 	chair := ChairSchema{}
-	q := "SELECT * FROM chair WHERE id = ?"
-	err = db.Get(&chair, q, id)
+	sqlstr := "SELECT * FROM chair WHERE id = ?"
+	err = db.Get(&chair, sqlstr, id)
 	if err != nil {
 		c.Echo().Logger.Debug("Faild to get the chair from id", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -867,9 +867,9 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []EstateSchema{}
 
-	q := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ?`
+	sqlstr := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ?`
 
-	err = db.Select(&estatesInBoundingBox, q, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
+	err = db.Select(&estatesInBoundingBox, sqlstr, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Debug("select * from estate where latitude ...", err)
 		return c.NoContent(http.StatusNoContent)
@@ -883,10 +883,10 @@ func searchEstateNazotte(c echo.Context) error {
 		validatedEstate := EstateSchema{}
 
 		point := fmt.Sprintf("'POINT(%f %f)'", estate.Latitude, estate.Longitude)
-		q := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s, %v))`
-		q = fmt.Sprintf(q, coordinates.coordinatesToText(), point, SRID)
+		sqlstr := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s, %v))`
+		sqlstr = fmt.Sprintf(sqlstr, coordinates.coordinatesToText(), point, SRID)
 
-		err = db.Get(&validatedEstate, q, estate.ID)
+		err = db.Get(&validatedEstate, sqlstr, estate.ID)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				continue
