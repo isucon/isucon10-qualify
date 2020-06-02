@@ -457,11 +457,11 @@ func searchChairs(c echo.Context) error {
 		searchOption = true
 
 		if chairPrice.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "width >= ? ")
+			searchQueryArray = append(searchQueryArray, "price >= ? ")
 			queryParams = append(queryParams, chairPrice.Min)
 		}
 		if chairPrice.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "width < ? ")
+			searchQueryArray = append(searchQueryArray, "price < ? ")
 			queryParams = append(queryParams, chairPrice.Max)
 		}
 	}
@@ -539,12 +539,27 @@ func searchChairs(c echo.Context) error {
 		searchQueryArray = append(searchQueryArray, "stock > 0")
 	}
 
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		c.Logger().Debug("Invalid format page parameter : ", err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	perpage, err := strconv.Atoi(c.QueryParam("perPage"))
+	if err != nil {
+		c.Logger().Debug("Invalid format perPage parameter : ", err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	var chairs ChairSearchResponce
 	sqlstr := "select * from chair where "
 	searchCondition := strings.Join(searchQueryArray, " and ")
 
+	limitOffset := " limit ? offset ?"
+	queryParams = append(queryParams, perpage, page*perpage)
+
 	searchedchairs := []ChairSchema{}
-	err = db.Select(&searchedchairs, sqlstr+searchCondition, queryParams...)
+	err = db.Select(&searchedchairs, sqlstr+searchCondition+limitOffset, queryParams...)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())

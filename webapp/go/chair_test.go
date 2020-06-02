@@ -3,13 +3,14 @@ package main_test
 import (
 	"encoding/json"
 	"fmt"
-	main "github.com/isucon/isucon10-qualify/webapp/go"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
 	"testing"
+
+	main "github.com/isucon/isucon10-qualify/webapp/go"
+	"github.com/stretchr/testify/assert"
 )
 
 //ToDo: DBとmainの自動起動の仕組み
@@ -91,7 +92,9 @@ func TestSearchChairs(t *testing.T) {
 		params.Add("priceRangeId", "1")
 		params.Add("hegihtRangeId", "1")
 		params.Add("depthRangeId", "1")
-		params.Add("color", "orange")
+		params.Add("color", "オレンジ")
+		params.Add("page", "0")
+		params.Add("perPage", "20")
 		//params.Add("features", "駅から徒歩5分")
 		req.URL.RawQuery = params.Encode()
 		fmt.Printf("url: %s", req.URL.String())
