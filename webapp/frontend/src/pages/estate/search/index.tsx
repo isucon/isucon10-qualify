@@ -18,13 +18,40 @@ import { RangeForm } from '../../../components/RangeForm'
 import { CheckboxForm } from '../../../components/CheckboxForm'
 
 import type { FC } from 'react'
-import type { EstateRangeMap, EstateSearchCondition, EstateSearchResponse } from '@types'
+import type { Estate, EstateRangeMap, EstateSearchCondition, EstateSearchResponse } from '@types'
 
 const ESTATE_COUNTS_PER_PAGE = 20
+
+interface EstateItemProps {
+  estate: Estate
+}
 
 interface EstateSearchProps {
   estateRangeMap: EstateRangeMap
 }
+
+const useEstateItemStyles = makeStyles(theme =>
+  createStyles({
+    card: {
+      width: '100%',
+      height: 270,
+      marginTop: theme.spacing(2),
+      marginBottom: theme.spacing(2)
+    },
+    cardActionArea: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start'
+    },
+    cardMedia: {
+      width: 360,
+      height: 270
+    },
+    cardContent: {
+      marginLeft: theme.spacing(1)
+    }
+  })
+)
 
 const useEstateSearchStyles = makeStyles(theme =>
   createStyles({
@@ -73,6 +100,26 @@ const FEATURE_LIST = [
   'ペット飼育可能',
   'デザイナーズ物件'
 ]
+
+const EstateItem: FC<EstateItemProps> = ({ estate }) => {
+  const classes = useEstateItemStyles()
+
+  return (
+    <Link key={estate.id} href={`/estate/detail?id=${estate.id}`}>
+      <Card className={classes.card}>
+        <CardActionArea className={classes.cardActionArea}>
+          <CardMedia image={estate.thumbnail} className={classes.cardMedia} />
+          <CardContent className={classes.cardContent}>
+            <h2>{estate.name}</h2>
+            <p>住所: {estate.address}</p>
+            <p>価格: {estate.rent}円</p>
+            <p>詳細: {estate.description}</p>
+          </CardContent>
+        </CardActionArea>
+      </Card>
+    </Link>
+  )
+}
 
 const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
   const classes = useEstateSearchStyles()
@@ -182,20 +229,8 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
                     }}
                   />
                   {
-                    searchResult.estates.map((estate) => (
-                      <Link key={estate.id} href={`/estate/detail?id=${estate.id}`}>
-                        <Card className={classes.card}>
-                          <CardActionArea className={classes.cardActionArea}>
-                            <CardMedia image={estate.thumbnail} className={classes.cardMedia} />
-                            <CardContent className={classes.cardContent}>
-                              <h2>{estate.name}</h2>
-                              <p>住所: {estate.address}</p>
-                              <p>価格: {estate.rent}</p>
-                              <p>詳細: {estate.description}</p>
-                            </CardContent>
-                          </CardActionArea>
-                        </Card>
-                      </Link>
+                    searchResult.estates.map((estate, i) => (
+                      <EstateItem key={i} estate={estate} />
                     ))
                   }
                 </>

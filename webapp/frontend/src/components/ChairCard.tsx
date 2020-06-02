@@ -46,7 +46,7 @@ export const ChairCard: FC<Props> = ({ chair }) => {
           />
           <CardContent>
             <h3> {chair.name} </h3>
-            <p> 価格: {chair.price} 円 </p>
+            <p> 価格: {chair.price}円 </p>
             <p> 種類: {chair.kind} </p>
           </CardContent>
         </CardActionArea>

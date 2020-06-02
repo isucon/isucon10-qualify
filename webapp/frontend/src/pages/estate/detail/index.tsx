@@ -10,9 +10,8 @@ import {
 } from '@material-ui/core'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
 import { Loading } from '../../../components/Loading'
-import Error from 'next/error'
 
-import type { FunctionComponent } from 'react'
+import type { FC } from 'react'
 import type { Estate, Coordinate } from '@types'
 import type { Theme } from '@material-ui/core/styles'
 
@@ -53,7 +52,7 @@ interface Props {
   estate: Estate
 }
 
-const EstateDetail: FunctionComponent<Props> = ({ estate }) => {
+const EstateDetail: FC<Props> = ({ estate }) => {
   const classes = useEstateDetailStyles()
   const LeafletMap = dynamic(
     async () => {
@@ -158,8 +157,6 @@ const EstateDetailPage = () => {
       .then(estate => setEstate(estate as Estate))
       .catch(console.error)
   }, [id])
-
-  if (!id) return <Error statusCode={404} title='Page /estate/detail is required id query like /estate/detail?id=1' />
 
   return (
     <Paper className={classes.page}>

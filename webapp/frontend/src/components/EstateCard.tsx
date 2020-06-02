@@ -45,9 +45,9 @@ export const EstateCard: FC<Props> = ({ estate }) => {
             title={estate.name}
           />
           <CardContent>
-            <h3> {estate.name} </h3>
-            <p> 住所: {estate.address} </p>
-            <p> 家賃: {estate.rent} 円</p>
+            <h3>{estate.name}</h3>
+            <p>住所: {estate.address}</p>
+            <p>家賃: {estate.rent}円</p>
           </CardContent>
         </CardActionArea>
       </Card>

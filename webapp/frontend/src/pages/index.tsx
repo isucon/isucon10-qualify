@@ -71,14 +71,6 @@ const TopPage = () => {
           <h2> オススメの物件 </h2>
           <Box className={classes.cards}>
             {recommendedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
-            {recommendedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
-            {recommendedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
-            {recommendedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
-            {recommendedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
-            {recommendedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
-            {recommendedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
-            {recommendedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
-            {recommendedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
           </Box>
         </Paper>
       )}
@@ -86,17 +78,6 @@ const TopPage = () => {
         <Paper className={classes.paper}>
           <h2> オススメのイス </h2>
           <Box className={classes.cards}>
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
             {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
           </Box>
         </Paper>

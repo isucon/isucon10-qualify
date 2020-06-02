@@ -193,9 +193,7 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
               checkList={features}
               selectList={FEATURE_LIST}
               onChange={(_, checked, key) => {
-                setFeatures(
-                  features.map((feature, i) => key === i ? checked : feature)
-                )
+                setFeatures(features.map((feature, i) => key === i ? checked : feature))
               }}
             />
 
@@ -241,7 +239,7 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
                             <CardMedia image={chair.thumbnail} className={classes.cardMedia} />
                             <CardContent className={classes.cardContent}>
                               <h2>{chair.name}</h2>
-                              <p>価格: {chair.price}</p>
+                              <p>価格: {chair.price}円</p>
                               <p>詳細: {chair.description}</p>
                             </CardContent>
                           </CardActionArea>

@@ -12,7 +12,7 @@ import { Loading } from '../../../components/Loading'
 import { EstateCard } from '../../../components/EstateCard'
 import Error from 'next/error'
 
-import type { FunctionComponent } from 'react'
+import type { FC } from 'react'
 import type { Chair, Estate } from '@types'
 import type { Theme } from '@material-ui/core/styles'
 
@@ -42,10 +42,6 @@ const useChairDetailStyles = makeStyles((theme: Theme) =>
     thumbnail: {
       height: '100%'
     },
-    map: {
-      width: '100%',
-      height: 360
-    },
     cards: {
       display: 'flex',
       flexWrap: 'wrap',
@@ -59,7 +55,7 @@ interface Props {
   recommendedEstates: Estate[]
 }
 
-const ChairDetail: FunctionComponent<Props> = ({ chair, recommendedEstates }) => {
+const ChairDetail: FC<Props> = ({ chair, recommendedEstates }) => {
   const classes = useChairDetailStyles()
 
   const emailInputRef = useRef<HTMLInputElement>(null)
