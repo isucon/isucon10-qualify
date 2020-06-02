@@ -791,7 +791,6 @@ func searchEstates(c echo.Context) error {
 	searchQueryParameter = append(searchQueryParameter, perpage, page*perpage)
 
 	matchestates := []EstateSchema{}
-    fmt.Printf("%s%s%s", sqlstr, searchQuery, limitOffset, searchQueryParameter)
 	err = db.Select(&matchestates, sqlstr+searchQuery+limitOffset, searchQueryParameter...)
 	if err != nil {
 		c.Logger().Error(err)
