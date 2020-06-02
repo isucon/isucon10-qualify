@@ -408,7 +408,7 @@ func getChairDetail(c echo.Context) error {
 	}
 
 	chair := ChairSchema{}
-	q := `select * from chair where id = ?`
+	q := "SELECT * FROM chair WHERE id = ?"
 	err = db.Get(&chair, q, id)
 	if err != nil {
 		c.Echo().Logger.Debug("Faild to get the chair from id", err)
@@ -527,7 +527,7 @@ func searchChairs(c echo.Context) error {
 
 	if c.QueryParam("features") != "" {
 		for _, f := range strings.Split(c.QueryParam("features"), ",") {
-			searchQueryArray = append(searchQueryArray, "features like concat('%', ?, '%')")
+			searchQueryArray = append(searchQueryArray, "features LIKE CONCAT('%', ?, '%')")
 			queryParams = append(queryParams, f)
 		}
 		searchOption = true
@@ -552,10 +552,10 @@ func searchChairs(c echo.Context) error {
 	}
 
 	var chairs ChairSearchResponce
-	sqlstr := "select * from chair where "
-	searchCondition := strings.Join(searchQueryArray, " and ")
+	sqlstr := "SELECT * FROM chair WHERE "
+	searchCondition := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " order by view_count desc limit ? offset ?"
+	limitOffset := " ORDER BY view_count DESC LIMIT ? OFFSET ?"
 	queryParams = append(queryParams, perpage, page*perpage)
 
 	searchedchairs := []ChairSchema{}
@@ -580,7 +580,7 @@ func buyChair(c echo.Context) error {
 	}
 
 	var chair ChairSchema
-	err = db.Get(&chair, "SELECT * from chair where id = ?", id)
+	err = db.Get(&chair, "SELECT * FROM chair WHERE id = ?", id)
 	if err != nil {
 		c.Echo().Logger.Debug("DB Execution Error: on getting a chair by id", err)
 		return c.NoContent(http.StatusNotFound)
@@ -636,7 +636,7 @@ func searchRecommendChair(c echo.Context) error {
 	limit := 20 // should be const val
 	recommendChairs := make([]Estate, 0, limit)
 
-	sqlstr := `select * from chair where stock >= 1 order by view_count desc limit ?`
+	sqlstr := `SELECT * FROM chair WHERE stock >= 1 ORDER BY view_count DESC LIMIT ?`
 
 	err := db.Select(&recommendChairs, sqlstr, limit)
 	if err != nil {
@@ -784,10 +784,10 @@ func searchEstates(c echo.Context) error {
 	}
 
 	var estates EstateSearchResponse
-	sqlstr := "select * from estate where "
-	searchQuery := strings.Join(searchQueryArray, " and ")
+	sqlstr := "SELECT * FROM estate WHERE "
+	searchQuery := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " order by view_count desc limit ? offset ?"
+	limitOffset := " ORDER BY view_count DESC LIMIT ? OFFSET ?"
 	searchQueryParameter = append(searchQueryParameter, perpage, page*perpage)
 
 	matchestates := []EstateSchema{}
@@ -808,7 +808,7 @@ func searchRecommendEstate(c echo.Context) error {
 	limit := 20
 	recommentEstates := make([]Estate, 0, limit)
 
-	sqlstr := `select * from estate order by view_count desc limit ?`
+	sqlstr := `SELECT * FROM estate ORDER BY view_count DESC LIMIT ?`
 
 	err := db.Select(&recommentEstates, sqlstr, limit)
 	if err != nil {
@@ -828,7 +828,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	}
 
 	chair := ChairSchema{}
-	sqlstr := `select * from chair where id = ?`
+	sqlstr := `SELECT * FROM chair WHERE id = ?`
 
 	err = db.Get(&chair, sqlstr, id)
 	if err != nil {
@@ -841,7 +841,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	w := chair.Width
 	h := chair.Height
 	d := chair.Depth
-	sqlstr = `SELECT * FROM estate where (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) order by view_count desc limit ?`
+	sqlstr = `SELECT * FROM estate WHERE (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) ORDER BY view_count DESC LIMIT ?`
 	err = db.Select(&recommendEstates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, limit)
 	if err != nil {
 		c.Logger().Error(err)
