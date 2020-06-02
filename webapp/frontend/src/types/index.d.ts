@@ -12,6 +12,20 @@ export interface Estate {
   rent: number
 }
 
+export interface Chair {
+  id: string
+  name: string
+  thumbnail: string
+  description: string
+  height: number
+  width: number
+  depth: number
+  features: string
+  price: number
+  color: string
+  kind: string
+}
+
 export interface Coordinate {
   latitude: number
   longitude: number
