@@ -749,11 +749,11 @@ func searchEstates(c echo.Context) error {
 		searchOption = true
 
 		if estateRent.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "door_width >= ? ")
+			searchQueryArray = append(searchQueryArray, "rent >= ? ")
 			searchQueryParameter = append(searchQueryParameter, estateRent.Min)
 		}
 		if estateRent.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "door_width < ? ")
+			searchQueryArray = append(searchQueryArray, "rent < ? ")
 			searchQueryParameter = append(searchQueryParameter, estateRent.Max)
 		}
 
