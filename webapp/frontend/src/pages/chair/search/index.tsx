@@ -15,18 +15,19 @@ import { Pagination } from '@material-ui/lab'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
 import { Loading } from '../../../components/Loading'
 import { RangeForm } from '../../../components/RangeForm'
+import { RadioButtonForm } from '../../../components/RadioButtonForm'
 import { CheckboxForm } from '../../../components/CheckboxForm'
 
 import type { FC } from 'react'
-import type { EstateRangeMap, EstateSearchCondition, EstateSearchResponse } from '@types'
+import type { ChairRangeMap, ChairSearchCondition, ChairSearchResponse } from '@types'
 
 const ESTATE_COUNTS_PER_PAGE = 20
 
-interface EstateSearchProps {
-  estateRangeMap: EstateRangeMap
+interface ChairSearchProps {
+  chairRangeMap: ChairRangeMap
 }
 
-const useEstateSearchStyles = makeStyles(theme =>
+const useChairSearchStyles = makeStyles(theme =>
   createStyles({
     page: {
       margin: theme.spacing(2),
@@ -67,44 +68,74 @@ const useEstateSearchStyles = makeStyles(theme =>
   })
 )
 
-const FEATURE_LIST = [
-  'バストイレ別',
-  '駅から徒歩5分',
-  'ペット飼育可能',
-  'デザイナーズ物件'
+const COLOR_LIST = [
+  '黒',
+  '白',
+  '赤',
+  '青',
+  '緑',
+  '黄',
+  '紫',
+  'ピンク',
+  'オレンジ',
+  '水色',
+  'ネイビー',
+  'ベージュ'
 ]
 
-const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
-  const classes = useEstateSearchStyles()
+const FEATURE_LIST = [
+  '折りたたみ可',
+  '肘掛け',
+  'キャスター',
+  'リクライニング',
+  '高さ調節可',
+  'フットレスト'
+]
 
-  const [doorWidthRangeId, setDoorWidthRangeId] = useState('')
-  const [doorHeightRangeId, setDoorHeightRangeId] = useState('')
-  const [rentRangeId, setRentRangeId] = useState('')
+const KIND_LIST = [
+  'ゲーミングチェア',
+  '座椅子',
+  'エルゴノミクス',
+  'ハンモック'
+]
+
+const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
+  const classes = useChairSearchStyles()
+
+  const [priceRangeId, setPriceRangeId] = useState('')
+  const [heightRangeId, setHeightRangeId] = useState('')
+  const [widthRangeId, setWidthRangeId] = useState('')
+  const [depthRangeId, setDepthRangeId] = useState('')
+  const [color, setColor] = useState('')
+  const [kind, setKind] = useState('')
   const [features, setFeatures] = useState<boolean[]>(new Array(FEATURE_LIST.length).fill(false))
-  const [estateSearchCondition, setEstateSearchCondition] = useState<EstateSearchCondition | null>(null)
-  const [searchResult, setSearchResult] = useState<EstateSearchResponse | null>(null)
+  const [chairSearchCondition, setChairSearchCondition] = useState<ChairSearchCondition | null>(null)
+  const [searchResult, setSearchResult] = useState<ChairSearchResponse | null>(null)
   const [page, setPage] = useState<number>(0)
 
   const onSearch = () => {
     const selectedFeatures = FEATURE_LIST.filter((_, i) => features[i])
-    const condition: EstateSearchCondition = {
-      doorWidthRangeId,
-      doorHeightRangeId,
-      rentRangeId,
+    const condition: ChairSearchCondition = {
+      priceRangeId,
+      heightRangeId,
+      widthRangeId,
+      depthRangeId,
+      color,
+      kind,
       features: selectedFeatures.length > 0 ? selectedFeatures.join(',') : '',
       page: 0,
       perPage: ESTATE_COUNTS_PER_PAGE
     }
-    setEstateSearchCondition(condition)
+    setChairSearchCondition(condition)
 
     const params = new URLSearchParams()
     for (const [key, value] of Object.entries(condition)) {
       params.append(key, value.toString())
     }
-    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/estate/search?${params.toString()}`, { mode: 'cors' })
+    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/chair/search?${params.toString()}`, { mode: 'cors' })
       .then(async response => await response.json())
       .then(result => {
-        setSearchResult(result as EstateSearchResponse)
+        setSearchResult(result as ChairSearchResponse)
         setPage(0)
       })
       .catch(console.error)
@@ -116,24 +147,45 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
         <Container maxWidth='md'>
           <Box width={1} className={classes.search}>
             <RangeForm
-              name='ドアの横幅'
-              value={doorWidthRangeId}
-              rangeList={estateRangeMap.doorWidth}
-              onChange={(_, value) => { setDoorWidthRangeId(value) }}
+              name='イスの高さ'
+              value={heightRangeId}
+              rangeList={chairRangeMap.height}
+              onChange={(_, value) => { setHeightRangeId(value) }}
             />
 
             <RangeForm
-              name='ドアの高さ'
-              value={doorHeightRangeId}
-              rangeList={estateRangeMap.doorHeight}
-              onChange={(event, value) => { setDoorHeightRangeId(event.target.value) }}
+              name='イスの横幅'
+              value={widthRangeId}
+              rangeList={chairRangeMap.width}
+              onChange={(_, value) => { setWidthRangeId(value) }}
             />
 
             <RangeForm
-              name='賃料'
-              value={rentRangeId}
-              rangeList={estateRangeMap.rent}
-              onChange={(_, value) => { setRentRangeId(value) }}
+              name='イスの奥行き'
+              value={depthRangeId}
+              rangeList={chairRangeMap.depth}
+              onChange={(_, value) => { setDepthRangeId(value) }}
+            />
+
+            <RangeForm
+              name='価格'
+              value={priceRangeId}
+              rangeList={chairRangeMap.price}
+              onChange={(_, value) => { setPriceRangeId(value) }}
+            />
+
+            <RadioButtonForm
+              name='色'
+              value={color}
+              items={COLOR_LIST}
+              onChange={(_, value) => { setColor(value) }}
+            />
+
+            <RadioButtonForm
+              name='種類'
+              value={kind}
+              items={KIND_LIST}
+              onChange={(_, value) => { setKind(value) }}
             />
 
             <CheckboxForm
@@ -154,7 +206,7 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
         </Container>
       </Paper>
 
-      {estateSearchCondition ? (
+      {chairSearchCondition ? (
         <Paper className={classes.page}>
           <Container maxWidth='md'>
             <Box width={1} className={classes.search} alignItems='center'>
@@ -165,33 +217,32 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
                     page={page + 1}
                     onChange={(_, page) => {
                       setPage(page - 1)
-                      if (!estateSearchCondition) return
-                      const condition = { ...estateSearchCondition, page: page - 1 }
-                      setEstateSearchCondition(condition)
+                      if (!chairSearchCondition) return
+                      const condition = { ...chairSearchCondition, page: page - 1 }
+                      setChairSearchCondition(condition)
                       setSearchResult(null)
                       const params = new URLSearchParams()
                       for (const [key, value] of Object.entries(condition)) {
                         params.append(key, value.toString())
                       }
-                      fetch(`${process.env.API_SERVER_NAME ?? ''}/api/estate/search?${params.toString()}`, { mode: 'cors' })
+                      fetch(`${process.env.API_SERVER_NAME ?? ''}/api/chair/search?${params.toString()}`, { mode: 'cors' })
                         .then(async response => await response.json())
                         .then(result => {
-                          setSearchResult(result as EstateSearchResponse)
+                          setSearchResult(result as ChairSearchResponse)
                         })
                         .catch(console.error)
                     }}
                   />
                   {
-                    searchResult.estates.map((estate) => (
-                      <Link key={estate.id} href={`/estate/detail?id=${estate.id}`}>
+                    searchResult.chairs.map((chair) => (
+                      <Link key={chair.id} href={`/chair/detail?id=${chair.id}`}>
                         <Card className={classes.card}>
                           <CardActionArea className={classes.cardActionArea}>
-                            <CardMedia image={estate.thumbnail} className={classes.cardMedia} />
+                            <CardMedia image={chair.thumbnail} className={classes.cardMedia} />
                             <CardContent className={classes.cardContent}>
-                              <h2>{estate.name}</h2>
-                              <p>住所: {estate.address}</p>
-                              <p>価格: {estate.rent}</p>
-                              <p>詳細: {estate.description}</p>
+                              <h2>{chair.name}</h2>
+                              <p>価格: {chair.price}</p>
+                              <p>詳細: {chair.description}</p>
                             </CardContent>
                           </CardActionArea>
                         </Card>
@@ -210,21 +261,21 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
   )
 }
 
-const EstateSearchPage = () => {
-  const [estateRangeMap, setEstateRangeMap] = useState<EstateRangeMap | null>(null)
+const ChairSearchPage = () => {
+  const [chairRangeMap, setChairRangeMap] = useState<ChairRangeMap | null>(null)
 
   useEffect(() => {
-    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/estate/range`, { mode: 'cors' })
+    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/chair/range`, { mode: 'cors' })
       .then(async response => await response.json())
-      .then(estate => setEstateRangeMap(estate as EstateRangeMap))
+      .then(chair => setChairRangeMap(chair as ChairRangeMap))
       .catch(console.error)
   }, [])
 
-  return estateRangeMap ? (
-    <EstateSearch estateRangeMap={estateRangeMap} />
+  return chairRangeMap ? (
+    <ChairSearch chairRangeMap={chairRangeMap} />
   ) : (
     <Loading />
   )
 }
 
-export default EstateSearchPage
+export default ChairSearchPage

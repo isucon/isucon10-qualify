@@ -62,3 +62,27 @@ export interface EstateSearchResponse {
   estates: Estate[]
   count: number
 }
+
+export interface ChairRangeMap {
+  price: RangeList
+  height: RangeList
+  width: RangeList
+  depth: RangeList
+}
+
+export interface ChairSearchCondition {
+  priceRangeId: string
+  heightRangeId: string
+  widthRangeId: string
+  depthRangeId: string
+  color: string
+  kind: string
+  features: string
+  page: number
+  perPage: number
+}
+
+export interface ChairSearchResponse {
+  chairs: Chair[]
+  count: number
+}
