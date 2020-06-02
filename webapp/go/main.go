@@ -771,12 +771,28 @@ func searchEstates(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "search condition not found")
 	}
 
-	var estates EstateSearchResponse
-	matchestates := []EstateSchema{}
-	searchQuery := strings.Join(searchQueryArray, " and ")
-	sqlstr := "select * from estate where " + searchQuery
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		c.Logger().Debug("Invalid format page parameter : ", err)
+		return c.NoContent(http.StatusBadRequest)
+	}
 
-	err = db.Select(&matchestates, sqlstr, searchQueryParameter...)
+	perpage, err := strconv.Atoi(c.QueryParam("perPage"))
+	if err != nil {
+		c.Logger().Debug("Invalid format perPage parameter : ", err)
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	var estates EstateSearchResponse
+	sqlstr := "select * from estate where "
+	searchQuery := strings.Join(searchQueryArray, " and ")
+
+	limitOffset := " order by view_count desc limit ? offset ?"
+	searchQueryParameter = append(searchQueryParameter, perpage, page*perpage)
+
+	matchestates := []EstateSchema{}
+    fmt.Printf("%s%s%s", sqlstr, searchQuery, limitOffset, searchQueryParameter)
+	err = db.Select(&matchestates, sqlstr+searchQuery+limitOffset, searchQueryParameter...)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
