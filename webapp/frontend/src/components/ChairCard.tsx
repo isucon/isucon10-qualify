@@ -8,10 +8,10 @@ import {
 import { makeStyles, createStyles } from '@material-ui/core/styles'
 
 import type { FC } from 'react'
-import type { Estate } from '@types'
+import type { Chair } from '@types'
 
 interface Props {
-  estate: Estate
+  chair: Chair
 }
 
 const useStyles = makeStyles(theme =>
@@ -33,21 +33,21 @@ const useStyles = makeStyles(theme =>
   })
 )
 
-export const EstateCard: FC<Props> = ({ estate }) => {
+export const ChairCard: FC<Props> = ({ chair }) => {
   const classes = useStyles()
   return (
-    <Link href={`/estate/detail?id=${estate.id}`}>
+    <Link href={`/chair/detail?id=${chair.id}`}>
       <Card className={classes.cardContainer}>
         <CardActionArea component='div' disableRipple className={classes.card}>
           <CardMedia
             className={classes.cardMedia}
-            image={estate.thumbnail}
-            title={estate.name}
+            image={chair.thumbnail}
+            title={chair.name}
           />
           <CardContent>
-            <h3> {estate.name} </h3>
-            <p> 住所: {estate.address} </p>
-            <p> 家賃: {estate.rent} 円</p>
+            <h3> {chair.name} </h3>
+            <p> 価格: {chair.price} 円 </p>
+            <p> 種類: {chair.kind} </p>
           </CardContent>
         </CardActionArea>
       </Card>
