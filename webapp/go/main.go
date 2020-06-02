@@ -255,8 +255,8 @@ type EstateSchema struct {
 	Features    string  `db:"features"`
 }
 
-func (es EstateSchema) ToEstate() Estate {
-	return Estate{
+func (es *EstateSchema) ToEstate() *Estate {
+	return &Estate{
 		ID:          es.ID,
 		Thumbnail:   es.Thumbnail,
 		Name:        es.Name,
@@ -792,7 +792,7 @@ func searchEstates(c echo.Context) error {
 	}
 
 	for _, e := range matchestates {
-		estates.Estates = append(estates.Estates, e.ToEstate())
+		estates.Estates = append(estates.Estates, *e.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, estates)
@@ -845,7 +845,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	re := make([]Estate, 0, limit)
 
 	for _, estate := range recommendEstates {
-		re = append(re, estate.ToEstate())
+		re = append(re, *estate.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, re)
@@ -901,7 +901,7 @@ func searchEstateNazotte(c echo.Context) error {
 
 	re := make([]Estate, 0, len(estatesInPolygon))
 	for _, estate := range estatesInPolygon {
-		re = append(re, estate.ToEstate())
+		re = append(re, *estate.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, re)
