@@ -503,11 +503,11 @@ func searchChairs(c echo.Context) error {
 		}
 
 		if chairDepth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "width >= ? ")
+			searchQueryArray = append(searchQueryArray, "depth>= ? ")
 			queryParams = append(queryParams, chairDepth.Min)
 		}
 		if chairDepth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "width < ? ")
+			searchQueryArray = append(searchQueryArray, "depth < ? ")
 			queryParams = append(queryParams, chairDepth.Max)
 		}
 
@@ -587,7 +587,7 @@ func buyChair(c echo.Context) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("UPDATE chair SET view_count = ? WHERE id = ?", chair.Stock-1, id)
+	_, err = tx.Exec("UPDATE chair SET stock= ? WHERE id = ?", chair.Stock-1, id)
 	if err != nil {
 		c.Echo().Logger.Debug("view_count update failed :", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -628,7 +628,7 @@ func responseChairRange(c echo.Context) error {
 
 func searchRecommendChair(c echo.Context) error {
 	limit := 20 // should be const val
-	recommendChairs := make([]Estate, 0, limit)
+	var recommendChairs []ChairSchema
 
 	sqlstr := `SELECT * FROM chair WHERE stock >= 1 ORDER BY view_count DESC LIMIT ?`
 
@@ -638,7 +638,13 @@ func searchRecommendChair(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, recommendChairs)
+	var rc ChairSearchResponce
+
+	for _, chair := range recommendChairs {
+		rc.Chairs = append(rc.Chairs, *(chair.ToChair()))
+	}
+
+	return c.JSON(http.StatusOK, rc)
 }
 
 func getEstateDetail(c echo.Context) error {
@@ -800,7 +806,7 @@ func searchEstates(c echo.Context) error {
 
 func searchRecommendEstate(c echo.Context) error {
 	limit := 20
-	recommentEstates := make([]Estate, 0, limit)
+	recommentEstates := make([]EstateSchema, 0, limit)
 
 	sqlstr := `SELECT * FROM estate ORDER BY view_count DESC LIMIT ?`
 
@@ -809,8 +815,13 @@ func searchRecommendEstate(c echo.Context) error {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+	var re EstateSearchResponse
 
-	return c.JSON(http.StatusOK, recommentEstates)
+	for _, estate := range recommentEstates {
+		re.Estates = append(re.Estates, estate.ToEstate())
+	}
+
+	return c.JSON(http.StatusOK, re)
 }
 
 func searchRecommendEstateWithChair(c echo.Context) error {
@@ -831,21 +842,21 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	}
 
 	limit := 20
-	recommendEstates := make([]EstateSchema, 0, limit)
+	var recommendEstates []EstateSchema
 	w := chair.Width
 	h := chair.Height
 	d := chair.Depth
-	sqlstr = `SELECT * FROM estate WHERE (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) ORDER BY view_count DESC LIMIT ?`
+	sqlstr = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) order by view_count desc limit ?`
 	err = db.Select(&recommendEstates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, limit)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	re := make([]Estate, 0, limit)
+	var re EstateSearchResponse
 
 	for _, estate := range recommendEstates {
-		re = append(re, *estate.ToEstate())
+		re.Estates = append(re.Estates, estate.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, re)
