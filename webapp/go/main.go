@@ -405,6 +405,10 @@ func getChairDetail(c echo.Context) error {
 	sqlstr := "SELECT * FROM chair WHERE id = ?"
 	err = db.Get(&chair, sqlstr, id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			c.Echo().Logger.Debug("requested id's chair not found : ", id)
+			return c.JSON(http.StatusNoContent, chair.ToChair())
+		}
 		c.Echo().Logger.Debug("Faild to get the chair from id", err)
 		return c.NoContent(http.StatusInternalServerError)
 	} else if chair.Stock <= 0 {
@@ -535,7 +539,7 @@ func searchChairs(c echo.Context) error {
 
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil {
-		c.Logger().Debug("Invalid format page parameter : ", err)
+		c.Logger().Info("Invalid format page parameter : ", err)
 		return c.NoContent(http.StatusBadRequest)
 	}
 
@@ -576,6 +580,10 @@ func buyChair(c echo.Context) error {
 	var chair ChairSchema
 	err = db.Get(&chair, "SELECT * FROM chair WHERE id = ?", id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			c.Echo().Logger.Infof("buyChair chair id \"%v\" not found", id)
+			return c.NoContent(http.StatusNoContent)
+		}
 		c.Echo().Logger.Debug("DB Execution Error: on getting a chair by id", err)
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -587,7 +595,7 @@ func buyChair(c echo.Context) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("UPDATE chair SET stock= ? WHERE id = ?", chair.Stock-1, id)
+	_, err = tx.Exec("UPDATE chair SET stock = ? WHERE id = ?", chair.Stock-1, id)
 	if err != nil {
 		c.Echo().Logger.Debug("view_count update failed :", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -657,6 +665,10 @@ func getEstateDetail(c echo.Context) error {
 	var estate EstateSchema
 	err = db.Get(&estate, "SELECT * FROM estate WHERE id = ?", id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			c.Echo().Logger.Infof("getEstateDetail estate id %v not found", id)
+			return c.JSON(http.StatusNoContent, estate.ToEstate)
+		}
 		c.Echo().Logger.Debug("Database Execution error :", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -818,7 +830,7 @@ func searchRecommendEstate(c echo.Context) error {
 	var re EstateSearchResponse
 
 	for _, estate := range recommentEstates {
-		re.Estates = append(re.Estates, estate.ToEstate())
+		re.Estates = append(re.Estates, *estate.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, re)
@@ -837,6 +849,10 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 
 	err = db.Get(&chair, sqlstr, id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			c.Logger().Debugf("Reqested chair id \"%v\" nof found", id)
+			return c.String(http.StatusBadRequest, "Chair Not Found Invalid Chair ID")
+		}
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -856,7 +872,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	var re EstateSearchResponse
 
 	for _, estate := range recommendEstates {
-		re.Estates = append(re.Estates, estate.ToEstate())
+		re.Estates = append(re.Estates, *estate.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, re)
