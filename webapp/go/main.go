@@ -386,7 +386,7 @@ func main() {
 	// should make this handler func with mano
 	//e.GET("/api/recommended_estate/:id", searchRecommendEstateWithChair)
 
-	e.GET("/api/recommendes_chair", searchRecommendChair)
+	e.GET("/api/recommended_chair", searchRecommendChair)
 
 	var err error
 	db, err = ConnectDB()
@@ -634,7 +634,7 @@ func responseChairRange(c echo.Context) error {
 
 func searchRecommendChair(c echo.Context) error {
 	limit := 20 // should be const val
-	recommendChairs := make([]Estate, 0, limit)
+	var recommendChairs []ChairSchema
 
 	sqlstr := `select * from chair where stock >= 1 order by view_count desc limit ?`
 
@@ -644,7 +644,13 @@ func searchRecommendChair(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, recommendChairs)
+	var rc ChairSearchResponce
+
+	for _, chair := range recommendChairs {
+		rc.Chairs = append(rc.Chairs, *(chair.ToChair()))
+	}
+
+	return c.JSON(http.StatusOK, rc)
 }
 
 func getEstateDetail(c echo.Context) error {
@@ -806,7 +812,7 @@ func searchEstates(c echo.Context) error {
 
 func searchRecommendEstate(c echo.Context) error {
 	limit := 20
-	recommentEstates := make([]Estate, 0, limit)
+	recommentEstates := make([]EstateSchema, 0, limit)
 
 	sqlstr := `select * from estate order by view_count desc limit ?`
 
@@ -815,8 +821,13 @@ func searchRecommendEstate(c echo.Context) error {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+	var re EstateSearchResponse
 
-	return c.JSON(http.StatusOK, recommentEstates)
+	for _, estate := range recommentEstates {
+		re.Estates = append(re.Estates, estate.ToEstate())
+	}
+
+	return c.JSON(http.StatusOK, re)
 }
 
 func searchRecommendEstateWithChair(c echo.Context) error {
@@ -837,21 +848,21 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	}
 
 	limit := 20
-	recommendEstates := make([]EstateSchema, 0, limit)
+	var recommendEstates []EstateSchema
 	w := chair.Width
 	h := chair.Height
 	d := chair.Depth
-	sqlstr = `SELECT * FROM estate where (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<= ?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) OR (door_width <= ? AND door_height<=?) order by view_count desc limit ?`
+	sqlstr = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) order by view_count desc limit ?`
 	err = db.Select(&recommendEstates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, limit)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	re := make([]Estate, 0, limit)
+	var re EstateSearchResponse
 
 	for _, estate := range recommendEstates {
-		re = append(re, estate.ToEstate())
+		re.Estates = append(re.Estates, estate.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, re)
