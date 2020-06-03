@@ -34,7 +34,7 @@ func TestRecommendEstate(t *testing.T) {
 
 		var expectedEstates []main.Estate
 		for _, estate := range estates {
-			expectedEstates = append(expectedEstates, estate.ToEstate())
+			expectedEstates = append(expectedEstates, *estate.ToEstate())
 		}
 
 		resp, err := client.Do(req)
@@ -73,12 +73,12 @@ func TestRecommendEstateWithChair(t *testing.T) {
 		chairLength := []int{int(chair.Height), int(chair.Width), int(chair.Depth)}
 		sort.Ints(chairLength)
 
-        t.Logf("%v",chairLength)
+		t.Logf("%v", chairLength)
 		q := `select * from estate where (door_width >= ? and door_height >= ?) or (door_width >= ? and door_height>=?) order by view_count desc limit 20`
 		db.Select(&estates, q, chairLength[0], chairLength[1], chairLength[1], chairLength[0])
 		var expectedEstates []main.Estate
 		for _, estate := range estates {
-			expectedEstates = append(expectedEstates, estate.ToEstate())
+			expectedEstates = append(expectedEstates, *estate.ToEstate())
 		}
 
 		resp, err := client.Do(req)
@@ -92,7 +92,7 @@ func TestRecommendEstateWithChair(t *testing.T) {
 		_ = json.Unmarshal(body, &actualEstates)
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-        assert.Equal(t, expectedEstates, actualEstates.Estates)
+		assert.Equal(t, expectedEstates, actualEstates.Estates)
 	})
 }
 func TestRecommendChair(t *testing.T) {
