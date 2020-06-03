@@ -6,7 +6,6 @@ import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
-import Button from '@material-ui/core/Button'
 import IconButton from '@material-ui/core/IconButton'
 import MenuIcon from '@material-ui/icons/Menu'
 import EventSeatIcon from '@material-ui/icons/EventSeat'
@@ -19,6 +18,10 @@ const useStyles = makeStyles(theme =>
   createStyles({
     menuButton: {
       marginRight: theme.spacing(2)
+    },
+    logo: {
+      height: 48,
+      cursor: 'pointer'
     }
   })
 )
@@ -56,7 +59,7 @@ export const NavBar: FC = () => {
           </MenuItem>
         </Menu>
         <Link href='/'>
-          <Button> isuumo </Button>
+          <img className={classes.logo} src='/images/logo.png' />
         </Link>
       </Toolbar>
     </AppBar>
