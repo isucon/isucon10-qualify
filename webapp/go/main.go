@@ -509,11 +509,11 @@ func searchChairs(c echo.Context) error {
 		}
 
 		if chairDepth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "width >= ? ")
+			searchQueryArray = append(searchQueryArray, "depth>= ? ")
 			queryParams = append(queryParams, chairDepth.Min)
 		}
 		if chairDepth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "width < ? ")
+			searchQueryArray = append(searchQueryArray, "depth < ? ")
 			queryParams = append(queryParams, chairDepth.Max)
 		}
 
@@ -593,7 +593,7 @@ func buyChair(c echo.Context) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("UPDATE chair SET view_count = ? WHERE id = ?", chair.Stock-1, id)
+	_, err = tx.Exec("UPDATE chair SET stock= ? WHERE id = ?", chair.Stock-1, id)
 	if err != nil {
 		c.Echo().Logger.Debug("view_count update failed :", err)
 		return c.NoContent(http.StatusInternalServerError)
