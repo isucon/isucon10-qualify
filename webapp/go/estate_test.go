@@ -45,7 +45,7 @@ func TestGetEstateDetail(t *testing.T) {
 		db.Get(&postEstate, q, expectedID)
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		assert.Equal(t, preEstate.ToEstate(), actualEstate)
+		assert.Equal(t, *preEstate.ToEstate(), actualEstate)
 		assert.EqualValues(t, postEstate.ViewCount-preEstate.ViewCount, 1)
 	})
 }
@@ -121,7 +121,7 @@ func TestSearchEstates(t *testing.T) {
 		defer resp.Body.Close()
 		var re []main.Estate
 		for _, estate := range estates {
-			re = append(re, estate.ToEstate())
+			re = append(re, *estate.ToEstate())
 		}
 		assert.Equal(t, re, actualEstates.Estates)
 	})
