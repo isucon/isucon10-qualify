@@ -1,16 +1,29 @@
 import { useEffect } from 'react'
 import Head from 'next/head'
-import { ThemeProvider } from '@material-ui/core/styles'
+import { ThemeProvider, makeStyles, createStyles } from '@material-ui/core/styles'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import theme from '../plugins/theme'
+import { NavBar } from '../components/NavBar'
 
 import type { FC } from 'react'
 import type { AppProps } from 'next/app'
 
 import 'leaflet/dist/leaflet.css'
 
+const useStyles = makeStyles(() =>
+  createStyles({
+    container: {
+      width: '100vw',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column'
+    }
+  })
+)
+
 const MyApp: FC<AppProps> = props => {
   const { Component, pageProps } = props
+  const classes = useStyles()
 
   useEffect(() => {
     // Remove the server-side injected CSS.
@@ -39,7 +52,10 @@ const MyApp: FC<AppProps> = props => {
       </Head>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Component {...pageProps} />
+        <div className={classes.container}>
+          <NavBar />
+          <Component {...pageProps} />
+        </div>
       </ThemeProvider>
     </>
   )

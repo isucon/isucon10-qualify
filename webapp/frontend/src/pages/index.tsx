@@ -47,7 +47,6 @@ const TopPage = () => {
 
   return (
     <Container maxWidth='md'>
-      <h1> isuumo </h1>
       <Paper className={classes.paper}>
         <h2> イス・物件を探す </h2>
         <Link href='/chair/search'>
