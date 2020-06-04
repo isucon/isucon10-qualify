@@ -40,8 +40,8 @@ def generate_estate_dummy_data():
     return {
         "thumbnail": '/images/estate/{}.jpg'.format(fake.sha256(raw_output=False)),
         "name": fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name()),
-        "latitude": latlng[0],
-        "longitude": latlng[1],
+        "latitude": float(latlng[0]),
+        "longitude": float(latlng[1]),
         "address": fake.address(),
         "rent": random.randint(50000, 200000),
         "door_height": random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER),
@@ -66,4 +66,17 @@ if __name__ == '__main__':
             sqlfile.write(sqlCommand)
 
             for estate in bulk_list:
-                txtfile.write(json.dumps(estate, ensure_ascii=False) + "\n")
+                json_string = json.dumps({
+                    "thumbnail": estate["thumbnail"],
+                    "name": estate["name"],
+                    "latitude": estate["latitude"],
+                    "longitude": estate["longitude"],
+                    "address": estate["address"],
+                    "rent": estate["rent"],
+                    "doorHeight": estate["door_height"],
+                    "doorWidth": estate["door_width"],
+                    "viewCount": estate["view_count"],
+                    "description": estate["description"],
+                    "features": estate["features"]
+                }, ensure_ascii=False)
+                txtfile.write(json_string + "\n")

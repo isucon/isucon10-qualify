@@ -130,4 +130,18 @@ if __name__ == "__main__":
             sqlfile.write(sqlCommand)
 
             for chair in bulk_list:
-                txtfile.write(json.dumps(chair, ensure_ascii=False) + "\n")
+                json_string = json.dumps({
+                    "thumbnail": chair["thumbnail"],
+                    "name": chair["name"],
+                    "price": chair["price"],
+                    "height": chair["height"],
+                    "width": chair["width"],
+                    "depth": chair["depth"],
+                    "color": chair["color"],
+                    "view_count": chair["view_count"],
+                    "stock": chair["stock"],
+                    "description": chair["description"],
+                    "features": chair["features"],
+                    "kind": chair["kind"]
+                }, ensure_ascii=False)
+                txtfile.write(json_string + "\n")
