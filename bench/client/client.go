@@ -1,14 +1,12 @@
 package client
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/morikuni/failure"
 	// "github.com/isucon10-qualify/isucon10-qualify/bench/asset"
@@ -73,24 +71,6 @@ func urlParse(ref string) (*url.URL, error) {
 		Scheme: u.Scheme,
 		Host:   u.Host,
 	}, nil
-}
-
-func NewClient(userAgent string) *Client {
-	return &Client{
-		userAgent: userAgent,
-		httpClient: &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					// HTTPの時は無視されるだけ
-					ServerName: ShareTargetURLs.TargetHost,
-				},
-			},
-			Timeout: time.Duration(DefaultAPITimeout) * time.Second,
-			CheckRedirect: func(req *http.Request, via []*http.Request) error {
-				return fmt.Errorf("redirect attempted")
-			},
-		},
-	}
 }
 
 func (c *Client) newGetRequest(u url.URL, spath string) (*http.Request, error) {

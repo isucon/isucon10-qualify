@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -20,6 +22,7 @@ const SRID = 6668
 const LIMIT = 20
 
 var db *sqlx.DB
+var MySQLConnectionData *MySQLConnectionEnv
 
 var estateRentRanges = []*Range{
 	{
@@ -337,6 +340,24 @@ type BoundingBox struct {
 	BottomRightCorner Coordinate
 }
 
+type MySQLConnectionEnv struct {
+	Host     string
+	Port     string
+	User     string
+	DBName   string
+	Password string
+}
+
+func NewMySQLConnectionEnv() *MySQLConnectionEnv {
+	return &MySQLConnectionEnv{
+		Host:     getEnv("MYSQL_HOST", "127.0.0.1"),
+		Port:     getEnv("MYSQL_PORT", "3306"),
+		User:     getEnv("MYSQL_USER", "isucon"),
+		DBName:   getEnv("MYSQL_DBNAME", "isuumo"),
+		Password: getEnv("MYSQL_PASS", "isucon"),
+	}
+}
+
 func getEnv(key, defaultValue string) string {
 	val := os.Getenv(key)
 	if val != "" {
@@ -346,13 +367,8 @@ func getEnv(key, defaultValue string) string {
 }
 
 //ConnectDB isuumoデータベースに接続する
-func ConnectDB() (*sqlx.DB, error) {
-	host := getEnv("MYSQL_HOST", "127.0.0.1")
-	port := getEnv("MYSQL_PORT", "3306")
-	user := getEnv("MYSQL_USER", "isucon")
-	dbname := getEnv("MYSQL_DBNAME", "isuumo")
-	password := getEnv("MYSQL_PASS", "isucon")
-	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", user, password, host, port, dbname)
+func (mc *MySQLConnectionEnv) ConnectDB() (*sqlx.DB, error) {
+	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", mc.User, mc.Password, mc.Host, mc.Port, mc.DBName)
 	return sqlx.Open("mysql", dsn)
 }
 
@@ -365,6 +381,9 @@ func main() {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+
+	// Initialize
+	e.GET("/initialize", initialize)
 
 	// Chair Handler
 	e.GET("/api/chair/:id", getChairDetail)
@@ -384,8 +403,10 @@ func main() {
 	e.GET("/api/recommended_estate/:id", searchRecommendEstateWithChair)
 	e.GET("/api/recommendes_chair", searchRecommendChair)
 
+	MySQLConnectionData = NewMySQLConnectionEnv()
+
 	var err error
-	db, err = ConnectDB()
+	db, err = MySQLConnectionData.ConnectDB()
 	if err != nil {
 		e.Logger.Fatalf("DB connection faild : %v", err)
 	}
@@ -394,6 +415,32 @@ func main() {
 	// Start server
 	serverPort := fmt.Sprintf(":%v", getEnv("SERVER_PORT", "1323"))
 	e.Logger.Fatal(e.Start(serverPort))
+}
+
+func initialize(c echo.Context) error {
+	fpathprefix := filepath.Join("..", "mysql", "db")
+	paths := []string{
+		filepath.Join(fpathprefix, "0_Schema.sql"),
+		filepath.Join(fpathprefix, "1_DummyEstateData.sql"),
+		filepath.Join(fpathprefix, "2_DummyChairData.sql"),
+	}
+
+	for _, p := range paths {
+		sqlFile, _ := filepath.Abs(p)
+		cmdstr := fmt.Sprintf("mysql -h %v -u %v -p%v %v < %v",
+			MySQLConnectionData.Host,
+			MySQLConnectionData.User,
+			MySQLConnectionData.Password,
+			MySQLConnectionData.DBName,
+			sqlFile,
+		)
+		if err := exec.Command("bash", "-c", cmdstr).Run(); err != nil {
+			c.Logger().Errorf("Initialize script error : %v", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+	}
+
+	return c.NoContent(http.StatusOK)
 }
 
 func getChairDetail(c echo.Context) error {

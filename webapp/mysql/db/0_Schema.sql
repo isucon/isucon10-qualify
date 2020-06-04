@@ -1,4 +1,10 @@
+drop database if exists isuumo;
+create database isuumo default character set utf8mb4;
+
 use isuumo;
+
+drop table if exists estate;
+drop table if exists chair;
 
 create table estate (
     id integer primary key auto_increment,

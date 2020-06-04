@@ -22,6 +22,8 @@ services:
       - 60s
       - -wait
       - tcp://mysql:3306
+    volumes:
+      - ./mysql/db:/go/src/mysql/db
     environment:
       MYSQL_DATABASE: isuumo
       MYSQL_USER: isucon
