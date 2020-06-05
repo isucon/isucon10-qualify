@@ -3,6 +3,8 @@ import random
 import time
 import string
 import json
+import os
+import shutil
 from faker import Faker
 fake = Faker("ja_JP")
 Faker.seed(19700101)
@@ -11,6 +13,7 @@ random.seed(19700101)
 DESCRIPTION_LINES_FILE = "./description_chair.txt"
 OUTPUT_SQL_FILE = "./result/2_DummyChairData.sql"
 OUTPUT_TXT_FILE = "./result/chair_json.txt"
+CHAIR_IMAGE_FILE_PATH = "../webapp/frontend/public/images/chair"
 RECORD_COUNT = 10 ** 4
 BULK_INSERT_COUNT = 500
 CHAIR_MIN_CENTIMETER = 30
@@ -93,11 +96,22 @@ CHAIR_KIND_LIST = [
     "ハンモック"
 ]
 
+CHAIR_IMAGE_LIST = [
+    os.path.join(CHAIR_IMAGE_FILE_PATH, "1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg"),
+    os.path.join(CHAIR_IMAGE_FILE_PATH, "3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg"),
+    os.path.join(CHAIR_IMAGE_FILE_PATH, "9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg")
+]
+
 def generate_chair_dummy_data():
     features_length = random.randint(0, len(CHAIR_FEATURE_LIST) - 1)
+    
+    new_chair_image_name = os.path.join(CHAIR_IMAGE_FILE_PATH, "{}.jpg".format(fake.sha256(raw_output=False)))
+    src_chair_image_filename = fake.word(ext_word_list=CHAIR_IMAGE_LIST)
+
+    shutil.copy(src_chair_image_filename, new_chair_image_name)
 
     return {
-        "thumbnail": "/images/chair/{}.jpg".format(fake.sha256(raw_output=False)),
+        "thumbnail": "/images/chair/{}.jpg".format(new_chair_image_name),
         "name": "".join([
             fake.word(ext_word_list=CHAIR_NAME_PREFIX_LIST),
             fake.word(ext_word_list=CHAIR_PROPERTY_LIST),

@@ -3,6 +3,8 @@ import random
 import time
 import string
 import json
+import os
+import shutil
 from faker import Faker
 fake = Faker('ja_JP')
 Faker.seed(19700101)
@@ -11,6 +13,7 @@ random.seed(19700101)
 DESCRIPTION_LINES_FILE = "./description_estate.txt"
 OUTPUT_SQL_FILE = "./result/1_DummyEstateData.sql"
 OUTPUT_TXT_FILE = "./result/estate_json.txt"
+ESTATE_IMAGE_FILE_PATH = "../webapp/frontend/public/images/estate"
 RECORD_COUNT = 10 ** 4
 BULK_INSERT_COUNT = 500
 DOOR_MIN_CENTIMETER = 30
@@ -34,11 +37,23 @@ ESTATE_FEATURE_LIST = [
     "デザイナーズ物件",
 ]
 
+ESTATE_IMAGE_LIST = [
+    os.path.join(ESTATE_IMAGE_FILE_PATH, "1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg"),
+    os.path.join(ESTATE_IMAGE_FILE_PATH, "3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg"),
+    os.path.join(ESTATE_IMAGE_FILE_PATH, "9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg")
+]
+
 def generate_estate_dummy_data():
     latlng = fake.local_latlng(country_code='JP', coords_only=True)
     feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
+
+    new_estate_image_name = os.path.join(ESTATE_IMAGE_FILE_PATH, "{}.jpg".format(fake.sha256(raw_output=False)))
+    src_estate_image_filename = fake.word(ext_word_list=ESTATE_IMAGE_LIST)
+
+    shutil.copy(src_estate_image_filename, new_estate_image_name)
+
     return {
-        "thumbnail": '/images/estate/{}.jpg'.format(fake.sha256(raw_output=False)),
+        "thumbnail": '/images/estate/{}.jpg'.format(new_estate_image_name),
         "name": fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name()),
         "latitude": float(latlng[0]),
         "longitude": float(latlng[1]),
