@@ -9,6 +9,7 @@
     "start": "next start",
     "export": "next export",
     "serve": "serve out",
+    "deploy": "cp -r out/ ../public",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
