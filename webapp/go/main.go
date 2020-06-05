@@ -983,9 +983,9 @@ func searchEstateNazotte(c echo.Context) error {
 		}
 	}
 
-	re := make([]Estate, 0, len(estatesInPolygon))
+	var re EstateSearchResponse
 	for _, estate := range estatesInPolygon {
-		re = append(re, *estate.ToEstate())
+		re.Estates = append(re.Estates, *estate.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, re)
