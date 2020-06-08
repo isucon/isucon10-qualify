@@ -102,7 +102,7 @@ CHAIR_IMAGE_LIST = [
     os.path.join(CHAIR_IMAGE_FILE_PATH, "9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg")
 ]
 
-def generate_chair_dummy_data():
+def generate_chair_dummy_data(chair_id):
     features_length = random.randint(0, len(CHAIR_FEATURE_LIST) - 1)
     
     new_chair_image_name = os.path.join(CHAIR_IMAGE_FILE_PATH, "{}.jpg".format(fake.sha256(raw_output=False)))
@@ -111,6 +111,7 @@ def generate_chair_dummy_data():
     shutil.copy(src_chair_image_filename, new_chair_image_name)
 
     return {
+        "id": chair_id,
         "thumbnail": "/images/chair/{}.jpg".format(new_chair_image_name),
         "name": "".join([
             fake.word(ext_word_list=CHAIR_NAME_PREFIX_LIST),
@@ -138,13 +139,16 @@ if __name__ == "__main__":
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(RECORD_COUNT, BULK_INSERT_COUNT))
 
+        chair_id = 1
         for _ in range(RECORD_COUNT // BULK_INSERT_COUNT):
-            bulk_list = [generate_chair_dummy_data() for i in range(BULK_INSERT_COUNT)]
-            sqlCommand = f"""INSERT INTO chair (thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['view_count']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", bulk_list))};"""
+            bulk_list = [generate_chair_dummy_data(chair_id + i) for i in range(BULK_INSERT_COUNT)]
+            chair_id += BULK_INSERT_COUNT
+            sqlCommand = f"""INSERT INTO chair (id, thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['id']}', '{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['view_count']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", bulk_list))};"""
             sqlfile.write(sqlCommand)
 
             for chair in bulk_list:
                 json_string = json.dumps({
+                    "id": chair["id"],
                     "thumbnail": chair["thumbnail"],
                     "name": chair["name"],
                     "price": chair["price"],

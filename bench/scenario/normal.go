@@ -7,11 +7,8 @@ import (
 )
 
 func initialize(ctx context.Context) error {
-	c, err := client.NewClientForInitialize()
-	if err != nil {
-		return err
-	}
-	err = c.Initialize(ctx)
+	c := client.NewClientForInitialize()
+	err := c.Initialize(ctx)
 	if err != nil {
 		return err
 	}

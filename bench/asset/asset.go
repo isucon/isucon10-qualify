@@ -6,11 +6,12 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 var (
-	chairs  []Chair
-	estates []Estate
+	chairMap  sync.Map
+	estateMap sync.Map
 )
 
 // メモリ上にデータを展開する
@@ -22,14 +23,13 @@ func Initialize(dataDir string) {
 	}
 
 	scanner := bufio.NewScanner(f)
-	chair := &Chair{}
-
 	for scanner.Scan() {
-		err := json.Unmarshal([]byte(scanner.Text()), chair)
+		var chair Chair
+		err := json.Unmarshal([]byte(scanner.Text()), &chair)
 		if err != nil {
 			log.Fatal(err)
 		}
-		chairs = append(chairs, *chair)
+		chairMap.Store(chair.ID, &chair)
 	}
 	f.Close()
 
@@ -39,14 +39,29 @@ func Initialize(dataDir string) {
 	}
 
 	scanner = bufio.NewScanner(f)
-	estate := &Estate{}
-
 	for scanner.Scan() {
-		err := json.Unmarshal([]byte(scanner.Text()), estate)
+		var estate Estate
+		err := json.Unmarshal([]byte(scanner.Text()), &estate)
 		if err != nil {
 			log.Fatal(err)
 		}
-		estates = append(estates, *estate)
+		estateMap.Store(estate.ID, &estate)
 	}
 	f.Close()
+}
+
+func GetChairFromID(ID int64) *Chair {
+	chair, ok := chairMap.Load(ID)
+	if !ok {
+		return nil
+	}
+	return chair.(*Chair)
+}
+
+func GetEstateFromID(ID int64) *Estate {
+	estate, ok := estateMap.Load(ID)
+	if !ok {
+		return nil
+	}
+	return estate.(*Estate)
 }

@@ -25,8 +25,8 @@ func NewClient(userAgent string) *Client {
 	}
 }
 
-func NewClientForInitialize() (*Client, error) {
-	c := &Client{
+func NewClientForInitialize() *Client {
+	return &Client{
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
@@ -39,6 +39,4 @@ func NewClientForInitialize() (*Client, error) {
 			},
 		},
 	}
-
-	return c, nil
 }

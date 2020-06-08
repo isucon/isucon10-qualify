@@ -43,7 +43,7 @@ ESTATE_IMAGE_LIST = [
     os.path.join(ESTATE_IMAGE_FILE_PATH, "9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg")
 ]
 
-def generate_estate_dummy_data():
+def generate_estate_dummy_data(estate_id):
     latlng = fake.local_latlng(country_code='JP', coords_only=True)
     feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
 
@@ -53,7 +53,8 @@ def generate_estate_dummy_data():
     shutil.copy(src_estate_image_filename, new_estate_image_name)
 
     return {
-        "thumbnail": '/images/estate/{}.jpg'.format(new_estate_image_name),
+        "id": estate_id,
+        "thumbnail": '/images/estate/{}.jpg'.format(fake.sha256(raw_output=False)),
         "name": fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name()),
         "latitude": float(latlng[0]),
         "longitude": float(latlng[1]),
@@ -75,13 +76,16 @@ if __name__ == '__main__':
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(RECORD_COUNT, BULK_INSERT_COUNT))
 
+        estate_id = 1
         for _ in range(RECORD_COUNT//BULK_INSERT_COUNT):
-            bulk_list = [generate_estate_dummy_data() for i in range(BULK_INSERT_COUNT)]
-            sqlCommand = f"""INSERT INTO estate (thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features) VALUES {', '.join(map(lambda estate: f"('{estate['thumbnail']}', '{estate['name']}', '{estate['latitude']}' , '{estate['longitude']}', '{estate['address']}', '{estate['rent']}', '{estate['door_height']}', '{estate['door_width']}', '{estate['view_count']}', '{estate['description']}', '{estate['features']}')", bulk_list))};"""
+            bulk_list = [generate_estate_dummy_data(estate_id + i) for i in range(BULK_INSERT_COUNT)]
+            estate_id += BULK_INSERT_COUNT
+            sqlCommand = f"""INSERT INTO estate (id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features) VALUES {', '.join(map(lambda estate: f"('{estate['id']}', '{estate['thumbnail']}', '{estate['name']}', '{estate['latitude']}' , '{estate['longitude']}', '{estate['address']}', '{estate['rent']}', '{estate['door_height']}', '{estate['door_width']}', '{estate['view_count']}', '{estate['description']}', '{estate['features']}')", bulk_list))};"""
             sqlfile.write(sqlCommand)
 
             for estate in bulk_list:
                 json_string = json.dumps({
+                    "id": estate["id"],
                     "thumbnail": estate["thumbnail"],
                     "name": estate["name"],
                     "latitude": estate["latitude"],
