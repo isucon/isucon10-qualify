@@ -4,7 +4,6 @@ import time
 import string
 import json
 import os
-import shutil
 from faker import Faker
 fake = Faker('ja_JP')
 Faker.seed(19700101)
@@ -13,7 +12,8 @@ random.seed(19700101)
 DESCRIPTION_LINES_FILE = "./description_estate.txt"
 OUTPUT_SQL_FILE = "./result/1_DummyEstateData.sql"
 OUTPUT_TXT_FILE = "./result/estate_json.txt"
-ESTATE_IMAGE_FILE_PATH = "../webapp/frontend/public/images/estate"
+ESTATE_IMAGE_ORIGIN_DIR = "./origin/estate"
+ESTATE_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/estate"
 RECORD_COUNT = 10 ** 4
 BULK_INSERT_COUNT = 500
 DOOR_MIN_CENTIMETER = 30
@@ -38,23 +38,33 @@ ESTATE_FEATURE_LIST = [
 ]
 
 ESTATE_IMAGE_LIST = [
-    os.path.join(ESTATE_IMAGE_FILE_PATH, "1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg"),
-    os.path.join(ESTATE_IMAGE_FILE_PATH, "3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg"),
-    os.path.join(ESTATE_IMAGE_FILE_PATH, "9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg")
+    os.path.join(ESTATE_IMAGE_ORIGIN_DIR, "1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg"),
+    os.path.join(ESTATE_IMAGE_ORIGIN_DIR, "3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg"),
+    os.path.join(ESTATE_IMAGE_ORIGIN_DIR, "9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg")
 ]
+
+def read_src_file_data(file_path):
+    with open(file_path, mode='rb') as img:
+        return img.read()
+
+ESTATE_IMAGE_DATA = [read_src_file_data(image) for image in ESTATE_IMAGE_LIST]
 
 def generate_estate_dummy_data(estate_id):
     latlng = fake.local_latlng(country_code='JP', coords_only=True)
     feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
 
-    new_estate_image_name = os.path.join(ESTATE_IMAGE_FILE_PATH, "{}.jpg".format(fake.sha256(raw_output=False)))
-    src_estate_image_filename = fake.word(ext_word_list=ESTATE_IMAGE_LIST)
+    new_estate_image_hash = fake.sha256(raw_output=False)
+    new_estate_image_path = os.path.join(ESTATE_IMAGE_PUBLIC_DIR, "{}.jpg".format(new_estate_image_hash))
+    src_image_data = random.choice(ESTATE_IMAGE_DATA)
 
-    shutil.copy(src_estate_image_filename, new_estate_image_name)
+    with open(new_estate_image_path, mode='wb') as dst_image_data:
+        dst_image_data.write(src_image_data + new_estate_image_hash.encode('utf-8'))
+
+    src_estate_image_filename = fake.word(ext_word_list=ESTATE_IMAGE_LIST)
 
     return {
         "id": estate_id,
-        "thumbnail": '/images/estate/{}.jpg'.format(fake.sha256(raw_output=False)),
+        "thumbnail": '/images/estate/{}'.format(new_estate_image_path),
         "name": fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name()),
         "latitude": float(latlng[0]),
         "longitude": float(latlng[1]),
@@ -68,6 +78,11 @@ def generate_estate_dummy_data(estate_id):
     }
 
 if __name__ == '__main__':
+    for image in ESTATE_IMAGE_LIST:
+        filename, _ = os.path.splitext(os.path.basename(image))
+        with open(os.path.join(ESTATE_IMAGE_PUBLIC_DIR, "{}.jpg".format(filename)), mode='wb') as dst_image_data:
+            dst_image_data.write(read_src_file_data(image) + filename.encode('utf-8'))
+
     with open(DESCRIPTION_LINES_FILE, mode='r') as description_lines:
         desc_lines = description_lines.readlines()
 
