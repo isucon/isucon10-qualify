@@ -120,7 +120,7 @@ def generate_chair_dummy_data(chair_id):
 
     return {
         "id": chair_id,
-        "thumbnail": "/images/chair/{}.jpg".format(new_chair_image_path),
+        "thumbnail": "/images/chair/{}.jpg".format(new_chair_image_hash),
         "name": "".join([
             fake.word(ext_word_list=CHAIR_NAME_PREFIX_LIST),
             fake.word(ext_word_list=CHAIR_PROPERTY_LIST),

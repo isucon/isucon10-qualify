@@ -64,7 +64,7 @@ def generate_estate_dummy_data(estate_id):
 
     return {
         "id": estate_id,
-        "thumbnail": '/images/estate/{}'.format(new_estate_image_path),
+        "thumbnail": '/images/estate/{}.jpg'.format(new_estate_image_hash),
         "name": fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name()),
         "latitude": float(latlng[0]),
         "longitude": float(latlng[1]),
