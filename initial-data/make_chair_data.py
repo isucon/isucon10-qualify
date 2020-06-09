@@ -102,11 +102,11 @@ CHAIR_IMAGE_LIST = [
     os.path.join(CHAIR_IMAGE_ORIGIN_DIR, "9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg")
 ]
 
-CHAIR_IMAGE_DATA = [read_src_file_data(image) for image in CHAIR_IMAGE_LIST]
-
 def read_src_file_data(file_path):
     with open(file_path, mode='rb') as img:
         return img.read()
+
+CHAIR_IMAGE_DATA = [read_src_file_data(image) for image in CHAIR_IMAGE_LIST]
 
 def generate_chair_dummy_data(chair_id):
     features_length = random.randint(0, len(CHAIR_FEATURE_LIST) - 1)
