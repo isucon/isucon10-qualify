@@ -753,7 +753,7 @@ func getRange(RangeID string, Ranges []*Range) (*Range, error) {
 	if err != nil {
 		return nil, err
 	}
-	if RangeIndex < len(Ranges) && RangeIndex > 0 {
+	if RangeIndex < len(Ranges) && RangeIndex >= 0 {
 		specifyRange = Ranges[RangeIndex]
 	} else {
 		err = fmt.Errorf("Unexpected Range ID")
