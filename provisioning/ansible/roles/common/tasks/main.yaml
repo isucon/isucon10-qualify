@@ -1,0 +1,39 @@
+---
+- name: Create isucon group
+  become: yes
+  become_user: root
+  group:
+    name: isucon
+    gid: 1100
+    state: present
+    system: no
+
+- name: Create isucon user
+  become: yes
+  become_user: root
+  user:
+    name: isucon
+    uid: 1100
+    group: isucon
+    password: isucon
+    home: /home/isucon
+    shell: /bin/bash
+    state: present
+    system: no
+
+- name: Add sudoers
+  become: yes
+  become_user: root
+  copy:
+    content: "isucon  ALL=(ALL) NOPASSWD:ALL\n"
+    dest: /etc/sudoers.d/99-isucon-user
+    owner: root
+    group: root
+    mode: 0440
+
+- name: replace fast repository
+  replace:
+    path: /etc/apt/sources.list
+    regexp: 'http://archive.ubuntu.com/ubuntu'
+    replace: 'http://ftp.jaist.ac.jp/pub/Linux/ubuntu/'
+    backup: yes
