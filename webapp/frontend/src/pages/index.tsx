@@ -34,12 +34,12 @@ const TopPage = () => {
   const [recommendedChairs, setRecommendedChairs] = useState<Chair[] | null>(null)
 
   useEffect(() => {
-    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/recommended_estate`, { mode: 'cors' })
+    fetch('/api/recommended_estate', { mode: 'cors' })
       .then(async response => await response.json())
       .then(json => setRecommendedEstates(json.estates as Estate[]))
       .catch(console.error)
 
-    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/recommended_chair`, { mode: 'cors' })
+    fetch('/api/recommended_chair', { mode: 'cors' })
       .then(async response => await response.json())
       .then(json => setRecommendedChairs(json.chairs as Chair[]))
       .catch(console.error)

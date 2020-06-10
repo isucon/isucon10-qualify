@@ -148,7 +148,7 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
     for (const [key, value] of Object.entries(condition)) {
       params.append(key, value.toString())
     }
-    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/estate/search?${params.toString()}`, { mode: 'cors' })
+    fetch(`/api/estate/search?${params.toString()}`, { mode: 'cors' })
       .then(async response => await response.json())
       .then(result => {
         setSearchResult(result as EstateSearchResponse)
@@ -220,7 +220,7 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
                       for (const [key, value] of Object.entries(condition)) {
                         params.append(key, value.toString())
                       }
-                      fetch(`${process.env.API_SERVER_NAME ?? ''}/api/estate/search?${params.toString()}`, { mode: 'cors' })
+                      fetch(`/api/estate/search?${params.toString()}`, { mode: 'cors' })
                         .then(async response => await response.json())
                         .then(result => {
                           setSearchResult(result as EstateSearchResponse)
@@ -249,7 +249,7 @@ const EstateSearchPage = () => {
   const [estateRangeMap, setEstateRangeMap] = useState<EstateRangeMap | null>(null)
 
   useEffect(() => {
-    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/estate/range`, { mode: 'cors' })
+    fetch('/api/estate/range', { mode: 'cors' })
       .then(async response => await response.json())
       .then(estate => setEstateRangeMap(estate as EstateRangeMap))
       .catch(console.error)

@@ -132,7 +132,7 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
     for (const [key, value] of Object.entries(condition)) {
       params.append(key, value.toString())
     }
-    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/chair/search?${params.toString()}`, { mode: 'cors' })
+    fetch(`/api/chair/search?${params.toString()}`, { mode: 'cors' })
       .then(async response => await response.json())
       .then(result => {
         setSearchResult(result as ChairSearchResponse)
@@ -223,7 +223,7 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
                       for (const [key, value] of Object.entries(condition)) {
                         params.append(key, value.toString())
                       }
-                      fetch(`${process.env.API_SERVER_NAME ?? ''}/api/chair/search?${params.toString()}`, { mode: 'cors' })
+                      fetch(`/api/chair/search?${params.toString()}`, { mode: 'cors' })
                         .then(async response => await response.json())
                         .then(result => {
                           setSearchResult(result as ChairSearchResponse)
@@ -263,7 +263,7 @@ const ChairSearchPage = () => {
   const [chairRangeMap, setChairRangeMap] = useState<ChairRangeMap | null>(null)
 
   useEffect(() => {
-    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/chair/range`, { mode: 'cors' })
+    fetch('/api/chair/range', { mode: 'cors' })
       .then(async response => await response.json())
       .then(chair => setChairRangeMap(chair as ChairRangeMap))
       .catch(console.error)

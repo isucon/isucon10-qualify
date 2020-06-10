@@ -68,7 +68,7 @@ const ChairDetail: FC<Props> = ({ chair, recommendedEstates }) => {
       return
     }
 
-    await fetch(`${process.env.API_SERVER_NAME ?? ''}/api/chair/buy/${chair.id}`, {
+    await fetch(`/api/chair/buy/${chair.id}`, {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json'
@@ -149,12 +149,12 @@ const ChairDetailPage = () => {
   useEffect(() => {
     if (!id) return
 
-    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/chair/${id.toString()}`, { mode: 'cors' })
+    fetch(`/api/chair/${id.toString()}`, { mode: 'cors' })
       .then(async response => await response.json())
       .then(chair => setChair(chair as Chair))
       .catch(error => { throw error })
 
-    fetch(`${process.env.API_SERVER_NAME ?? ''}/api/recommended_estate/${id.toString()}`, { mode: 'cors' })
+    fetch(`/api/recommended_estate/${id.toString()}`, { mode: 'cors' })
       .then(async response => await response.json())
       .then(json => setRecommendedEstates(json.estates as Estate[]))
       .catch(error => { throw error })
