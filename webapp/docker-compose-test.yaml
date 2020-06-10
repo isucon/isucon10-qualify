@@ -4,7 +4,7 @@ services:
     build: ./mysql
     volumes:
       - ./mysql/db:/docker-entrypoint-initdb.d
-      - ./mysql/config/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ../provisioning/ansible/roles/web/files/my.cnf:/etc/mysql/conf.d/my.cnf
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: isuumo

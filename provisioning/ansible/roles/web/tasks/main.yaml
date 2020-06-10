@@ -1,0 +1,68 @@
+- name: Install Nginx
+  become: yes
+  become_user: root
+  apt:
+    name:
+    - nginx
+    update_cache: yes
+
+- name: Deploy nginx.conf
+  copy:
+    src: "nginx.conf"
+    dest: "/etc/nginx/nginx.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+
+- name: Install Package(MYSQL)
+  become: yes
+  become_user: root
+  apt:
+    name:
+    - mysql-server-5.7
+    - mysql-server-core-5.7
+    - mysql-common
+    - mysql-client-5.7
+    - mysql-client-core-5.7
+    update_cache: yes
+
+- name: Set Temporary password
+  become: yes
+  become_user: root
+  blockinfile:
+    create: yes
+    dest: &myCnf /root/.my.cnf
+    content: |
+      [client]
+      user = root
+      password = root
+
+- name: Create isucon user on MySQL
+  become: yes
+  become_user: root
+  mysql_user:
+    login_user: root
+    login_password: root
+    name: isucon
+    password: isucon
+    priv: "*.*:ALL"
+    host: localhost
+    state: present
+
+- name: Remove Temporary file
+  become: yes
+  become_user: root
+  file:
+    path: *myCnf
+    state: absent
+
+- name: Copy mysqld.conf
+  become: yes
+  become_user: root
+  copy:
+    src: "mysqld.cnf"
+    dest: "/etc/mysql/mysql.conf.d/mysqld.cnf"
+    owner: "root"
+    group: "root"
+    mode: "0644"

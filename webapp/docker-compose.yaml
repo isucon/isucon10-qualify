@@ -5,7 +5,7 @@ services:
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/db:/docker-entrypoint-initdb.d
-      - ./mysql/config/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ../provisioning/ansible/roles/web/files/my.cnf:/etc/mysql/conf.d/my.cnf
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: isuumo
@@ -46,5 +46,8 @@ services:
 
   nginx:
     build: ./nginx
+    volumes:
+        - ../provisioning/ansible/roles/web/files/nginx.conf /etc/nginx/conf.d/default.conf
+
     ports:
       - "8080:80"
