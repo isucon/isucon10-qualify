@@ -77,7 +77,7 @@ const ChairDetail: FC<Props> = ({ chair, recommendedEstates }) => {
       mode: 'cors',
       body: JSON.stringify({ email: emailInputRef.current?.value })
     })
-      .then(async response => await response.text())
+      .then(async response => response.status.toString() + (await response.text()))
       .then(setSubmitResult)
       .catch(error => setSubmitResult(error.message))
   }, [chair.id])
