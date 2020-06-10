@@ -225,7 +225,7 @@ type Chair struct {
 }
 
 type ChairSearchResponce struct {
-	Chairs []Chair `json:"chairs"`
+	Chairs []*Chair `json:"chairs"`
 }
 
 func (cs *ChairSchema) ToChair() *Chair {
@@ -278,7 +278,7 @@ func (es *EstateSchema) ToEstate() *Estate {
 
 //EstateSearchResponse estate/searchへのレスポンスの形式
 type EstateSearchResponse struct {
-	Estates []Estate `json:"estates"`
+	Estates []*Estate `json:"estates"`
 }
 
 //Estate 物件
@@ -617,8 +617,12 @@ func searchChairs(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	for _, c := range searchedchairs {
-		chairs.Chairs = append(chairs.Chairs, *c.ToChair())
+	if len(searchedchairs) == 0 {
+		chairs.Chairs = []*Chair{}
+	} else {
+		for _, c := range searchedchairs {
+			chairs.Chairs = append(chairs.Chairs, c.ToChair())
+		}
 	}
 
 	return c.JSON(http.StatusOK, chairs)
@@ -702,7 +706,7 @@ func searchRecommendChair(c echo.Context) error {
 	var rc ChairSearchResponce
 
 	for _, chair := range recommendChairs {
-		rc.Chairs = append(rc.Chairs, *(chair.ToChair()))
+		rc.Chairs = append(rc.Chairs, chair.ToChair())
 	}
 
 	return c.JSON(http.StatusOK, rc)
@@ -866,8 +870,12 @@ func searchEstates(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	for _, e := range matchestates {
-		estates.Estates = append(estates.Estates, *e.ToEstate())
+	if len(matchestates) == 0 {
+		estates.Estates = []*Estate{}
+	} else {
+		for _, e := range matchestates {
+			estates.Estates = append(estates.Estates, e.ToEstate())
+		}
 	}
 
 	return c.JSON(http.StatusOK, estates)
@@ -887,7 +895,7 @@ func searchRecommendEstate(c echo.Context) error {
 	var re EstateSearchResponse
 
 	for _, estate := range recommentEstates {
-		re.Estates = append(re.Estates, *estate.ToEstate())
+		re.Estates = append(re.Estates, estate.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, re)
@@ -929,7 +937,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	var re EstateSearchResponse
 
 	for _, estate := range recommendEstates {
-		re.Estates = append(re.Estates, *estate.ToEstate())
+		re.Estates = append(re.Estates, estate.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, re)
@@ -984,8 +992,12 @@ func searchEstateNazotte(c echo.Context) error {
 	}
 
 	var re EstateSearchResponse
-	for _, estate := range estatesInPolygon {
-		re.Estates = append(re.Estates, *estate.ToEstate())
+	if len(estatesInPolygon) == 0 {
+		re.Estates = []*Estate{}
+	} else {
+		for _, estate := range estatesInPolygon {
+			re.Estates = append(re.Estates, estate.ToEstate())
+		}
 	}
 
 	return c.JSON(http.StatusOK, re)
