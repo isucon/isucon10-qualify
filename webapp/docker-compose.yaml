@@ -1,7 +1,7 @@
 version: "3"
 services:
   mysql:
-    build: ./mysql
+    image: mysql:5.7
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/db:/docker-entrypoint-initdb.d
@@ -45,7 +45,7 @@ services:
       - "3000:3000"
 
   nginx:
-    build: ./nginx
+    image: nginx:1.17
     volumes:
         - ../provisioning/ansible/roles/web/files/nginx.conf /etc/nginx/conf.d/default.conf
 

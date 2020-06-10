@@ -1,7 +1,7 @@
 version: "3"
 services:
   mysql:
-    build: ./mysql
+    image: mysql:5.7
     volumes:
       - ./mysql/db:/docker-entrypoint-initdb.d
       - ../provisioning/ansible/roles/web/files/my.cnf:/etc/mysql/conf.d/my.cnf
