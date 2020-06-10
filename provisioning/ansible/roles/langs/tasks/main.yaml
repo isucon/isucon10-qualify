@@ -1,0 +1,50 @@
+- name: Install Package(Build)
+  become: yes
+  become_user: root
+  apt:
+    name: 
+    - libssl-dev
+    - libreadline-dev
+    - gcc
+    - make
+    - libffi-dev
+    - zlib1g-dev
+    - unzip
+    update_cache: yes
+
+- name: install xbuild
+  become: yes
+  become_user: isucon
+  git:
+    repo: https://github.com/tagomoris/xbuild.git
+    dest: /tmp/xbuild
+    version: master
+
+- name: Install Go 1.14
+  become: yes
+  become_user: root
+  command: /tmp/xbuild/go-install 1.14.1 /usr/local/go
+
+- name: Add PATH for Go
+  become: yes
+  become_user: isucon
+  blockinfile:
+    marker: "# {mark} ANSIBLE MANAGED BLOCK go"
+    path: &bash_aliases /home/isucon/.bashrc
+    content: |
+      export PATH=/usr/local/go/bin:/home/isucon/go/bin:$PATH
+      export GOROOT=/usr/local/go
+
+- name: Install Node v12.17.0
+  become: yes
+  become_user: root
+  command: /tmp/xbuild/node-install v12.17.0 /usr/local/node
+
+- name: Add PATH for Node
+  become: yes
+  become_user: isucon
+  blockinfile:
+    marker: "# {mark} ANSIBLE MANAGED BLOCK Node"
+    path: *bash_aliases 
+    content: |
+      export PATH=/usr/local/node/bin:$PATH

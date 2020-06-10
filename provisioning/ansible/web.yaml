@@ -3,3 +3,4 @@
   become_user: root
   roles:
     - role: common
+    - role: langs
