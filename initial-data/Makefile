@@ -1,10 +1,10 @@
 all: chair_data estate_data
 
 refresh_chair_data:
-	find ../webapp/frontend/public/images/chair -name *.jpg | xargs rm
+	find ../webapp/frontend/public/images/chair -name *.png | xargs rm
 
 refresh_estate_data:
-	find ../webapp/frontend/public/images/estate -name *.jpg | xargs rm
+	find ../webapp/frontend/public/images/estate -name *.png | xargs rm
 
 chair_data: make_chair_data.py
 	python3 make_chair_data.py
