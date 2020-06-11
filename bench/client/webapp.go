@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/morikuni/failure"
@@ -64,7 +65,33 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	if err != nil {
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/:id: JSONデコードに失敗しました"))
 	}
+
+	asset.IncrementChairViewCount(chair.ID)
+
 	return &chair, nil
+}
+
+func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*ChairsResponse, error) {
+	req, err := c.newGetRequestWithQuery(ShareTargetURLs.AppURL, "/api/chair/search", q)
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Messagef("GET /api/chair/search: Query: リクエストに失敗しました"))
+	}
+
+	req = req.WithContext(ctx)
+
+	res, err := c.Do(req)
+	if err != nil || res == nil {
+		return nil, failure.Wrap(err, failure.Messagef("GET /api/chair/search: Query: リクエストに失敗しました"))
+	}
+	defer res.Body.Close()
+
+	var chairs ChairsResponse
+
+	err = json.NewDecoder(res.Body).Decode(&chairs)
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: JSONデコードに失敗しました"))
+	}
+	return &chairs, nil
 }
 
 func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*EstatesResponse, error) {
@@ -77,6 +104,9 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 	req = req.WithContext(ctx)
 
 	res, err := c.Do(req)
+	if err != nil || res == nil {
+		return nil, failure.Wrap(err, failure.Messagef("GET /api/chair/search: Query: リクエストに失敗しました"))
+	}
 	defer res.Body.Close()
 
 	var estates EstatesResponse
@@ -105,7 +135,54 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 	if err != nil {
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/:id: JSONデコードに失敗しました"))
 	}
+
+	asset.IncrementEstateViewCount(estate.ID)
+
 	return &estate, nil
+}
+
+func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (*EstatesResponse, error) {
+	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/recommended_estate/"+strconv.FormatInt(id, 10))
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Messagef("GET /api/recommended_estate/%v: リクエストに失敗しました", id))
+	}
+
+	req = req.WithContext(ctx)
+
+	res, err := c.Do(req)
+	defer res.Body.Close()
+
+	var estate EstatesResponse
+	err = json.NewDecoder(res.Body).Decode(&estate)
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: JSONデコードに失敗しました"))
+	}
+
+	return &estate, nil
+}
+
+func (c *Client) BuyChair(ctx context.Context, id string) error {
+	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/chair/buy/"+id, nil)
+	if err != nil {
+		return failure.Wrap(err, failure.Messagef("POST /api/chair/buy/%v: リクエストに失敗しました", id))
+	}
+
+	req = req.WithContext(ctx)
+
+	res, err := c.Do(req)
+	if err != nil {
+		return failure.Wrap(err, failure.Messagef("POST /api/chair/buy/%v: リクエストに失敗しました", id))
+	}
+
+	err = checkStatusCode(res, 200)
+	if err != nil {
+		return failure.Wrap(err, failure.Messagef("POST /api/chair/buy/%v: リクエストに失敗しました", id))
+	}
+
+	intid, _ := strconv.ParseInt(id, 10, 64)
+	asset.DecrementChairStock(intid)
+
+	return nil
 }
 
 func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {

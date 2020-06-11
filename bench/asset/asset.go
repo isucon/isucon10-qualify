@@ -59,7 +59,10 @@ func ExistsChairInMap(id int64) bool {
 }
 
 func GetChairFromID(id int64) *Chair {
-	c, _ := chairMap[id]
+	var c *Chair
+	if ExistsChairInMap(id) {
+		c, _ = chairMap[id]
+	}
 	return c
 }
 
@@ -81,7 +84,10 @@ func ExistsEstateInMap(id int64) bool {
 }
 
 func GetEstateFromID(id int64) *Estate {
-	e, _ := estateMap[id]
+	var e *Estate
+	if ExistsEstateInMap(id) {
+		e, _ = estateMap[id]
+	}
 	return e
 }
 
