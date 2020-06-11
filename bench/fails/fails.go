@@ -37,7 +37,7 @@ type Errors struct {
 	application int
 	trivial     int
 
-	mu sync.Mutex
+	mu sync.RWMutex
 }
 
 func NewErrors() *Errors {
@@ -48,15 +48,15 @@ func NewErrors() *Errors {
 }
 
 func (e *Errors) GetMsgs() (msgs []string) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
+	e.mu.RLock()
+	defer e.mu.RUnlock()
 
 	return e.Msgs[:]
 }
 
 func (e *Errors) Get() (msgs []string, critical, application, trivial int) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
+	e.mu.RLock()
+	defer e.mu.RUnlock()
 
 	return e.Msgs[:], e.critical, e.application, e.trivial
 }
