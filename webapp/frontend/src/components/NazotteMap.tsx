@@ -78,7 +78,6 @@ export const NazzoteMap: FC<Props> = ({ center, zoom, ...props }) => {
 
     setVertexes(figures)
     setDragging(false)
-    setMode('drag')
 
     fetch('/api/estate/nazotte', {
       method: 'POST',
@@ -92,7 +91,10 @@ export const NazzoteMap: FC<Props> = ({ center, zoom, ...props }) => {
       })
     })
       .then(async response => await response.json())
-      .then(({ estates }) => { setResultEstates(estates as Estate[]) })
+      .then(({ estates }) => {
+        setResultEstates(estates as Estate[])
+        setMode('drag')
+      })
       .catch(console.error)
   }, [mode, vertexes])
 
