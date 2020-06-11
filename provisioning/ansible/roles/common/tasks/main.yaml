@@ -37,3 +37,12 @@
     regexp: 'http://archive.ubuntu.com/ubuntu'
     replace: 'http://ftp.jaist.ac.jp/pub/Linux/ubuntu/'
     backup: yes
+
+- name: git clone isucon10-qualify
+  become: no
+  git:
+    repo: git@github.com:isucon10-qualify/isucon10-qualify.git
+    version: master
+    dest: /tmp/isucon10-qualify
+    accept_hostkey: yes
+
