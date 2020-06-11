@@ -225,6 +225,11 @@ type Chair struct {
 }
 
 type ChairSearchResponce struct {
+	Count  int64    `json:"count"`
+	Chairs []*Chair `json:"chairs"`
+}
+
+type ChairRecommendResponse struct {
 	Chairs []*Chair `json:"chairs"`
 }
 
@@ -278,6 +283,11 @@ func (es *EstateSchema) ToEstate() *Estate {
 
 //EstateSearchResponse estate/searchへのレスポンスの形式
 type EstateSearchResponse struct {
+	Count   int64     `json:"count"`
+	Estates []*Estate `json:"estates"`
+}
+
+type EstateRecommendResponse struct {
 	Estates []*Estate `json:"estates"`
 }
 
@@ -610,6 +620,18 @@ func searchChairs(c echo.Context) error {
 	limitOffset := " ORDER BY view_count DESC LIMIT ? OFFSET ?"
 	queryParams = append(queryParams, perpage, page*perpage)
 
+	countsql := "SELECT COUNT(*) FROM chair WHERE "
+	err = db.Get(&chairs.Count, countsql+searchCondition+limitOffset, queryParams...)
+	if err != nil {
+		c.Logger().Errorf("searchChairs DB execution error : %v", err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	if chairs.Count == 0 {
+		chairs.Chairs = []*Chair{}
+		return c.JSON(http.StatusOK, chairs)
+	}
+
 	searchedchairs := []ChairSchema{}
 	err = db.Select(&searchedchairs, sqlstr+searchCondition+limitOffset, queryParams...)
 	if err != nil {
@@ -617,12 +639,8 @@ func searchChairs(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	if len(searchedchairs) == 0 {
-		chairs.Chairs = []*Chair{}
-	} else {
-		for _, c := range searchedchairs {
-			chairs.Chairs = append(chairs.Chairs, c.ToChair())
-		}
+	for _, c := range searchedchairs {
+		chairs.Chairs = append(chairs.Chairs, c.ToChair())
 	}
 
 	return c.JSON(http.StatusOK, chairs)
@@ -703,7 +721,7 @@ func searchRecommendChair(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	var rc ChairSearchResponce
+	var rc ChairRecommendResponse
 
 	for _, chair := range recommendChairs {
 		rc.Chairs = append(rc.Chairs, chair.ToChair())
@@ -863,6 +881,18 @@ func searchEstates(c echo.Context) error {
 	limitOffset := " ORDER BY view_count DESC LIMIT ? OFFSET ?"
 	searchQueryParameter = append(searchQueryParameter, perpage, page*perpage)
 
+	countsql := "SELECT COUNT(*) FROM estate WHERE "
+	err = db.Get(&estates.Count, countsql+searchQuery+limitOffset, searchQueryParameter...)
+	if err != nil {
+		c.Logger().Errorf("searchEstates DB execution error : %v", err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	if estates.Count == 0 {
+		estates.Estates = []*Estate{}
+		return c.JSON(http.StatusOK, estates)
+	}
+
 	matchestates := []EstateSchema{}
 	err = db.Select(&matchestates, sqlstr+searchQuery+limitOffset, searchQueryParameter...)
 	if err != nil {
@@ -870,12 +900,8 @@ func searchEstates(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	if len(matchestates) == 0 {
-		estates.Estates = []*Estate{}
-	} else {
-		for _, e := range matchestates {
-			estates.Estates = append(estates.Estates, e.ToEstate())
-		}
+	for _, e := range matchestates {
+		estates.Estates = append(estates.Estates, e.ToEstate())
 	}
 
 	return c.JSON(http.StatusOK, estates)
@@ -892,7 +918,7 @@ func searchRecommendEstate(c echo.Context) error {
 		c.Logger().Errorf("searchRecommendEstate DB execution error : %v", err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	var re EstateSearchResponse
+	var re EstateRecommendResponse
 
 	for _, estate := range recommentEstates {
 		re.Estates = append(re.Estates, estate.ToEstate())
@@ -934,7 +960,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	var re EstateSearchResponse
+	var re EstateRecommendResponse
 
 	for _, estate := range recommendEstates {
 		re.Estates = append(re.Estates, estate.ToEstate())
