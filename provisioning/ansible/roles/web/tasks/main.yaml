@@ -27,6 +27,14 @@
     - mysql-client-core-5.7
     update_cache: yes
 
+- name: Upgrade pip
+  environment: &env
+    PATH: "/home/isucon/bin:/home/isucon/.local/bin:/usr/local/node/bin:/usr/local/python/bin:/usr/local/go/bin:/home/isucon/go/bin:/usr/local/bin:/usr/bin:/bin"
+  pip:
+    name: pip
+    executable: pip3
+    state: latest
+
 - name: Set Temporary password
   become: yes
   become_user: root
@@ -41,14 +49,8 @@
 - name: Create isucon user on MySQL
   become: yes
   become_user: root
-  mysql_user:
-    login_user: root
-    login_password: root
-    name: isucon
-    password: isucon
-    priv: "*.*:ALL"
-    host: localhost
-    state: present
+  shell: |
+      mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO isucon@localhost IDENTIFIED BY 'isucon' WITH GRANT OPTION; FLUSH PRIVILEGES;"
 
 - name: Remove Temporary file
   become: yes
@@ -66,3 +68,31 @@
     owner: "root"
     group: "root"
     mode: "0644"
+
+- name: Install Faker for Initialize Data
+  become: yes
+  become_user: root
+  environment: 
+    << *env
+  pip:
+    executable: pip3
+    name: Faker
+
+- name: Make initial data
+  become: yes
+  become_user: root
+  args:
+    chdir: /home/isucon/isucon10-qualify/initial-data
+  environment: 
+    << *env
+  command: make all
+
+- name: Setup MySQL
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isucon10-qualify
+  environment:
+    << *env
+  shell: |
+    mysql -u isucon -pisucon < webapp/mysql/db/0_Schema.sql

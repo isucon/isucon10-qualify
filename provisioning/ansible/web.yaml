@@ -4,3 +4,4 @@
   roles:
     - role: common
     - role: langs
+    - role: web

@@ -31,18 +31,42 @@
     group: root
     mode: 0440
 
-- name: replace fast repository
+- name: Replace fast repository
   replace:
     path: /etc/apt/sources.list
     regexp: 'http://archive.ubuntu.com/ubuntu'
     replace: 'http://ftp.jaist.ac.jp/pub/Linux/ubuntu/'
     backup: yes
 
-- name: git clone isucon10-qualify
+- name: Check isucon10-qualify
+  become: no
+  stat:
+    path: "/home/isucon/isucon10-qualify"
+  register: chk_file
+
+- name: Clone isucon10-qualify
   become: no
   git:
     repo: git@github.com:isucon10-qualify/isucon10-qualify.git
     version: master
     dest: /tmp/isucon10-qualify
     accept_hostkey: yes
+  when: not chk_file.stat.exists
+
+- name: Chgroup sisucon10-qualify repo
+  become: yes
+  become_user: root
+  file:
+    path: /tmp/isucon10-qualify
+    state: directory
+    owner: isucon
+    group: isucon
+    recurse: yes
+  when: not chk_file.stat.exists
+
+- name: Deploy isucon10-qualify
+  become: yes
+  become_user: isucon
+  command: mv /tmp/isucon10-qualify /home/isucon/isucon10-qualify
+  when: not chk_file.stat.exists
 
