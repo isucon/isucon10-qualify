@@ -58,8 +58,10 @@ func Load(ctx context.Context) {
 
 			var c *client.Client
 			var e *asset.Estate
+			var estate *asset.Estate
 			var er *client.EstatesResponse
 			var viewCount int64
+			var vc int64
 			var ok bool
 			var err error
 			var randomPosition int
@@ -92,12 +94,17 @@ func Load(ctx context.Context) {
 				viewCount = -1
 				ok = true
 				for i, estate := range er.Estates {
-					e = asset.GetEstateFromID(estate.ID)
-					if i > 0 && viewCount < e.ViewCount {
+					if e = asset.GetEstateFromID(estate.ID); e == nil {
+						ok = false
+						break
+					} else {
+						vc = e.GetViewCount()
+					}
+					if i > 0 && viewCount < vc {
 						ok = false
 						break
 					}
-					viewCount = e.ViewCount
+					viewCount = vc
 				}
 
 				if !ok {
@@ -114,7 +121,11 @@ func Load(ctx context.Context) {
 					goto Final
 				}
 
-				ok = e.Equal(asset.GetEstateFromID(e.ID))
+				if estate = asset.GetEstateFromID(e.ID); estate == nil {
+					ok = false
+				} else {
+					ok = e.Equal(estate)
+				}
 				if !ok {
 					fails.ErrorsForCheck.Add(failure.New(fails.ErrApplication, failure.Messagef("GET /api/estate/%d: 物件情報が不正です", targetID)))
 					goto Final

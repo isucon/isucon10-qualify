@@ -6,12 +6,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
 )
 
 var (
-	chairMap  sync.Map
-	estateMap sync.Map
+	chairMap  map[int64]*Chair
+	estateMap map[int64]*Estate
 )
 
 // メモリ上にデータを展開する
@@ -22,6 +21,8 @@ func Initialize(dataDir string) {
 		log.Fatal(err)
 	}
 
+	chairMap = map[int64]*Chair{}
+
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		var chair Chair
@@ -29,7 +30,7 @@ func Initialize(dataDir string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		chairMap.Store(chair.ID, &chair)
+		chairMap[chair.ID] = &chair
 	}
 	f.Close()
 
@@ -38,6 +39,8 @@ func Initialize(dataDir string) {
 		log.Fatal(err)
 	}
 
+	estateMap = map[int64]*Estate{}
+
 	scanner = bufio.NewScanner(f)
 	for scanner.Scan() {
 		var estate Estate
@@ -45,23 +48,45 @@ func Initialize(dataDir string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		estateMap.Store(estate.ID, &estate)
+		estateMap[estate.ID] = &estate
 	}
 	f.Close()
 }
 
-func GetChairFromID(ID int64) *Chair {
-	chair, ok := chairMap.Load(ID)
-	if !ok {
-		return nil
-	}
-	return chair.(*Chair)
+func ExistsChairInMap(id int64) bool {
+	_, ok := chairMap[id]
+	return ok
 }
 
-func GetEstateFromID(ID int64) *Estate {
-	estate, ok := estateMap.Load(ID)
-	if !ok {
-		return nil
+func GetChairFromID(id int64) *Chair {
+	c, _ := chairMap[id]
+	return c
+}
+
+func IncrementChairViewCount(id int64) {
+	if ExistsChairInMap(id) {
+		chairMap[id].IncrementViewCount()
 	}
-	return estate.(*Estate)
+}
+
+func DecrementChairStock(id int64) {
+	if ExistsChairInMap(id) {
+		chairMap[id].DecrementStock()
+	}
+}
+
+func ExistsEstateInMap(id int64) bool {
+	_, ok := estateMap[id]
+	return ok
+}
+
+func GetEstateFromID(id int64) *Estate {
+	e, _ := estateMap[id]
+	return e
+}
+
+func IncrementEstateViewCount(id int64) {
+	if ExistsEstateInMap(id) {
+		estateMap[id].IncrementViewCount()
+	}
 }
