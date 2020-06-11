@@ -1,8 +1,9 @@
 package main_test
 
 import (
-    "os"
-    "fmt"
+	"fmt"
+	main "github.com/isucon/isucon10-qualify/webapp/go"
+	"os"
 )
 
 func getEnv(key, defaultValue string) string {
@@ -20,3 +21,4 @@ func getURL() string {
 	return url
 }
 
+var MySQLConnectionData = main.NewMySQLConnectionEnv()

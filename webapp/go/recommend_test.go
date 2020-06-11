@@ -16,7 +16,7 @@ import (
 
 func TestRecommendEstate(t *testing.T) {
 	client := new(http.Client)
-	db, err := main.ConnectDB()
+	db, err := MySQLConnectionData.ConnectDB()
 	if err != nil {
 		fmt.Printf("DB connection failed :%v", err)
 	}
@@ -47,14 +47,19 @@ func TestRecommendEstate(t *testing.T) {
 		var actualEstates main.EstateSearchResponse
 		_ = json.Unmarshal(body, &actualEstates)
 
+		var ae []main.Estate
+		for _, estatePointer := range actualEstates.Estates {
+			ae = append(ae, *estatePointer)
+		}
+
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		assert.Equal(t, expectedEstates, actualEstates.Estates)
+		assert.Equal(t, expectedEstates, ae)
 	})
 }
 
 func TestRecommendEstateWithChair(t *testing.T) {
 	client := new(http.Client)
-	db, err := main.ConnectDB()
+	db, err := MySQLConnectionData.ConnectDB()
 	if err != nil {
 		fmt.Printf("DB connection failed :%v", err)
 	}
@@ -91,13 +96,18 @@ func TestRecommendEstateWithChair(t *testing.T) {
 		var actualEstates main.EstateSearchResponse
 		_ = json.Unmarshal(body, &actualEstates)
 
+		var ae []main.Estate
+		for _, estatePointer := range actualEstates.Estates {
+			ae = append(ae, *estatePointer)
+		}
+
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		assert.Equal(t, expectedEstates, actualEstates.Estates)
+		assert.Equal(t, expectedEstates, ae)
 	})
 }
 func TestRecommendChair(t *testing.T) {
 	client := new(http.Client)
-	db, err := main.ConnectDB()
+	db, err := MySQLConnectionData.ConnectDB()
 	if err != nil {
 		fmt.Printf("DB connection failed :%v", err)
 	}
@@ -127,8 +137,11 @@ func TestRecommendChair(t *testing.T) {
 		body, _ := ioutil.ReadAll(resp.Body)
 		var actualChairs main.ChairSearchResponce
 		_ = json.Unmarshal(body, &actualChairs)
-
+		var ac []main.Chair
+		for _, chairPointer := range actualChairs.Chairs {
+			ac = append(ac, *chairPointer)
+		}
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		assert.Equal(t, expectedChairs, actualChairs.Chairs)
+		assert.Equal(t, expectedChairs, ac)
 	})
 }

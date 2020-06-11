@@ -15,7 +15,7 @@ import (
 
 func TestGetEstateDetail(t *testing.T) {
 	client := new(http.Client)
-	db, err := main.ConnectDB()
+	db, err := MySQLConnectionData.ConnectDB()
 	if err != nil {
 		fmt.Printf("DB connection failed :%v", err)
 	}
@@ -82,7 +82,7 @@ func TestResponseEstateRange(t *testing.T) {
 func TestSearchEstates(t *testing.T) {
 
 	client := new(http.Client)
-	db, err := main.ConnectDB()
+	db, err := MySQLConnectionData.ConnectDB()
 	if err != nil {
 		fmt.Printf("DB connection failed :%v", err)
 	}
@@ -118,11 +118,16 @@ func TestSearchEstates(t *testing.T) {
 		body, _ := ioutil.ReadAll(resp.Body)
 		var actualEstates main.EstateSearchResponse
 		_ = json.Unmarshal(body, &actualEstates)
+		var ae []main.Estate
+		for _, estatePointer := range actualEstates.Estates {
+			ae = append(ae, *estatePointer)
+		}
+
 		defer resp.Body.Close()
 		var re []main.Estate
 		for _, estate := range estates {
 			re = append(re, *estate.ToEstate())
 		}
-		assert.Equal(t, re, actualEstates.Estates)
+		assert.Equal(t, re, ae)
 	})
 }

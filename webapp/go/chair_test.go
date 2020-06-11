@@ -14,7 +14,7 @@ import (
 
 func TestGetChairDetail(t *testing.T) {
 	client := new(http.Client)
-	db, err := main.ConnectDB()
+	db, err := MySQLConnectionData.ConnectDB()
 	if err != nil {
 		fmt.Printf("DB connection failed :%v", err)
 	}
@@ -52,7 +52,7 @@ func TestGetChairDetail(t *testing.T) {
 
 func TestBuyChair(t *testing.T) {
 	client := new(http.Client)
-	db, err := main.ConnectDB()
+	db, err := MySQLConnectionData.ConnectDB()
 	if err != nil {
 		fmt.Printf("DB connection failed :%v", err)
 	}
@@ -95,7 +95,7 @@ func TestResponseChairRange(t *testing.T) {
 
 func TestSearchChairs(t *testing.T) {
 	client := new(http.Client)
-	db, err := main.ConnectDB()
+	db, err := MySQLConnectionData.ConnectDB()
 	if err != nil {
 		fmt.Printf("DB connection failed :%v", err)
 	}
@@ -142,6 +142,10 @@ func TestSearchChairs(t *testing.T) {
 		for _, chair := range chairs {
 			rc = append(rc, *(chair.ToChair()))
 		}
-		assert.Equal(t, rc, actualChairs.Chairs)
+		var ac []main.Chair
+		for _, chairPointer := range actualChairs.Chairs {
+			ac = append(ac, *chairPointer)
+		}
+		assert.Equal(t, rc, ac)
 	})
 }
