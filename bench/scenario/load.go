@@ -8,34 +8,34 @@ import (
 
 const (
 	NumOfInitialEstateSearchWorker = 5
-	NumOfInitialChairSearchWorker = 5
+	NumOfInitialChairSearchWorker  = 5
 )
 
 func runEstateSearchWorker(ctx context.Context) {
 	for {
 		r := rand.Intn(100)
-		time.Sleep(time.Duration(r) * time.Millisecond)
-		estateSearchScenario(ctx)
+		t := time.NewTimer(time.Duration(r) * time.Millisecond)
 		select {
+		case <-t.C:
 		case <-ctx.Done():
+			t.Stop()
 			return
-		default:
-			continue
 		}
+		estateSearchScenario(ctx)
 	}
 }
 
 func runChairSearchWorker(ctx context.Context) {
 	for {
 		r := rand.Intn(100)
-		time.Sleep(time.Duration(r) * time.Millisecond)
-		chairSearchScenario(ctx)
+		t := time.NewTimer(time.Duration(r) * time.Millisecond)
 		select {
+		case <-t.C:
 		case <-ctx.Done():
+			t.Stop()
 			return
-		default:
-			continue
 		}
+		chairSearchScenario(ctx)
 	}
 }
 
