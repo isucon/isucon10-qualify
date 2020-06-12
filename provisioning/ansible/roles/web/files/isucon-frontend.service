@@ -1,0 +1,17 @@
+[Unit]
+Description=isucon-frontend
+After=syslog.target
+
+[Service]
+WorkingDirectory=/home/isucon/isucon10-qualify/webapp
+EnvironmentFile=/home/isucon/frontend-env.sh
+PIDFile=/home/isucon/isucon10-qualify/webapp/frontend/server.pid
+
+User=isucon
+Group=isucon
+ExecStart=/usr/local/node/bin/npm run start
+ExecStop=/bin/kill -s QUIT $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+

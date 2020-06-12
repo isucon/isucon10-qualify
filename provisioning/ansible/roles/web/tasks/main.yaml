@@ -73,7 +73,7 @@
   become: yes
   become_user: root
   environment: 
-    << *env
+    <<: *env
   pip:
     executable: pip3
     name: Faker
@@ -84,7 +84,7 @@
   args:
     chdir: /home/isucon/isucon10-qualify/initial-data
   environment: 
-    << *env
+    <<: *env
   command: make all
 
 - name: Setup MySQL
@@ -93,6 +93,84 @@
   args:
     chdir: /home/isucon/isucon10-qualify
   environment:
-    << *env
+    <<: *env
   shell: |
     mysql -u isucon -pisucon < webapp/mysql/db/0_Schema.sql
+
+
+- name: Build Web Application 
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isucon10-qualify/webapp/go/
+  environment:
+    <<: *env
+  shell: |
+    make isuumo
+
+- name: Install npm packages
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isucon10-qualify/webapp/frontend
+  environment:
+    <<: *env
+  shell: |
+    npm ci
+
+- name: Build frontend application
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isucon10-qualify/webapp/frontend
+  environment:
+    <<: *env
+  shell: |
+    npm run build
+
+
+- name: Deploy env shellscript
+  become: yes
+  become_user: isucon
+  copy:
+    src: "env.sh"
+    dest: /home/isucon
+
+- name: Deploy frontend-env shellscript
+  become: yes
+  become_user: isucon
+  copy:
+    src: "frontend-env.sh"
+    dest: /home/isucon
+
+- name: Copy service file
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/systemd/system"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_items:
+    - isucon-go.service
+    - isucon-frontend.service
+
+- name: Start "isucon-go.service"
+  systemd:
+    daemon_reload: "yes"
+    name: "isucon-go.service"
+    state: "started"
+    enabled: "yes"
+
+- name: Start "isucon-frontend.service"
+  systemd:
+    daemon_reload: "yes"
+    name: "isucon-frontend.service"
+    state: "started"
+    enabled: "yes"
+
+- name: Start "nginx"
+  systemd:
+    daemon_reload: "yes"
+    name: "nginx"
+    state: "reloaded"
+    enabled: "yes"
