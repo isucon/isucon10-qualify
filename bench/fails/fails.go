@@ -1,6 +1,7 @@
 package fails
 
 import (
+	"context"
 	"log"
 	"sync"
 
@@ -63,6 +64,10 @@ func (e *Errors) Get() (msgs []string, critical, application, trivial int) {
 
 func (e *Errors) Add(err error) {
 	if err == nil {
+		return
+	}
+
+	if err == context.DeadlineExceeded || err == context.Canceled {
 		return
 	}
 

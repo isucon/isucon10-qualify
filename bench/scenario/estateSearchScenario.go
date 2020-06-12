@@ -74,9 +74,8 @@ func estateSearchScenario(ctx context.Context) {
 
 		if err != nil {
 			fails.ErrorsForCheck.Add(err)
-			cancel()
-			return
 		}
+		cancel()
 	}()
 
 	select {

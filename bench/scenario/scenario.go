@@ -2,14 +2,14 @@ package scenario
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 )
 
-var (
-	ExecutionSeconds = 120
+const (
+	initializeTimeout = 180 * time.Second
+	loadTimeout       = 60 * time.Second
 )
 
 func Initialize(ctx context.Context) {
@@ -17,7 +17,7 @@ func Initialize(ctx context.Context) {
 	// レギュレーションにある時間を設定する
 	// timeoutSeconds := 180
 
-	ctx, cancel := context.WithTimeout(ctx, 180*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, initializeTimeout)
 	defer cancel()
 
 	err := initialize(ctx)
@@ -27,13 +27,8 @@ func Initialize(ctx context.Context) {
 }
 
 func Validation(ctx context.Context) {
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		Load(ctx)
-	}()
-	select {
-	case <-ctx.Done():
-	}
+	cancelCtx, cancel := context.WithTimeout(ctx, loadTimeout)
+	defer cancel()
+	go Load(cancelCtx)
+	<-cancelCtx.Done()
 }

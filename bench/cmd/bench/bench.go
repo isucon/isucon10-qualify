@@ -97,16 +97,13 @@ func main() {
 		return
 	}
 
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Duration(scenario.ExecutionSeconds)*time.Second))
-	defer cancel()
-
 	log.Print("=== validation ===")
 	// 一番大切なメイン処理：checkとloadの大きく2つの処理を行う
 	// checkはアプリケーションが正しく動いているか常にチェックする
 	// 理想的には全リクエストはcheckされるべきだが、それをやるとパフォーマンスが出し切れず、最適化されたアプリケーションよりも遅くなる
 	// checkとloadは区別がつかないようにしないといけない。loadのリクエストはログアウト状態しかなかったので、ログアウト時のキャッシュを強くするだけでスコアがはねる問題が過去にあった
 	// 今回はほぼ全リクエストがログイン前提になっているので、checkとloadの区別はできないはず
-	scenario.Validation(ctx)
+	scenario.Validation(context.Background())
 
 	// context.Canceledのエラーは直後に取れば基本的には入ってこない
 	eMsgs, cCnt, aCnt, _ := fails.ErrorsForCheck.Get()
