@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/passes"
 	"github.com/morikuni/failure"
 )
 
@@ -77,6 +78,7 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	}
 
 	asset.IncrementChairViewCount(chair.ID)
+	passes.IncrementCount(passes.LabelOfGetChairDetailFromID)
 
 	return &chair, nil
 }
@@ -110,6 +112,9 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: JSONデコードに失敗しました"))
 	}
+
+	passes.IncrementCount(passes.LabelOfSearchChairsWithQuery)
+
 	return &chairs, nil
 }
 
@@ -143,6 +148,9 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: JSONデコードに失敗しました"))
 	}
+
+	passes.IncrementCount(passes.LabelOfSearchEstatesWithQuery)
+
 	return &estates, nil
 }
 
@@ -177,6 +185,7 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 	}
 
 	asset.IncrementEstateViewCount(estate.ID)
+	passes.IncrementCount(passes.LabelOfGetEstateDetailFromID)
 
 	return &estate, nil
 }
@@ -210,6 +219,8 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: JSONデコードに失敗しました"))
 	}
 
+	passes.IncrementCount(passes.LabelOfGetRecommendedEstatesFromChair)
+
 	return &estate, nil
 }
 
@@ -236,6 +247,7 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 
 	intid, _ := strconv.ParseInt(id, 10, 64)
 	asset.DecrementChairStock(intid)
+	passes.IncrementCount(passes.LabelOfBuyChair)
 
 	return nil
 }
@@ -260,5 +272,8 @@ func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
 	if err != nil {
 		return failure.Wrap(err, failure.Message("POST /api/estate/req_doc/:id: リクエストに失敗しました"))
 	}
+
+	passes.IncrementCount(passes.LabelOfRequestEstateDocument)
+
 	return nil
 }
