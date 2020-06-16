@@ -22,15 +22,19 @@ func estateSearchScenario(ctx context.Context) {
 	go func() {
 		// Search Estates with Query
 		q := url.Values{}
-		q.Set("doorHeightRangeId", "1")
-		q.Set("doorWidthRangeId", "1")
-		q.Set("rentRangeId", "1")
-		q.Set("perPage", "20")
+		q.Set("rentRangeId", strconv.Itoa(rand.Intn(4)))
+		if (rand.Intn(100) % 20) == 0 {
+			q.Set("doorHeightRangeId", strconv.Itoa(rand.Intn(4)))
+		}
+		if (rand.Intn(100) % 20) == 0 {
+			q.Set("doorWidthRangeId", strconv.Itoa(rand.Intn(4)))
+		}
+		q.Set("perPage", strconv.Itoa(rand.Intn(20)+30))
 		q.Set("page", "0")
 
 		er, err := c.SearchEstatesWithQuery(ctx, q)
 		if err != nil {
-			fails.ErrorsForCheck.Add(err)
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 			cancel()
 			return
 		}
@@ -48,7 +52,8 @@ func estateSearchScenario(ctx context.Context) {
 		}
 
 		if !ok {
-			fails.ErrorsForCheck.Add(failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です")))
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 			cancel()
 			return
 		}
@@ -58,14 +63,15 @@ func estateSearchScenario(ctx context.Context) {
 		targetID := er.Estates[randomPosition].ID
 		e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
 		if err != nil {
-			fails.ErrorsForCheck.Add(err)
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 			cancel()
 			return
 		}
 
 		ok = e.Equal(asset.GetEstateFromID(e.ID))
 		if !ok {
-			fails.ErrorsForCheck.Add(failure.New(fails.ErrApplication, failure.Messagef("GET /api/estate/%d: 物件情報が不正です", targetID)))
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 			cancel()
 			return
 		}
@@ -73,7 +79,7 @@ func estateSearchScenario(ctx context.Context) {
 		err = c.RequestEstateDocument(ctx, strconv.FormatInt(targetID, 10))
 
 		if err != nil {
-			fails.ErrorsForCheck.Add(err)
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 		}
 		cancel()
 	}()

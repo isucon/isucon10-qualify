@@ -22,7 +22,7 @@ func Initialize(ctx context.Context) {
 
 	err := initialize(ctx)
 	if err != nil {
-		fails.ErrorsForCheck.Add(err)
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfInitialize)
 	}
 }
 

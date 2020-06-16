@@ -50,7 +50,7 @@ type EstatesResponse struct {
 func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Chair, error) {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/chair/"+id)
 	if err != nil {
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/chair/%v: リクエストに失敗しました", id))
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/:id: リクエストに失敗しました"))
 	}
 
 	req = req.WithContext(ctx)
@@ -60,10 +60,10 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/chair/%v: リクエストに失敗しました", id))
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/:id: リクエストに失敗しました"))
 	}
 	if res == nil {
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/chair/%v: リクエストに失敗しました", id))
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/:id: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
 
@@ -84,7 +84,7 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*ChairsResponse, error) {
 	req, err := c.newGetRequestWithQuery(ShareTargetURLs.AppURL, "/api/chair/search", q)
 	if err != nil {
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/chair/search: Query: リクエストに失敗しました"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: リクエストに失敗しました"))
 	}
 
 	req = req.WithContext(ctx)
@@ -94,10 +94,10 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/chair/search: Query: リクエストに失敗しました"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: リクエストに失敗しました"))
 	}
 	if res == nil {
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/chair/search: Query: リクエストに失敗しました"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
 
@@ -117,7 +117,7 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 	req, err := c.newGetRequestWithQuery(ShareTargetURLs.AppURL, "/api/estate/search", q)
 
 	if err != nil {
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/estate/search: Query: リクエストに失敗しました"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: リクエストに失敗しました"))
 	}
 
 	req = req.WithContext(ctx)
@@ -127,10 +127,10 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/estate/search: Query: リクエストに失敗しました"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: リクエストに失敗しました"))
 	}
 	if res == nil {
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/estate/search: Query: リクエストに失敗しました"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
 
@@ -149,7 +149,7 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.Estate, error) {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/estate/"+id)
 	if err != nil {
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/estate/%v: リクエストに失敗しました", id))
+		return nil, failure.Wrap(err, failure.Message("GET /api/estate/:id: リクエストに失敗しました"))
 	}
 
 	req = req.WithContext(ctx)
@@ -159,10 +159,10 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/estate/%v: リクエストに失敗しました", id))
+		return nil, failure.Wrap(err, failure.Message("GET /api/estate/:id: リクエストに失敗しました"))
 	}
 	if res == nil {
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/estate/%v: リクエストに失敗しました", id))
+		return nil, failure.Wrap(err, failure.Message("GET /api/estate/:id: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
 
@@ -184,7 +184,7 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (*EstatesResponse, error) {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/recommended_estate/"+strconv.FormatInt(id, 10))
 	if err != nil {
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/recommended_estate/%v: リクエストに失敗しました", id))
+		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: リクエストに失敗しました"))
 	}
 
 	req = req.WithContext(ctx)
@@ -194,10 +194,10 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/recommended_estate/%v: リクエストに失敗しました", id))
+		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: リクエストに失敗しました"))
 	}
 	if res == nil {
-		return nil, failure.Wrap(err, failure.Messagef("GET /api/recommended_estate/%v: リクエストに失敗しました", id))
+		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
 
@@ -216,7 +216,7 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 func (c *Client) BuyChair(ctx context.Context, id string) error {
 	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/chair/buy/"+id, nil)
 	if err != nil {
-		return failure.Wrap(err, failure.Messagef("POST /api/chair/buy/%v: リクエストに失敗しました", id))
+		return failure.Wrap(err, failure.Message("POST /api/chair/buy/:id: リクエストに失敗しました"))
 	}
 
 	req = req.WithContext(ctx)
@@ -226,12 +226,12 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return ctxErr
 		}
-		return failure.Wrap(err, failure.Messagef("POST /api/chair/buy/%v: リクエストに失敗しました", id))
+		return failure.Wrap(err, failure.Message("POST /api/chair/buy/:id: リクエストに失敗しました"))
 	}
 
 	err = checkStatusCode(res, 200)
 	if err != nil {
-		return failure.Wrap(err, failure.Messagef("POST /api/chair/buy/%v: リクエストに失敗しました", id))
+		return failure.Wrap(err, failure.Message("POST /api/chair/buy/:id: リクエストに失敗しました"))
 	}
 
 	intid, _ := strconv.ParseInt(id, 10, 64)
@@ -243,7 +243,7 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
 	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/estate/req_doc/"+id, nil)
 	if err != nil {
-		return failure.Wrap(err, failure.Messagef("POST /api/estate/req_doc/%v: リクエストに失敗しました", id))
+		return failure.Wrap(err, failure.Message("POST /api/estate/req_doc/:id: リクエストに失敗しました"))
 	}
 
 	req = req.WithContext(ctx)
@@ -253,12 +253,12 @@ func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return ctxErr
 		}
-		return failure.Wrap(err, failure.Messagef("POST /api/estate/req_doc/%v: リクエストに失敗しました", id))
+		return failure.Wrap(err, failure.Message("POST /api/estate/req_doc/:id: リクエストに失敗しました"))
 	}
 
 	err = checkStatusCode(res, 200)
 	if err != nil {
-		return failure.Wrap(err, failure.Messagef("POST /api/estate/req_doc/%v: リクエストに失敗しました", id))
+		return failure.Wrap(err, failure.Message("POST /api/estate/req_doc/:id: リクエストに失敗しました"))
 	}
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/morikuni/failure"
 )
@@ -19,6 +20,14 @@ const (
 	ErrTemporary failure.StringCode = "error temporary"
 )
 
+type ErrorLabel int
+
+const (
+	ErrorOfInitialize ErrorLabel = iota
+	ErrorOfEstateSearchScenario
+	ErrorOfChairSearchScenario
+)
+
 var (
 	// ErrorsForCheck is 基本的にはこっちを使う
 	ErrorsForCheck *Errors
@@ -32,7 +41,8 @@ func init() {
 }
 
 type Errors struct {
-	Msgs []string
+	Msgs           []string
+	lastErrorTimes map[ErrorLabel]time.Time
 
 	critical    int
 	application int
@@ -43,9 +53,17 @@ type Errors struct {
 
 func NewErrors() *Errors {
 	msgs := make([]string, 0, 100)
+	times := make(map[ErrorLabel]time.Time)
 	return &Errors{
-		Msgs: msgs,
+		Msgs:           msgs,
+		lastErrorTimes: times,
 	}
+}
+
+func (e *Errors) GetLastErrorTime(label ErrorLabel) time.Time {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+	return e.lastErrorTimes[label]
 }
 
 func (e *Errors) GetMsgs() (msgs []string) {
@@ -62,7 +80,7 @@ func (e *Errors) Get() (msgs []string, critical, application, trivial int) {
 	return e.Msgs[:], e.critical, e.application, e.trivial
 }
 
-func (e *Errors) Add(err error) {
+func (e *Errors) Add(err error, label ErrorLabel) {
 	if err == nil {
 		return
 	}
@@ -75,6 +93,8 @@ func (e *Errors) Add(err error) {
 	defer e.mu.Unlock()
 
 	log.Printf("%+v", err)
+
+	e.lastErrorTimes[label] = time.Now()
 
 	msg, ok := failure.MessageOf(err)
 	code, _ := failure.CodeOf(err)

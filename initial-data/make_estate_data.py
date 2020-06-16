@@ -60,7 +60,7 @@ def generate_estate_dummy_data(estate_id):
         "latitude": float(latlng[0]) + random.normalvariate(mu=0.0, sigma=0.3),
         "longitude": float(latlng[1]) + random.normalvariate(mu=0.0, sigma=0.3),
         "address": fake.address(),
-        "rent": random.randint(50000, 200000),
+        "rent": random.randint(30000, 200000),
         "door_height": random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER),
         "door_width": random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER),
         "view_count": random.randint(3000, 1000000),
