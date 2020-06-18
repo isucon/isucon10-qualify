@@ -44,6 +44,14 @@
     path: "/home/isucon/isucon10-qualify"
   register: chk_file
 
+- name: Delete isucon10-qualify if exists
+  become: yes
+  become_user: root
+  file:
+    path: /home/isucon/isucon10-qualify
+    state: absent
+  when: chk_file.stat.exists
+
 - name: Clone isucon10-qualify
   become: no
   git:
@@ -51,7 +59,6 @@
     version: master
     dest: /tmp/isucon10-qualify
     accept_hostkey: yes
-  when: not chk_file.stat.exists
 
 - name: Chgroup sisucon10-qualify repo
   become: yes
@@ -62,11 +69,8 @@
     owner: isucon
     group: isucon
     recurse: yes
-  when: not chk_file.stat.exists
 
 - name: Deploy isucon10-qualify
   become: yes
   become_user: isucon
   command: mv /tmp/isucon10-qualify /home/isucon/isucon10-qualify
-  when: not chk_file.stat.exists
-

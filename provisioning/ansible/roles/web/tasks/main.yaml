@@ -174,3 +174,33 @@
     name: "nginx"
     state: "reloaded"
     enabled: "yes"
+
+- name: Remove provisioning file
+  become: yes
+  become_user: root
+  file:
+    path: "/home/isucon/isucon10-qualify/{{ item }}"
+    state: absent
+  with_items:
+    - agreed
+    - bench
+    - provisioning
+    - initial-data
+    - .git
+    - .github
+    - .gitignore
+    - LICENSE
+    - webapp/docker-compose-test.yaml
+    - webapp/docker-compose.yaml
+    - webapp/Makefile
+    - webapp/.gitignore
+    - webapp/frontend/Dockerfile
+    - webapp/frontend/.dockerignore
+    - webapp/frontend/.gitignore
+    - webapp/go/Dockerfile
+    - webapp/go/chair_test.go
+    - webapp/go/estate_test.go
+    - webapp/go/main_test.go
+    - webapp/go/recommend_test.go
+    - webapp/mysql/.gitignore
+
