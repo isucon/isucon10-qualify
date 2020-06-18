@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/morikuni/failure"
 
@@ -12,6 +13,37 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 )
+
+var chairKindList = []string{
+	"ゲーミングチェア",
+	"座椅子",
+	"エルゴノミクス",
+	"ハンモック",
+}
+
+var chairColorList = []string{
+	"黒",
+	"白",
+	"赤",
+	"青",
+	"緑",
+	"黄",
+	"紫",
+	"ピンク",
+	"オレンジ",
+	"水色",
+	"ネイビー",
+	"ベージュ",
+}
+
+var chairFeatureList = []string{
+	"折りたたみ可",
+	"肘掛け",
+	"キャスター",
+	"リクライニング",
+	"高さ調節可",
+	"フットレスト",
+}
 
 func chairSearchScenario(ctx context.Context) error {
 	passCtx, pass := context.WithCancel(ctx)
@@ -33,14 +65,18 @@ func chairSearchScenario(ctx context.Context) error {
 			q.Set("depthRangeId", strconv.Itoa(rand.Intn(4)))
 		}
 
-		if (rand.Intn(100) % 4) == 0 {
-			// q.Set("kind", "エルゴノミクス")
+		if (rand.Intn(100) % 20) == 0 {
+			q.Set("kind", chairKindList[rand.Intn(len(chairKindList))])
 		}
-		if (rand.Intn(100) % 4) == 0 {
-			// q.Set("color", "black")
+		if (rand.Intn(100) % 20) == 0 {
+			q.Set("color", chairColorList[rand.Intn(len(chairColorList))])
 		}
-		if (rand.Intn(100) % 4) == 0 {
-			// q.Set("features", "リクライニング,肘掛け")
+		if (rand.Intn(100) % 20) == 0 {
+			features := make([]string, len(chairFeatureList))
+			copy(features, chairFeatureList)
+			rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
+			featureLength := rand.Intn(3) + 1
+			q.Set("features", strings.Join(features[:featureLength], ","))
 		}
 
 		q.Set("perPage", strconv.Itoa(rand.Intn(20)+30))
@@ -50,6 +86,11 @@ func chairSearchScenario(ctx context.Context) error {
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 			fail()
+			return
+		}
+
+		if len(cr.Chairs) == 0 {
+			pass()
 			return
 		}
 

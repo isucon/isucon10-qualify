@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/morikuni/failure"
 
@@ -12,6 +13,13 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 )
+
+var estateFeatureList = []string{
+	"バストイレ別",
+	"駅から徒歩5分",
+	"ペット飼育可能",
+	"デザイナーズ物件",
+}
 
 func estateSearchScenario(ctx context.Context) error {
 	passCtx, pass := context.WithCancel(ctx)
@@ -29,6 +37,13 @@ func estateSearchScenario(ctx context.Context) error {
 		if (rand.Intn(100) % 20) == 0 {
 			q.Set("doorWidthRangeId", strconv.Itoa(rand.Intn(4)))
 		}
+		if (rand.Intn(100) % 20) == 0 {
+			features := make([]string, len(estateFeatureList))
+			copy(features, estateFeatureList)
+			rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
+			featureLength := rand.Intn(3) + 1
+			q.Set("features", strings.Join(features[:featureLength], ","))
+		}
 		q.Set("perPage", strconv.Itoa(rand.Intn(20)+30))
 		q.Set("page", "0")
 
@@ -36,6 +51,11 @@ func estateSearchScenario(ctx context.Context) error {
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 			fail()
+			return
+		}
+
+		if len(er.Estates) == 0 {
+			pass()
 			return
 		}
 
