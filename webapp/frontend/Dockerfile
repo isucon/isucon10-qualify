@@ -8,8 +8,8 @@ COPY package-lock.json package-lock.json
 RUN npm ci
 COPY . .
 
-ENV API_SERVER_HOST api-server
-ENV API_SERVER_PORT 1323
+ENV API_HOST http://api-server
+ENV API_PORT 1323
 
 RUN npm run build
 CMD ["npm", "run", "start"]

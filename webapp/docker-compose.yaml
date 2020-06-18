@@ -39,8 +39,8 @@ services:
   frontend:
     build: ./frontend
     environment:
-      API_SERVER_HOST: api-server
-      API_SERVER_PORT: 1323
+      API_HOST: http://api-server
+      API_PORT: 1323
     ports:
       - "3000:3000"
 
