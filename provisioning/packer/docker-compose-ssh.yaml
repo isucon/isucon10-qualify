@@ -1,0 +1,7 @@
+version: "3"
+services:
+  cloudimg:
+    build: .
+    volumes:
+      - ./init-ssh:/tmp/host
+    command: cloud-localds /tmp/host/user-data.img /tmp/host/user-data

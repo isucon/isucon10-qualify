@@ -1,0 +1,77 @@
+{
+  "builders": [
+    {
+      "accelerator": "none",
+      "disk_compression": true,
+      "disk_discard": "unmap",
+      "disk_image": true,
+      "disk_interface": "virtio-scsi",
+      "disk_size": "5000M",
+      "format": "qcow2",
+      "headless": true,
+      "http_directory": "./packer-config",
+      "iso_checksum_url": "https://cloud-images.ubuntu.com/bionic/current/SHA256SUMS",
+      "iso_checksum_type": "sha256",
+      "iso_url": "./original/bionic-server-cloudimg-amd64.img",
+      "output_directory": "output",
+      "qemuargs": [
+        [
+          "-m",
+          "4096M"
+        ],
+        [
+          "-smp",
+          "2"
+        ],
+        [
+          "-smbios",
+          "type=1,serial=ds=nocloud-net;instance-id=packer;seedfrom=http://{{ .HTTPIP }}:{{ .HTTPPort }}/"
+        ],
+        [
+          "-serial",
+          "mon:stdio"
+        ]
+      ],
+      "ssh_password": "ubuntu",
+      "ssh_port": 22,
+      "ssh_timeout": "300s",
+      "ssh_username": "ubuntu",
+      "type": "qemu",
+      "use_default_display": true,
+      "vm_name": "ubuntu"
+    }
+  ],
+  "provisioners": [
+    {
+        "type": "shell",
+        "inline":[
+            "sudo apt-get update",
+            "sudo apt-get install -y python ansible"
+        ]
+    },
+    {
+        "type": "ansible",
+        "playbook_file": "../ansible/web.yaml"
+    },
+    {
+      "inline": [
+        "sudo touch /home/hoge.hoge"
+      ],
+      "type": "shell"
+    },
+    {
+      "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'",
+      "inline": [
+        "mv /etc/netplan/50-cloud-init.yaml /root/",
+        "mv /etc/sudoers.d/90-cloud-init-users /root/",
+        "/usr/bin/truncate --size 0 /etc/machine-id",
+        "rm -r /var/lib/cloud /var/lib/dbus/machine-id ",
+        "for i in group gshadow passwd shadow subuid subgid; do mv /etc/$i- /etc/$i; done",
+        "/bin/sync",
+        "/sbin/fstrim -v /"
+      ],
+      "type": "shell"
+    }
+  ]
+}
+

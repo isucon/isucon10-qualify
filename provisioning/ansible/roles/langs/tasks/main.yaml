@@ -49,24 +49,12 @@
     content: |
       export PATH=/usr/local/node/bin:$PATH
 
-- name: Install Python3 3.6.9
-  become: yes
-  become_user: root
-  command: /tmp/xbuild/python-install 3.6.9 /usr/local/python3
-
-- name: Add PATH for Python3
-  become: yes
-  become_user: root
-  blockinfile:
-    marker: "# {mark} ANSIBLE MANAGED BLOCK Node"
-    path: *bash_aliases 
-    content: |
-      export PATH=/usr/local/python3/bin:$PATH
-
-- name: Install pip
+- name: Install python3 pip
   become: yes
   become_user: root
   apt:
     name:
+    - python3.6
     - python3-pip
+
     update_cache: yes

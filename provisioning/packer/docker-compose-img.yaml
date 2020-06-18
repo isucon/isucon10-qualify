@@ -1,0 +1,7 @@
+version: "3"
+services:
+  cloudimg:
+    build: .
+    volumes:
+      - ./image:/tmp/host
+    command: cloud-localds /tmp/host/cloud.img /tmp/host/cloud.cfg
