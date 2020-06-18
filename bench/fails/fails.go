@@ -26,6 +26,7 @@ const (
 	ErrorOfInitialize ErrorLabel = iota
 	ErrorOfEstateSearchScenario
 	ErrorOfChairSearchScenario
+	ErrorOfEstateNazotteSearchScenario
 )
 
 var (

@@ -10,10 +10,11 @@ import (
 )
 
 const (
-	SleepTimeOnFailScenario        = 1 * time.Second
-	IntervalForCheckWorkers        = 10 * time.Second
-	NumOfInitialEstateSearchWorker = 1
-	NumOfInitialChairSearchWorker  = 1
+  SleepTimeOnFailScenario               = 1 * time.Second
+	IntervalForCheckWorkers               = 10 * time.Second
+	NumOfInitialEstateSearchWorker        = 1
+	NumOfInitialChairSearchWorker         = 1
+	NumOfInitialEstateNazotteSearchWorker = 1
 )
 
 func runEstateSearchWorker(ctx context.Context) {
@@ -100,6 +101,39 @@ func checkChairSearchWorker(ctx context.Context) {
 	}
 }
 
+func runEstateNazotteSearchWorker(ctx context.Context) {
+	for {
+		r := rand.Intn(100)
+		t := time.NewTimer(time.Duration(r) * time.Millisecond)
+		select {
+		case <-t.C:
+		case <-ctx.Done():
+			t.Stop()
+			return
+		}
+		estateNazotteSearchScenario(ctx)
+	}
+}
+
+func checkEstateNazotteSearchWorker(ctx context.Context) {
+	t := time.NewTicker(IntervalForCheckWorkers)
+	for {
+		select {
+		case <-t.C:
+			et := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateNazotteSearchScenario)
+			if time.Since(et) > IntervalForCheckWorkers {
+				log.Println("なぞって検索シナリオの負荷レベルが上昇しました。")
+				go runEstateNazotteSearchWorker(ctx)
+			} else {
+				log.Println("なぞって検索シナリオでエラーが発生したため負荷レベルを上げられませんでした。")
+			}
+		case <-ctx.Done():
+			t.Stop()
+			return
+		}
+	}
+}
+
 func Load(ctx context.Context) {
 	// 物件検索をして、資料請求をするシナリオ
 	for i := 0; i < NumOfInitialEstateSearchWorker; i++ {
@@ -112,4 +146,10 @@ func Load(ctx context.Context) {
 		go runChairSearchWorker(ctx)
 	}
 	go checkChairSearchWorker(ctx)
+
+	// なぞって検索をするシナリオ
+	for i := 0; i < NumOfInitialEstateNazotteSearchWorker; i++ {
+		go runEstateNazotteSearchWorker(ctx)
+	}
+	go checkEstateNazotteSearchWorker(ctx)
 }

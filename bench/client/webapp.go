@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -13,6 +14,15 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/passes"
 	"github.com/morikuni/failure"
 )
+
+type Coordinates struct {
+	Coordinates []*Coordinate `json:"coordinates"`
+}
+
+type Coordinate struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
 
 func (c *Client) Initialize(ctx context.Context) error {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/initialize")
@@ -151,6 +161,39 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 
 	passes.IncrementCount(passes.LabelOfSearchEstatesWithQuery)
 
+	return &estates, nil
+}
+
+func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates) (*EstatesResponse, error) {
+	b, err := json.Marshal(polygon)
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: リクエストに失敗しました"))
+	}
+
+	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/estate/nazotte", bytes.NewBuffer(b))
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: リクエストに失敗しました"))
+	}
+
+	req = req.WithContext(ctx)
+
+	res, err := c.Do(req)
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: リクエストに失敗しました"))
+	}
+	defer res.Body.Close()
+
+	var estates EstatesResponse
+	err = json.NewDecoder(res.Body).Decode(&estates)
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: JSONデコードに失敗しました"))
+	}
 	return &estates, nil
 }
 
