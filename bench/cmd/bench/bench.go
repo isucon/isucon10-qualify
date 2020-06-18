@@ -14,6 +14,7 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/passes"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/scenario"
 )
 
@@ -121,9 +122,17 @@ func main() {
 		return
 	}
 
+	var score int64 = 0
+	score += 1 * passes.GetCount(passes.LabelOfGetChairDetailFromID)
+	score += 1 * passes.GetCount(passes.LabelOfGetEstateDetailFromID)
+	score += 1 * passes.GetCount(passes.LabelOfSearchChairsWithQuery)
+	score += 1 * passes.GetCount(passes.LabelOfSearchEstatesWithQuery)
+	score += 1 * passes.GetCount(passes.LabelOfGetRecommendedEstatesFromChair)
+	score += 1 * passes.GetCount(passes.LabelOfBuyChair)
+	score += 1 * passes.GetCount(passes.LabelOfRequestEstateDocument)
+
 	// application errorは1回で10点減点
 	penalty := int64(10 * aCnt)
-	score := int64(1000) // atomic.LoadInt64(&session.SuccessPostMails)
 	log.Print(score, penalty)
 
 	score -= penalty
