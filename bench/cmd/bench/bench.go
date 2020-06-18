@@ -127,6 +127,7 @@ func main() {
 	score += 1 * passes.GetCount(passes.LabelOfGetEstateDetailFromID)
 	score += 1 * passes.GetCount(passes.LabelOfSearchChairsWithQuery)
 	score += 1 * passes.GetCount(passes.LabelOfSearchEstatesWithQuery)
+	score += 1 * passes.GetCount(passes.LabelOfSearchEstatesNazotte)
 	score += 1 * passes.GetCount(passes.LabelOfGetRecommendedEstatesFromChair)
 	score += 1 * passes.GetCount(passes.LabelOfBuyChair)
 	score += 1 * passes.GetCount(passes.LabelOfRequestEstateDocument)

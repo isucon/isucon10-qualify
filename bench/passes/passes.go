@@ -20,6 +20,7 @@ const (
 	LabelOfSearchChairsWithQuery
 	LabelOfGetEstateDetailFromID
 	LabelOfSearchEstatesWithQuery
+	LabelOfSearchEstatesNazotte
 	LabelOfGetRecommendedEstatesFromChair
 	LabelOfBuyChair
 	LabelOfRequestEstateDocument
@@ -31,6 +32,7 @@ func init() {
 		LabelOfSearchChairsWithQuery:          {},
 		LabelOfGetEstateDetailFromID:          {},
 		LabelOfSearchEstatesWithQuery:         {},
+		LabelOfSearchEstatesNazotte:           {},
 		LabelOfGetRecommendedEstatesFromChair: {},
 		LabelOfBuyChair:                       {},
 		LabelOfRequestEstateDocument:          {},

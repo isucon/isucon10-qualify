@@ -22,7 +22,7 @@ const (
 	timeoutOfSearchChairsWithQuery          = 500 * time.Millisecond
 	timeoutOfGetEstateDetailFromID          = 300 * time.Millisecond
 	timeoutOfSearchEstatesWithQuery         = 500 * time.Millisecond
-	timeoutOfSearchEstatesNazotte           = 800 * time.Millisecond
+	timeoutOfSearchEstatesNazotte           = 1000 * time.Millisecond
 	timeoutOfGetRecommendedEstatesFromChair = 300 * time.Millisecond
 	timeoutOfBuyChair                       = 300 * time.Millisecond
 	timeoutOfRequestEstateDocument          = 300 * time.Millisecond
@@ -218,7 +218,7 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 			return nil, ctxErr
 		}
 		if timeoutCtx.Err() != nil {
-			return nil, failure.New(fails.ErrTimeout, failure.Message("GET /api/estate/search: リクエストがタイムアウトしました"))
+			return nil, failure.New(fails.ErrTimeout, failure.Message("POST /api/estate/nazotte: リクエストがタイムアウトしました"))
 		}
 		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: リクエストに失敗しました"))
 	}
@@ -232,10 +232,13 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 			return nil, ctxErr
 		}
 		if timeoutCtx.Err() != nil {
-			return nil, failure.New(fails.ErrTimeout, failure.Message("GET /api/estate/search: リクエストがタイムアウトしました"))
+			return nil, failure.New(fails.ErrTimeout, failure.Message("POST /api/estate/nazotte: リクエストがタイムアウトしました"))
 		}
 		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: JSONデコードに失敗しました"))
 	}
+
+	passes.IncrementCount(passes.LabelOfSearchEstatesNazotte)
+
 	return &estates, nil
 }
 

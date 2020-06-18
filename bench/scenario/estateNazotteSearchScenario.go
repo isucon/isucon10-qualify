@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"sort"
 	"strconv"
-	"time"
 
 	"github.com/morikuni/failure"
 
@@ -72,10 +71,10 @@ const errorDistance = 1E-6
 // 点Pの周りの4点を返す
 func getPointNeighbors(p point) []point {
 	return []point{
-		point{X: p.X - errorDistance, Y: p.Y + errorDistance},
-		point{X: p.X + errorDistance, Y: p.Y + errorDistance},
-		point{X: p.X - errorDistance, Y: p.Y - errorDistance},
-		point{X: p.X + errorDistance, Y: p.Y - errorDistance},
+		{X: p.X - errorDistance, Y: p.Y + errorDistance},
+		{X: p.X + errorDistance, Y: p.Y + errorDistance},
+		{X: p.X - errorDistance, Y: p.Y - errorDistance},
+		{X: p.X + errorDistance, Y: p.Y - errorDistance},
 	}
 }
 
@@ -88,13 +87,13 @@ func contains(s []int64, e int64) bool {
 	return false
 }
 
-func estateNazotteSearchScenario(ctx context.Context) {
-	timeoutCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
+func estateNazotteSearchScenario(ctx context.Context) error {
+	passCtx, pass := context.WithCancel(ctx)
+	failCtx, fail := context.WithCancel(ctx)
 
 	var c *client.Client = client.NewClient("isucon-user")
 
 	go func() {
-		defer cancel()
 		// Nazotte Search
 		// create nazotte data randomly
 		polygon := &client.Coordinates{}
@@ -122,12 +121,14 @@ func estateNazotteSearchScenario(ctx context.Context) {
 		er, err := c.SearchEstatesNazotte(ctx, polygon)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+			fail()
 			return
 		}
 
 		if len(er.Estates) < polygonCorners {
 			err = failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 検索結果が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+			fail()
 			return
 		}
 
@@ -143,6 +144,7 @@ func estateNazotteSearchScenario(ctx context.Context) {
 		if polygonCorners != 0 {
 			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/nazotte: 検索結果が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+			fail()
 			return
 		}
 
@@ -151,21 +153,33 @@ func estateNazotteSearchScenario(ctx context.Context) {
 		e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+			fail()
 			return
 		}
 
 		if !e.Equal(asset.GetEstateFromID(e.ID)) {
 			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+			fail()
 			return
 		}
 
 		err = c.RequestEstateDocument(ctx, strconv.FormatInt(targetID, 10))
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+			fail()
+			return
 		}
 
+		pass()
 	}()
 
-	<-timeoutCtx.Done()
+	select {
+	case <-ctx.Done():
+		return nil
+	case <-failCtx.Done():
+		return failure.New(fails.ErrApplication)
+	case <-passCtx.Done():
+		return nil
+	}
 }

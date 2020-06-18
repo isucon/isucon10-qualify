@@ -111,7 +111,16 @@ func runEstateNazotteSearchWorker(ctx context.Context) {
 			t.Stop()
 			return
 		}
-		estateNazotteSearchScenario(ctx)
+		err := estateNazotteSearchScenario(ctx)
+		if err != nil {
+			t = time.NewTimer(SleepTimeOnFailScenario)
+			select {
+			case <-t.C:
+			case <-ctx.Done():
+				t.Stop()
+				return
+			}
+		}
 	}
 }
 
