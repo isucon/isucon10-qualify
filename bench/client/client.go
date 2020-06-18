@@ -13,10 +13,6 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 )
 
-const (
-	DefaultAPITimeout = 10
-)
-
 type Client struct {
 	userAgent  string
 	httpClient *http.Client
@@ -171,4 +167,8 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	return res, nil
+}
+
+func (c *Client) CloseIdleConnections() {
+	c.httpClient.CloseIdleConnections()
 }

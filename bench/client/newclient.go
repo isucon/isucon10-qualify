@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
-	"time"
 )
 
 func NewClient(userAgent string) *Client {
@@ -17,7 +16,6 @@ func NewClient(userAgent string) *Client {
 					ServerName: ShareTargetURLs.TargetHost,
 				},
 			},
-			Timeout: time.Duration(DefaultAPITimeout) * time.Second,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				return fmt.Errorf("redirect attempted")
 			},

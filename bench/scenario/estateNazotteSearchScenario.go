@@ -92,6 +92,7 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 	failCtx, fail := context.WithCancel(ctx)
 
 	var c *client.Client = client.NewClient("isucon-user")
+	defer c.CloseIdleConnections()
 
 	go func() {
 		// Nazotte Search
