@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"net/url"
 	"strconv"
-	"time"
 
 	"github.com/morikuni/failure"
 
@@ -14,8 +13,9 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 )
 
-func chairSearchScenario(ctx context.Context) {
-	timeoutCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
+func chairSearchScenario(ctx context.Context) error {
+	passCtx, pass := context.WithCancel(ctx)
+	failCtx, fail := context.WithCancel(ctx)
 
 	var c *client.Client = client.NewClient("isucon-user")
 
@@ -49,7 +49,7 @@ func chairSearchScenario(ctx context.Context) {
 		cr, err := c.SearchChairsWithQuery(ctx, q)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			cancel()
+			fail()
 			return
 		}
 
@@ -75,12 +75,12 @@ func chairSearchScenario(ctx context.Context) {
 		if !ok {
 			err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			cancel()
+			fail()
 			return
 		}
 
 		if len(cr.Chairs) == 0 {
-			cancel()
+			fail()
 			return
 		}
 
@@ -91,7 +91,7 @@ func chairSearchScenario(ctx context.Context) {
 
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			cancel()
+			fail()
 			return
 		}
 
@@ -99,7 +99,7 @@ func chairSearchScenario(ctx context.Context) {
 		if !ok {
 			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			cancel()
+			fail()
 			return
 		}
 
@@ -109,7 +109,7 @@ func chairSearchScenario(ctx context.Context) {
 		err = c.BuyChair(ctx, strconv.FormatInt(targetID, 10))
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			cancel()
+			fail()
 			return
 		}
 
@@ -117,7 +117,7 @@ func chairSearchScenario(ctx context.Context) {
 		er, err := c.GetRecommendedEstatesFromChair(ctx, targetID)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			cancel()
+			fail()
 			return
 		}
 
@@ -136,7 +136,7 @@ func chairSearchScenario(ctx context.Context) {
 		if !ok {
 			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			cancel()
+			fail()
 			return
 		}
 
@@ -146,7 +146,7 @@ func chairSearchScenario(ctx context.Context) {
 		e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			cancel()
+			fail()
 			return
 		}
 
@@ -154,7 +154,7 @@ func chairSearchScenario(ctx context.Context) {
 		if !ok {
 			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			cancel()
+			fail()
 			return
 		}
 
@@ -163,15 +163,18 @@ func chairSearchScenario(ctx context.Context) {
 
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			fail()
 		}
 
-		cancel()
+		pass()
 	}()
 
 	select {
 	case <-ctx.Done():
-		return
-	case <-timeoutCtx.Done():
-		return
+		return nil
+	case <-failCtx.Done():
+		return failure.New(fails.ErrApplication)
+	case <-passCtx.Done():
+		return nil
 	}
 }

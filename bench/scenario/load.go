@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	SleepTimeOnFailScenario        = 1 * time.Second
 	IntervalForCheckWorkers        = 10 * time.Second
 	NumOfInitialEstateSearchWorker = 1
 	NumOfInitialChairSearchWorker  = 1
@@ -25,7 +26,16 @@ func runEstateSearchWorker(ctx context.Context) {
 			t.Stop()
 			return
 		}
-		estateSearchScenario(ctx)
+		err := estateSearchScenario(ctx)
+		if err != nil {
+			t = time.NewTimer(SleepTimeOnFailScenario)
+			select {
+			case <-t.C:
+			case <-ctx.Done():
+				t.Stop()
+				return
+			}
+		}
 	}
 }
 
@@ -58,7 +68,16 @@ func runChairSearchWorker(ctx context.Context) {
 			t.Stop()
 			return
 		}
-		chairSearchScenario(ctx)
+		err := chairSearchScenario(ctx)
+		if err != nil {
+			t = time.NewTimer(SleepTimeOnFailScenario)
+			select {
+			case <-t.C:
+			case <-ctx.Done():
+				t.Stop()
+				return
+			}
+		}
 	}
 }
 
