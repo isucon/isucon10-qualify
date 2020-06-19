@@ -105,7 +105,7 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 		choosedEstateIDs := make([]int64, polygonCorners)
 
 		for i := 0; i < polygonCorners; i++ {
-			target := rand.Int63n(10000)
+			target := rand.Int63n(10000) + 1
 			e := asset.GetEstateFromID(target)
 			if !contains(choosedEstateIDs, e.ID) {
 				p := point{X: e.Latitude, Y: e.Longitude}
