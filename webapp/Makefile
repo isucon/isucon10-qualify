@@ -19,6 +19,9 @@ spec/pprof:
 spec/mysql:
 	querydigest -f ./logs/mysql/mysql-slow.log
 
+spec/accesslog:
+	cat ./logs/nginx/access.log | kataribe
+
 run/go:
 	docker-compose -f docker-compose.yaml up --build
 run/test/with-makedata:
