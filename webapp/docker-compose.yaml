@@ -86,4 +86,4 @@ services:
       - http://nginx
     depends_on:
       - api-server
-    command: /go/src/bench/bench -target-url=http://api-server:1323 -data-dir=/tmp/initial-data
+    command: /go/src/bench/bench -target-url=http://nginx -data-dir=/tmp/initial-data
