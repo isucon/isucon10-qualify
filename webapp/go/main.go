@@ -15,6 +15,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
+	"github.com/sevenNt/echo-pprof"
 )
 
 const SRID = 6668
@@ -412,6 +413,9 @@ func main() {
 	e.GET("/api/recommended_estate", searchRecommendEstate)
 	e.GET("/api/recommended_estate/:id", searchRecommendEstateWithChair)
 	e.GET("/api/recommended_chair", searchRecommendChair)
+
+	// pprof
+	echopprof.Wrap(e)
 
 	MySQLConnectionData = NewMySQLConnectionEnv()
 

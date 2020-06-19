@@ -1,6 +1,24 @@
 SHELL=/bin/bash
+
+export URL="http://localhost:1323/api/estate/range"
+export NOW:=`date '+%Y_%m_%d_%T'`
+export PPROF=cpu.pprof
+export FILETIME=`tail -n 1 ./logs/record_list.log`
+spec/measurement:
+	echo ${NOW}
+	docker-compose down -v
+	docker-compose up --build -d
+	wayt http -u ${URL}
+	curl -s http://localhost:1323/debug/pprof/profile?seconds=80 > ./logs/apps/cpu.pprof
+	docker-compose down
+	mv ./logs/apps/cpu.pprof ./logs/apps/${NOW}${PPROF}
+	echo ${NOW} >> ./logs/record_list.log
+spec/pprof:
+	go tool pprof ./logs/apps/${FILETIME}cpu.pprof
+
 spec/mysql:
 	querydigest -f ./logs/mysql/mysql-slow.log
+
 run/go:
 	docker-compose -f docker-compose.yaml up --build
 run/test/with-makedata:

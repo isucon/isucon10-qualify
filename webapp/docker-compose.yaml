@@ -47,10 +47,17 @@ services:
     ports:
       - "3000:3000"
 
-  nginx:
-    image: nginx:1.17
+  benchmarker:
+    build: ../bench
     volumes:
-        - ../provisioning/ansible/roles/web/files/nginx.conf /etc/nginx/conf.d/default.conf
-
-    ports:
-      - "8080:80"
+      - ../initial-data:/tmp/initial-data
+      - ./logs/bench:/var/log/bench
+    entrypoint:
+      - dockerize
+      - -timeout
+      - 60s
+      - -wait
+      - http://api-server:1323/api/estate/range
+    depends_on:
+      - api-server
+    command: /go/src/bench/bench -target-url=http://api-server:1323 -data-dir=/tmp/initial-data
