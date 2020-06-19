@@ -101,7 +101,7 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 
 	for i := 0; i < polygonCorners; i++ {
 		target := rand.Int63n(10000) + 1
-		e := asset.GetEstateFromID(target)
+		e, _ := asset.GetEstateFromID(target)
 		if !contains(choosedEstateIDs, e.ID) {
 			p := point{X: e.Latitude, Y: e.Longitude}
 			estateNeighborsPoint = append(estateNeighborsPoint, getPointNeighbors(p)...)
@@ -149,7 +149,8 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if !e.Equal(asset.GetEstateFromID(e.ID)) {
+	estate, err := asset.GetEstateFromID(e.ID)
+	if err != nil || !e.Equal(estate) {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)

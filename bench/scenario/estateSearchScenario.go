@@ -56,7 +56,11 @@ func estateSearchScenario(ctx context.Context) error {
 	var viewCount int64 = -1
 	ok := true
 	for i, estate := range er.Estates {
-		e := asset.GetEstateFromID(estate.ID)
+		e, err := asset.GetEstateFromID(estate.ID)
+		if err != nil {
+			ok = false
+			break
+		}
 		vc := e.GetViewCount()
 		if i > 0 && viewCount < vc {
 			ok = false
@@ -80,8 +84,8 @@ func estateSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	ok = e.Equal(asset.GetEstateFromID(e.ID))
-	if !ok {
+	estate, err := asset.GetEstateFromID(e.ID)
+	if err != nil || !e.Equal(estate) {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 		return failure.New(fails.ErrApplication)

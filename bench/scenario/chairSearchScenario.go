@@ -91,7 +91,11 @@ func chairSearchScenario(ctx context.Context) error {
 	var viewCount int64 = -1
 	ok := true
 	for i, chair := range cr.Chairs {
-		_chair := asset.GetChairFromID(chair.ID)
+		_chair, err := asset.GetChairFromID(chair.ID)
+		if err != nil {
+			ok = false
+			break
+		}
 
 		if _chair.GetStock() <= 0 {
 			ok = false
@@ -113,7 +117,6 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-
 	// Get detail of Chair
 	randomPosition := rand.Intn(len(cr.Chairs))
 	targetID := cr.Chairs[randomPosition].ID
@@ -124,14 +127,16 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	ok = chair.Equal(asset.GetChairFromID(chair.ID))
+	if _chair, err := asset.GetChairFromID(chair.ID); err != nil {
+		ok = false
+	} else {
+		ok = chair.Equal(_chair)
+	}
 	if !ok {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
-
-	chair = asset.GetChairFromID(targetID)
 
 	// Buy Chair
 	err = c.BuyChair(ctx, strconv.FormatInt(targetID, 10))
@@ -150,7 +155,11 @@ func chairSearchScenario(ctx context.Context) error {
 	viewCount = -1
 	ok = true
 	for i, estate := range er.Estates {
-		e := asset.GetEstateFromID(estate.ID)
+		e, err := asset.GetEstateFromID(estate.ID)
+		if err != nil {
+			ok = false
+			break
+		}
 		vc := e.GetViewCount()
 		if i > 0 && viewCount < vc {
 			ok = false
@@ -174,7 +183,12 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	ok = e.Equal(asset.GetEstateFromID(e.ID))
+	if estate, err := asset.GetEstateFromID(e.ID); err != nil {
+		ok = false
+	} else {
+		ok = e.Equal(estate)
+	}
+
 	if !ok {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)

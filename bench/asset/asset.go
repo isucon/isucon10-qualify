@@ -3,6 +3,7 @@ package asset
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"log"
 	"os"
 	"path/filepath"
@@ -58,12 +59,14 @@ func ExistsChairInMap(id int64) bool {
 	return ok
 }
 
-func GetChairFromID(id int64) *Chair {
+func GetChairFromID(id int64) (*Chair, error) {
 	var c *Chair
 	if ExistsChairInMap(id) {
 		c, _ = chairMap[id]
+		return c, nil
 	}
-	return c
+
+	return nil, errors.New("requested chair not found")
 }
 
 func IncrementChairViewCount(id int64) {
@@ -83,12 +86,13 @@ func ExistsEstateInMap(id int64) bool {
 	return ok
 }
 
-func GetEstateFromID(id int64) *Estate {
+func GetEstateFromID(id int64) (*Estate, error) {
 	var e *Estate
 	if ExistsEstateInMap(id) {
 		e, _ = estateMap[id]
+		return e, nil
 	}
-	return e
+	return nil, errors.New("requested estate not found")
 }
 
 func IncrementEstateViewCount(id int64) {
