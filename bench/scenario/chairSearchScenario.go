@@ -46,176 +46,148 @@ var chairFeatureList = []string{
 }
 
 func chairSearchScenario(ctx context.Context) error {
-	passCtx, pass := context.WithCancel(ctx)
-	failCtx, fail := context.WithCancel(ctx)
-
 	var c *client.Client = client.PickClient()
 
-	go func() {
-		// Search Chairs with Query
-		q := url.Values{}
-		q.Set("priceRangeId", strconv.Itoa(rand.Intn(6)))
-		if (rand.Intn(100) % 5) == 0 {
-			q.Set("heightRangeId", strconv.Itoa(rand.Intn(4)))
-		}
-		if (rand.Intn(100) % 5) == 0 {
-			q.Set("widthRangeId", strconv.Itoa(rand.Intn(4)))
-		}
-		if (rand.Intn(100) % 5) == 0 {
-			q.Set("depthRangeId", strconv.Itoa(rand.Intn(4)))
-		}
+	// Search Chairs with Query
+	q := url.Values{}
+	q.Set("priceRangeId", strconv.Itoa(rand.Intn(6)))
+	if (rand.Intn(100) % 5) == 0 {
+		q.Set("heightRangeId", strconv.Itoa(rand.Intn(4)))
+	}
+	if (rand.Intn(100) % 5) == 0 {
+		q.Set("widthRangeId", strconv.Itoa(rand.Intn(4)))
+	}
+	if (rand.Intn(100) % 5) == 0 {
+		q.Set("depthRangeId", strconv.Itoa(rand.Intn(4)))
+	}
 
-		if (rand.Intn(100) % 20) == 0 {
-			q.Set("kind", chairKindList[rand.Intn(len(chairKindList))])
-		}
-		if (rand.Intn(100) % 20) == 0 {
-			q.Set("color", chairColorList[rand.Intn(len(chairColorList))])
-		}
-		if (rand.Intn(100) % 20) == 0 {
-			features := make([]string, len(chairFeatureList))
-			copy(features, chairFeatureList)
-			rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
-			featureLength := rand.Intn(3) + 1
-			q.Set("features", strings.Join(features[:featureLength], ","))
-		}
+	if (rand.Intn(100) % 20) == 0 {
+		q.Set("kind", chairKindList[rand.Intn(len(chairKindList))])
+	}
+	if (rand.Intn(100) % 20) == 0 {
+		q.Set("color", chairColorList[rand.Intn(len(chairColorList))])
+	}
+	if (rand.Intn(100) % 20) == 0 {
+		features := make([]string, len(chairFeatureList))
+		copy(features, chairFeatureList)
+		rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
+		featureLength := rand.Intn(3) + 1
+		q.Set("features", strings.Join(features[:featureLength], ","))
+	}
 
-		q.Set("perPage", strconv.Itoa(rand.Intn(20)+30))
-		q.Set("page", "0")
+	q.Set("perPage", strconv.Itoa(rand.Intn(20)+30))
+	q.Set("page", "0")
 
-		cr, err := c.SearchChairsWithQuery(ctx, q)
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			fail()
-			return
-		}
-
-		if len(cr.Chairs) == 0 {
-			pass()
-			return
-		}
-
-		var viewCount int64 = -1
-		ok := true
-		for i, chair := range cr.Chairs {
-			_chair := asset.GetChairFromID(chair.ID)
-
-			if _chair.GetStock() <= 0 {
-				ok = false
-				break
-			}
-
-			vc := _chair.GetViewCount()
-
-			if i > 0 && viewCount < vc {
-				ok = false
-				break
-			}
-			viewCount = vc
-		}
-
-		if !ok {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			fail()
-			return
-		}
-
-		if len(cr.Chairs) == 0 {
-			fail()
-			return
-		}
-
-		// Get detail of Chair
-		randomPosition := rand.Intn(len(cr.Chairs))
-		targetID := cr.Chairs[randomPosition].ID
-		chair, err := c.GetChairDetailFromID(ctx, strconv.FormatInt(targetID, 10))
-
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			fail()
-			return
-		}
-
-		ok = chair.Equal(asset.GetChairFromID(chair.ID))
-		if !ok {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			fail()
-			return
-		}
-
-		chair = asset.GetChairFromID(targetID)
-
-		// Buy Chair
-		err = c.BuyChair(ctx, strconv.FormatInt(targetID, 10))
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			fail()
-			return
-		}
-
-		// Get recommended Estates calculated with Chair
-		er, err := c.GetRecommendedEstatesFromChair(ctx, targetID)
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			fail()
-			return
-		}
-
-		viewCount = -1
-		ok = true
-		for i, estate := range er.Estates {
-			e := asset.GetEstateFromID(estate.ID)
-			vc := e.GetViewCount()
-			if i > 0 && viewCount < vc {
-				ok = false
-				break
-			}
-			viewCount = vc
-		}
-
-		if !ok {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			fail()
-			return
-		}
-
-		// Get detail of Estate
-		randomPosition = rand.Intn(len(er.Estates))
-		targetID = er.Estates[randomPosition].ID
-		e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			fail()
-			return
-		}
-
-		ok = e.Equal(asset.GetEstateFromID(e.ID))
-		if !ok {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			fail()
-			return
-		}
-
-		// Request docs of Estate
-		err = c.RequestEstateDocument(ctx, strconv.FormatInt(targetID, 10))
-
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-			fail()
-		}
-
-		pass()
-	}()
-
-	select {
-	case <-ctx.Done():
-		return nil
-	case <-failCtx.Done():
+	cr, err := c.SearchChairsWithQuery(ctx, q)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
-	case <-passCtx.Done():
+	}
+
+	if len(cr.Chairs) == 0 {
 		return nil
 	}
+
+	var viewCount int64 = -1
+	ok := true
+	for i, chair := range cr.Chairs {
+		_chair := asset.GetChairFromID(chair.ID)
+
+		if _chair.GetStock() <= 0 {
+			ok = false
+			break
+		}
+
+		vc := _chair.GetViewCount()
+
+		if i > 0 && viewCount < vc {
+			ok = false
+			break
+		}
+		viewCount = vc
+	}
+
+	if !ok {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+
+	// Get detail of Chair
+	randomPosition := rand.Intn(len(cr.Chairs))
+	targetID := cr.Chairs[randomPosition].ID
+	chair, err := c.GetChairDetailFromID(ctx, strconv.FormatInt(targetID, 10))
+
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	ok = chair.Equal(asset.GetChairFromID(chair.ID))
+	if !ok {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	chair = asset.GetChairFromID(targetID)
+
+	// Buy Chair
+	err = c.BuyChair(ctx, strconv.FormatInt(targetID, 10))
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	// Get recommended Estates calculated with Chair
+	er, err := c.GetRecommendedEstatesFromChair(ctx, targetID)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	viewCount = -1
+	ok = true
+	for i, estate := range er.Estates {
+		e := asset.GetEstateFromID(estate.ID)
+		vc := e.GetViewCount()
+		if i > 0 && viewCount < vc {
+			ok = false
+			break
+		}
+		viewCount = vc
+	}
+
+	if !ok {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	// Get detail of Estate
+	randomPosition = rand.Intn(len(er.Estates))
+	targetID = er.Estates[randomPosition].ID
+	e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	ok = e.Equal(asset.GetEstateFromID(e.ID))
+	if !ok {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	// Request docs of Estate
+	err = c.RequestEstateDocument(ctx, strconv.FormatInt(targetID, 10))
+
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	return nil
 }

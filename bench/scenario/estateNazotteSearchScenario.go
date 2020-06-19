@@ -88,98 +88,78 @@ func contains(s []int64, e int64) bool {
 }
 
 func estateNazotteSearchScenario(ctx context.Context) error {
-	passCtx, pass := context.WithCancel(ctx)
-	failCtx, fail := context.WithCancel(ctx)
-
 	var c *client.Client = client.PickClient()
 
-	go func() {
-		// Nazotte Search
-		// create nazotte data randomly
-		polygon := &client.Coordinates{}
-		// corners 3 <= N <= 8
-		polygonCorners := rand.Intn(6) + 3
+	// Nazotte Search
+	// create nazotte data randomly
+	polygon := &client.Coordinates{}
+	// corners 3 <= N <= 8
+	polygonCorners := rand.Intn(6) + 3
 
-		estateNeighborsPoint := make([]point, 0, 4*polygonCorners)
-		choosedEstateIDs := make([]int64, polygonCorners)
+	estateNeighborsPoint := make([]point, 0, 4*polygonCorners)
+	choosedEstateIDs := make([]int64, polygonCorners)
 
-		for i := 0; i < polygonCorners; i++ {
-			target := rand.Int63n(10000) + 1
-			e := asset.GetEstateFromID(target)
-			if !contains(choosedEstateIDs, e.ID) {
-				p := point{X: e.Latitude, Y: e.Longitude}
-				estateNeighborsPoint = append(estateNeighborsPoint, getPointNeighbors(p)...)
-				choosedEstateIDs[i] = e.ID
-			} else {
-				i--
-			}
+	for i := 0; i < polygonCorners; i++ {
+		target := rand.Int63n(10000) + 1
+		e := asset.GetEstateFromID(target)
+		if !contains(choosedEstateIDs, e.ID) {
+			p := point{X: e.Latitude, Y: e.Longitude}
+			estateNeighborsPoint = append(estateNeighborsPoint, getPointNeighbors(p)...)
+			choosedEstateIDs[i] = e.ID
+		} else {
+			i--
 		}
-
-		convexHulled := convexHull(estateNeighborsPoint)
-		polygon = ToCoordinates(convexHulled)
-
-		er, err := c.SearchEstatesNazotte(ctx, polygon)
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
-			fail()
-			return
-		}
-
-		if len(er.Estates) < polygonCorners {
-			err = failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 検索結果が不正です"))
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
-			fail()
-			return
-		}
-
-		for _, estate := range er.Estates {
-			if contains(choosedEstateIDs, estate.ID) {
-				polygonCorners--
-				if polygonCorners == 0 {
-					break
-				}
-			}
-		}
-
-		if polygonCorners != 0 {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/nazotte: 検索結果が不正です"))
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
-			fail()
-			return
-		}
-
-		randomPosition := rand.Intn(len(er.Estates))
-		targetID := er.Estates[randomPosition].ID
-		e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
-			fail()
-			return
-		}
-
-		if !e.Equal(asset.GetEstateFromID(e.ID)) {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
-			fail()
-			return
-		}
-
-		err = c.RequestEstateDocument(ctx, strconv.FormatInt(targetID, 10))
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
-			fail()
-			return
-		}
-
-		pass()
-	}()
-
-	select {
-	case <-ctx.Done():
-		return nil
-	case <-failCtx.Done():
-		return failure.New(fails.ErrApplication)
-	case <-passCtx.Done():
-		return nil
 	}
+
+	convexHulled := convexHull(estateNeighborsPoint)
+	polygon = ToCoordinates(convexHulled)
+
+	er, err := c.SearchEstatesNazotte(ctx, polygon)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	if len(er.Estates) < polygonCorners {
+		err = failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 検索結果が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	for _, estate := range er.Estates {
+		if contains(choosedEstateIDs, estate.ID) {
+			polygonCorners--
+			if polygonCorners == 0 {
+				break
+			}
+		}
+	}
+
+	if polygonCorners != 0 {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/nazotte: 検索結果が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	randomPosition := rand.Intn(len(er.Estates))
+	targetID := er.Estates[randomPosition].ID
+	e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	if !e.Equal(asset.GetEstateFromID(e.ID)) {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	err = c.RequestEstateDocument(ctx, strconv.FormatInt(targetID, 10))
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	return nil
 }
