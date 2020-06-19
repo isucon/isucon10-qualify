@@ -60,6 +60,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	client.InitializeClients()
+
 	// 初期データの準備
 	asset.Initialize(dataDir)
 

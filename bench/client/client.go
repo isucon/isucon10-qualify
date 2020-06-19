@@ -168,7 +168,3 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 
 	return res, nil
 }
-
-func (c *Client) CloseIdleConnections() {
-	c.httpClient.CloseIdleConnections()
-}

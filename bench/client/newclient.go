@@ -3,10 +3,28 @@ package client
 import (
 	"crypto/tls"
 	"fmt"
+	"math/rand"
 	"net/http"
 )
 
-func NewClient(userAgent string) *Client {
+const (
+	NumOfClient = 10
+)
+
+var clients [NumOfClient]*Client
+
+func InitializeClients() {
+	for i := 0; i < NumOfClient; i++ {
+		userAgent := fmt.Sprintf("isucon-%v-user", i)
+		clients[i] = newClient(userAgent)
+	}
+}
+
+func PickClient() *Client {
+	return clients[rand.Intn(len(clients))]
+}
+
+func newClient(userAgent string) *Client {
 	return &Client{
 		userAgent: userAgent,
 		httpClient: &http.Client{

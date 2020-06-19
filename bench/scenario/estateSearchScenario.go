@@ -25,8 +25,7 @@ func estateSearchScenario(ctx context.Context) error {
 	passCtx, pass := context.WithCancel(ctx)
 	failCtx, fail := context.WithCancel(ctx)
 
-	var c *client.Client = client.NewClient("isucon-user")
-	defer c.CloseIdleConnections()
+	var c *client.Client = client.PickClient()
 
 	go func() {
 		// Search Estates with Query
