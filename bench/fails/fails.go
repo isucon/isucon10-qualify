@@ -18,6 +18,8 @@ const (
 	ErrTimeout failure.StringCode = "error timeout"
 	// ErrTemporary は一時的なエラー。基本は大目に見る。
 	ErrTemporary failure.StringCode = "error temporary"
+	// ErrBenchmarker はベンチマーカ側のエラー。基本的には運営に連絡してもらう
+	ErrBenchmarker failure.StringCode = "error benchmarker"
 )
 
 type ErrorLabel int
@@ -113,6 +115,9 @@ func (e *Errors) Add(err error, label ErrorLabel) {
 			e.trivial++
 		case ErrApplication:
 			e.application++
+		case ErrBenchmarker:
+			e.Msgs = append(e.Msgs, "運営に連絡してください")
+			return
 		default:
 			e.application++
 		}
