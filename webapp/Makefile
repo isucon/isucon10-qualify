@@ -1,4 +1,6 @@
 SHELL=/bin/bash
+spec/mysql:
+	querydigest -f ./logs/mysql/mysql-slow.log
 run/go:
 	docker-compose -f docker-compose.yaml up --build
 run/test/with-makedata:

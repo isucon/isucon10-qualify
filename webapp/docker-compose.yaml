@@ -5,7 +5,10 @@ services:
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/db:/docker-entrypoint-initdb.d
+      - ./logs/mysql:/var/log/mysql
       - ../provisioning/ansible/roles/web/files/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ../provisioning/ansible/roles/web/files/slow-mysqld.cnf:/etc/mysql/conf.d/slowquery.cnf
+
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: isuumo
