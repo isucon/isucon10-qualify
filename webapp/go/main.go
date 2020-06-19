@@ -1076,10 +1076,10 @@ func (cs Coordinates) getBoundingBox() BoundingBox {
 	coordinates := cs.Coordinates
 	boundingBox := BoundingBox{
 		TopLeftCorner: Coordinate{
-			Latitude: coordinates[0].Latitude, Longitude: coordinates[0].Latitude,
+			Latitude: coordinates[0].Latitude, Longitude: coordinates[0].Longitude,
 		},
 		BottomRightCorner: Coordinate{
-			Latitude: coordinates[0].Longitude, Longitude: coordinates[0].Longitude,
+			Latitude: coordinates[0].Latitude, Longitude: coordinates[0].Longitude,
 		},
 	}
 	for _, coordinate := range coordinates {
