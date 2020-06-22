@@ -21,6 +21,7 @@ import (
 const SRID = 6668
 
 const LIMIT = 20
+const NAZOTTELIMIT = 200
 
 var db *sqlx.DB
 var MySQLConnectionData *MySQLConnectionEnv
@@ -989,9 +990,9 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []EstateSchema{}
 
-	sqlstr := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ?`
+	sqlstr := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ? ORDER BY view_count LIMIT ?`
 
-	err = db.Select(&estatesInBoundingBox, sqlstr, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
+	err = db.Select(&estatesInBoundingBox, sqlstr, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude, NAZOTTELIMIT)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Infof("select * from estate where latitude ...", err)
 		return c.NoContent(http.StatusNoContent)
