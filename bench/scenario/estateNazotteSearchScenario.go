@@ -14,16 +14,16 @@ import (
 )
 
 type point struct {
-	X float64
-	Y float64
+	Latitude  float64
+	Longitude float64
 }
 
 func convexHull(p []point) []point {
 	sort.Slice(p, func(i, j int) bool {
-		if p[i].X == p[j].X {
-			return p[i].Y < p[i].Y
+		if p[i].Latitude == p[j].Latitude {
+			return p[i].Longitude < p[i].Longitude
 		}
-		return p[i].X < p[j].X
+		return p[i].Latitude < p[j].Latitude
 	})
 
 	var h []point
@@ -50,14 +50,14 @@ func convexHull(p []point) []point {
 
 // ccw returns true if the three points make a counter-clockwise turn
 func ccw(a, b, c point) bool {
-	return ((b.X - a.X) * (c.Y - a.Y)) > ((b.Y - a.Y) * (c.X - a.X))
+	return ((b.Latitude - a.Latitude) * (c.Longitude - a.Longitude)) > ((b.Longitude - a.Longitude) * (c.Latitude - a.Latitude))
 }
 
 func ToCoordinates(po []point) *client.Coordinates {
 	r := make([]*client.Coordinate, 0, len(po)+1)
 
 	for _, p := range po {
-		r = append(r, &client.Coordinate{Latitude: p.X, Longitude: p.Y})
+		r = append(r, &client.Coordinate{Latitude: p.Latitude, Longitude: p.Longitude})
 	}
 
 	// 始点と終点を一致させる
@@ -71,10 +71,10 @@ const errorDistance = 1E-6
 // 点Pの周りの4点を返す
 func getPointNeighbors(p point) []point {
 	return []point{
-		{X: p.X - errorDistance, Y: p.Y + errorDistance},
-		{X: p.X + errorDistance, Y: p.Y + errorDistance},
-		{X: p.X - errorDistance, Y: p.Y - errorDistance},
-		{X: p.X + errorDistance, Y: p.Y - errorDistance},
+		{Latitude: p.Latitude - errorDistance, Longitude: p.Longitude + errorDistance},
+		{Latitude: p.Latitude + errorDistance, Longitude: p.Longitude + errorDistance},
+		{Latitude: p.Latitude - errorDistance, Longitude: p.Longitude - errorDistance},
+		{Latitude: p.Latitude + errorDistance, Longitude: p.Longitude - errorDistance},
 	}
 }
 
@@ -85,6 +85,38 @@ func contains(s []int64, e int64) bool {
 		}
 	}
 	return false
+}
+
+func getBoundingBox(points []point) []point {
+	boundingBox := []point{
+		{
+			// TopLeftCorner
+			Latitude: points[0].Latitude, Longitude: points[0].Longitude,
+		},
+		{
+			// BottomRightCorner
+			Latitude: points[0].Latitude, Longitude: points[0].Longitude,
+		},
+	}
+
+	po := points[1:]
+
+	for _, p := range po {
+		if boundingBox[0].Latitude > p.Latitude {
+			boundingBox[0].Latitude = p.Latitude
+		}
+		if boundingBox[0].Longitude > p.Longitude {
+			boundingBox[0].Longitude = p.Longitude
+		}
+
+		if boundingBox[1].Latitude < p.Latitude {
+			boundingBox[1].Latitude = p.Latitude
+		}
+		if boundingBox[1].Longitude < p.Longitude {
+			boundingBox[1].Longitude = p.Longitude
+		}
+	}
+	return boundingBox
 }
 
 func estateNazotteSearchScenario(ctx context.Context) error {
@@ -103,7 +135,7 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 		target := rand.Int63n(10000) + 1
 		e, _ := asset.GetEstateFromID(target)
 		if !contains(choosedEstateIDs, e.ID) {
-			p := point{X: e.Latitude, Y: e.Longitude}
+			p := point{Latitude: e.Latitude, Longitude: e.Longitude}
 			estateNeighborsPoint = append(estateNeighborsPoint, getPointNeighbors(p)...)
 			choosedEstateIDs[i] = e.ID
 		} else {
@@ -113,6 +145,7 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 
 	convexHulled := convexHull(estateNeighborsPoint)
 	polygon = ToCoordinates(convexHulled)
+	boundingBox := getBoundingBox(convexHulled)
 
 	er, err := c.SearchEstatesNazotte(ctx, polygon)
 	if err != nil {
@@ -126,16 +159,31 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
+	ok := true
 	for _, estate := range er.Estates {
-		if contains(choosedEstateIDs, estate.ID) {
-			polygonCorners--
-			if polygonCorners == 0 {
-				break
-			}
+		e, err := asset.GetEstateFromID(estate.ID)
+		if err != nil || !e.Equal(&estate) {
+			ok = false
+			break
 		}
+
+		if !(boundingBox[0].Latitude <= e.Latitude && boundingBox[1].Latitude >= e.Latitude) {
+			ok = false
+			break
+		}
+		if !(boundingBox[0].Longitude <= e.Longitude && boundingBox[1].Longitude >= e.Longitude) {
+			ok = false
+			break
+		}
+
+		if !e.Equal(&estate) {
+			ok = false
+			break
+		}
+
 	}
 
-	if polygonCorners != 0 {
+	if !ok {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/nazotte: 検索結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)

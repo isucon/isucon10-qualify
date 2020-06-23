@@ -1,11 +1,14 @@
 package main_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"strconv"
+	"strings"
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -130,4 +133,95 @@ func TestSearchEstates(t *testing.T) {
 		}
 		assert.Equal(t, re, ae)
 	})
+}
+
+func TestSearchEstatenazotte(t *testing.T) {
+	if testing.Short() {
+		t.Skip("\"TestSearchEstatenazotte\" skipping")
+	}
+	db, err := MySQLConnectionData.ConnectDB()
+	if err != nil {
+		t.Fatalf("Database connection failed: %v", err)
+	}
+	defer db.Close()
+
+	t.Run("[POST] /api/estate/nazotte, to get estate from nazotte API", func(t *testing.T) {
+		coordinatesData := &main.Coordinates{
+			Coordinates: []main.Coordinate{
+				{35.78746239087127, 139.64962005615237},
+				{35.78746239087127, 139.65511322021487},
+				{35.78857638547713, 139.71485137939456},
+				{35.78885488168885, 139.71519470214847},
+				{35.79832317220566, 139.71553802490237},
+				{35.839803254941856, 139.71622467041018},
+				{35.84175145058553, 139.71622467041018},
+				{35.84342129448237, 139.7007751464844},
+				{35.84453450421662, 139.6901321411133},
+				{35.848430615242236, 139.64447021484378},
+				{35.83200999390394, 139.64447021484378},
+				{35.826164545769274, 139.64481353759768},
+				{35.8228240963784, 139.6451568603516},
+				{35.78746239087127, 139.64962005615237},
+			},
+		}
+
+		b, err := json.Marshal(coordinatesData)
+		if err != nil {
+			t.Fatalf("create request body error: %v", err)
+		}
+
+		path := "/api/estate/nazotte"
+		url := getURL()
+		resp, err := http.Post(url+path, "application/json", bytes.NewBuffer(b))
+		if err != nil {
+			t.Fatalf("nazotte search POST request failed: %v", err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("nazotte search invalid response status code: want 200 but got %v", resp.StatusCode)
+		}
+
+		respbody, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("nazotte search response body read failed: %v", err)
+		}
+
+		var estateResponse main.EstateSearchResponse
+		err = json.Unmarshal(respbody, &estateResponse)
+		if err != nil {
+			t.Fatalf("response Unmarshal failed: %v", err)
+		}
+
+		var areas []string
+		for _, coordinate := range coordinatesData.Coordinates {
+			areas = append(areas, fmt.Sprintf("%v %v", coordinate.Latitude, coordinate.Longitude))
+		}
+
+		// Latitudeを昇順でソート
+		sort.Slice(coordinatesData.Coordinates, func(i, j int) bool {
+			return coordinatesData.Coordinates[i].Latitude < coordinatesData.Coordinates[j].Latitude
+		})
+		minLatitude := coordinatesData.Coordinates[0].Latitude
+		maxLatitude := coordinatesData.Coordinates[len(coordinatesData.Coordinates)-1].Latitude
+
+		// Longitudeを昇順でソート
+		sort.Slice(coordinatesData.Coordinates, func(i, j int) bool {
+			return coordinatesData.Coordinates[i].Longitude < coordinatesData.Coordinates[j].Longitude
+		})
+		minLongitude := coordinatesData.Coordinates[0].Longitude
+		maxLongitude := coordinatesData.Coordinates[len(coordinatesData.Coordinates)-1].Longitude
+
+		q := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ? AND ST_Contains(ST_PolygonFromText(?), POINT(latitude, longitude))`
+		var estatesFromDB []main.EstateSchema
+		err = db.Select(&estatesFromDB, q, maxLatitude, minLatitude, maxLongitude, minLongitude, fmt.Sprintf("POLYGON((%s))", strings.Join(areas, ",")))
+		if err != nil {
+			t.Fatalf("select estate error: %v", err)
+		}
+
+		if len(estateResponse.Estates) != len(estatesFromDB) {
+			t.Fatalf("Not correct response length: want estates %v, but got %v", len(estatesFromDB), len(estateResponse.Estates))
+		}
+
+	})
+
 }

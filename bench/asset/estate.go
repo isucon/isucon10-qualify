@@ -83,7 +83,17 @@ func (e *Estate) UnmarshalJSON(data []byte) error {
 }
 
 func (e1 *Estate) Equal(e2 *Estate) bool {
-	return e1.ID == e2.ID
+	return e1.ID == e2.ID &&
+		e1.Name == e2.Name &&
+		e1.Description == e2.Description &&
+		e1.Thumbnail == e2.Thumbnail &&
+		e1.Rent == e2.Rent &&
+		e1.Address == e2.Address &&
+		e1.DoorHeight == e2.DoorHeight &&
+		e1.DoorWidth == e2.DoorWidth &&
+		e1.Latitude == e2.Latitude &&
+		e1.Longitude == e2.Longitude &&
+		e1.Features == e2.Features
 }
 
 func (e *Estate) GetViewCount() int64 {

@@ -15,7 +15,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
-	"github.com/sevenNt/echo-pprof"
+	echopprof "github.com/sevenNt/echo-pprof"
 )
 
 const SRID = 6668
@@ -348,7 +348,9 @@ type RangeResponseChairMap struct {
 }
 
 type BoundingBox struct {
-	TopLeftCorner     Coordinate
+	// TopLeftCorner 緯度経度が共に最小値になるような点の情報を持っている
+	TopLeftCorner Coordinate
+	// BottomRightCorner 緯度経度が共に最大値になるような点の情報を持っている
 	BottomRightCorner Coordinate
 }
 
@@ -991,7 +993,8 @@ func searchEstateNazotte(c echo.Context) error {
 
 	sqlstr := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ? ORDER BY view_count LIMIT ?`
 
-	err = db.Select(&estatesInBoundingBox, sqlstr, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude, NAZOTTE_LIMIT)
+	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude, NAZOTTELIMIT)
+
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Infof("select * from estate where latitude ...", err)
 		return c.NoContent(http.StatusNoContent)
@@ -1083,14 +1086,14 @@ func (cs Coordinates) getBoundingBox() BoundingBox {
 		},
 	}
 	for _, coordinate := range coordinates {
-		if boundingBox.TopLeftCorner.Latitude < coordinate.Latitude {
+		if boundingBox.TopLeftCorner.Latitude > coordinate.Latitude {
 			boundingBox.TopLeftCorner.Latitude = coordinate.Latitude
 		}
 		if boundingBox.TopLeftCorner.Longitude > coordinate.Longitude {
 			boundingBox.TopLeftCorner.Longitude = coordinate.Longitude
 		}
 
-		if boundingBox.BottomRightCorner.Latitude > coordinate.Latitude {
+		if boundingBox.BottomRightCorner.Latitude < coordinate.Latitude {
 			boundingBox.BottomRightCorner.Latitude = coordinate.Latitude
 		}
 		if boundingBox.BottomRightCorner.Longitude < coordinate.Longitude {

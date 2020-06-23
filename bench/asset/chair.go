@@ -85,7 +85,17 @@ func (c *Chair) UnmarshalJSON(data []byte) error {
 }
 
 func (c1 *Chair) Equal(c2 *Chair) bool {
-	return c1.ID == c2.ID
+	return c1.ID == c2.ID &&
+		c1.Name == c2.Name &&
+		c1.Description == c2.Description &&
+		c1.Thumbnail == c2.Thumbnail &&
+		c1.Price == c2.Price &&
+		c1.Height == c2.Height &&
+		c1.Width == c2.Width &&
+		c1.Depth == c2.Depth &&
+		c1.Color == c2.Color &&
+		c1.Features == c2.Features &&
+		c1.Kind == c2.Kind
 }
 
 func (c *Chair) GetViewCount() int64 {
