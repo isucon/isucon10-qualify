@@ -135,7 +135,7 @@ func TestRecommendChair(t *testing.T) {
 		defer resp.Body.Close()
 
 		body, _ := ioutil.ReadAll(resp.Body)
-		var actualChairs main.ChairSearchResponce
+		var actualChairs main.ChairSearchResponse
 		_ = json.Unmarshal(body, &actualChairs)
 		var ac []main.Chair
 		for _, chairPointer := range actualChairs.Chairs {

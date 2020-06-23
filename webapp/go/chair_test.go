@@ -132,7 +132,7 @@ func TestSearchChairs(t *testing.T) {
 
 		q := `select * from chair where stock >= 1 and width< ? and width >= ? and height < ? and height >= ? and depth < ? and depth >= ? and price < ? and price >= ? and color = ? order by view_count desc limit ? offset ?`
 		db.Select(&chairs, q, widthMax, widthMin, heightMax, heightMin, depthMax, depthMin, priceMax, priceMin, color, perPage, startPos)
-		var actualChairs main.ChairSearchResponce
+		var actualChairs main.ChairSearchResponse
 		_ = json.Unmarshal(body, &actualChairs)
 		defer resp.Body.Close()
 

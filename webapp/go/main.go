@@ -21,7 +21,7 @@ import (
 const SRID = 6668
 
 const LIMIT = 20
-const NAZOTTELIMIT = 200
+const NAZOTTE_LIMIT = 200
 
 var db *sqlx.DB
 var MySQLConnectionData *MySQLConnectionEnv
@@ -226,7 +226,7 @@ type Chair struct {
 	Kind        string `json:"kind"`
 }
 
-type ChairSearchResponce struct {
+type ChairSearchResponse struct {
 	Count  int64    `json:"count"`
 	Chairs []*Chair `json:"chairs"`
 }
@@ -423,7 +423,7 @@ func main() {
 	var err error
 	db, err = MySQLConnectionData.ConnectDB()
 	if err != nil {
-		e.Logger.Fatalf("DB connection faild : %v", err)
+		e.Logger.Fatalf("DB connection failed : %v", err)
 	}
 	defer db.Close()
 
@@ -473,7 +473,7 @@ func getChairDetail(c echo.Context) error {
 			c.Echo().Logger.Infof("requested id's chair not found : %v", id)
 			return c.JSON(http.StatusNoContent, chair.ToChair())
 		}
-		c.Echo().Logger.Errorf("Faild to get the chair from id : %v", err)
+		c.Echo().Logger.Errorf("Failed to get the chair from id : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	} else if chair.Stock <= 0 {
 		return c.NoContent(http.StatusNotFound)
@@ -482,7 +482,7 @@ func getChairDetail(c echo.Context) error {
 	tx, err := db.Begin()
 	defer tx.Rollback()
 	if err != nil {
-		c.Echo().Logger.Errorf("faild to create transaction : %v", err)
+		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
@@ -618,7 +618,7 @@ func searchChairs(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	var chairs ChairSearchResponce
+	var chairs ChairSearchResponse
 	sqlstr := "SELECT * FROM chair WHERE "
 	searchCondition := strings.Join(searchQueryArray, " AND ")
 
@@ -671,7 +671,7 @@ func buyChair(c echo.Context) error {
 
 	tx, err := db.Begin()
 	if err != nil {
-		c.Echo().Logger.Errorf("faild to create transaction : %v", err)
+		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	defer tx.Rollback()
@@ -718,7 +718,7 @@ func responseChairRange(c echo.Context) error {
 func searchRecommendChair(c echo.Context) error {
 	var recommendChairs []ChairSchema
 
-	sqlstr := `SELECT * FROM chair WHERE stock >= 1 ORDER BY view_count DESC LIMIT ?`
+	sqlstr := `SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC LIMIT ?`
 
 	err := db.Select(&recommendChairs, sqlstr, LIMIT)
 	if err != nil {
@@ -755,7 +755,7 @@ func getEstateDetail(c echo.Context) error {
 	tx, err := db.Begin()
 	defer tx.Rollback()
 	if err != nil {
-		c.Echo().Logger.Errorf("faild to create transaction : %v", err)
+		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
@@ -913,19 +913,18 @@ func searchEstates(c echo.Context) error {
 }
 
 func searchRecommendEstate(c echo.Context) error {
-	limit := 20
-	recommentEstates := make([]EstateSchema, 0, limit)
+	recommendEstates := make([]EstateSchema, 0, LIMIT)
 
 	sqlstr := `SELECT * FROM estate ORDER BY view_count DESC LIMIT ?`
 
-	err := db.Select(&recommentEstates, sqlstr, limit)
+	err := db.Select(&recommendEstates, sqlstr, LIMIT)
 	if err != nil {
 		c.Logger().Errorf("searchRecommendEstate DB execution error : %v", err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	var re EstateRecommendResponse
 
-	for _, estate := range recommentEstates {
+	for _, estate := range recommendEstates {
 		re.Estates = append(re.Estates, estate.ToEstate())
 	}
 
@@ -946,7 +945,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	err = db.Get(&chair, sqlstr, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.Logger().Infof("Reqested chair id \"%v\" nof found", id)
+			c.Logger().Infof("Requested chair id \"%v\" nof found", id)
 			return c.String(http.StatusBadRequest, "Chair Not Found Invalid Chair ID")
 		}
 		c.Logger().Errorf("Database execution error : %v", err)
@@ -992,7 +991,7 @@ func searchEstateNazotte(c echo.Context) error {
 
 	sqlstr := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ? ORDER BY view_count LIMIT ?`
 
-	err = db.Select(&estatesInBoundingBox, sqlstr, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude, NAZOTTELIMIT)
+	err = db.Select(&estatesInBoundingBox, sqlstr, b.TopLeftCorner.Latitude, b.BottomRightCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude, NAZOTTE_LIMIT)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Infof("select * from estate where latitude ...", err)
 		return c.NoContent(http.StatusNoContent)
