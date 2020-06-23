@@ -23,6 +23,8 @@ const (
 	timeoutOfGetEstateDetailFromID          = 300 * time.Millisecond
 	timeoutOfSearchEstatesWithQuery         = 500 * time.Millisecond
 	timeoutOfSearchEstatesNazotte           = 1000 * time.Millisecond
+	timeoutOfGetRecommendedChair            = 300 * time.Millisecond
+	timeoutOfGetRecommendedEstate           = 300 * time.Millisecond
 	timeoutOfGetRecommendedEstatesFromChair = 300 * time.Millisecond
 	timeoutOfBuyChair                       = 300 * time.Millisecond
 	timeoutOfRequestEstateDocument          = 300 * time.Millisecond
@@ -284,6 +286,88 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 
 	asset.IncrementEstateViewCount(estate.ID)
 	passes.IncrementCount(passes.LabelOfGetEstateDetailFromID)
+
+	return &estate, nil
+}
+
+func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, error) {
+	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/recommended_chair")
+	if err != nil {
+		return nil, failure.Translate(err, fails.ErrBenchmarker, failure.Message("GetRecommendedChair client.newGetRequest error occured"))
+	}
+
+	timeoutCtx, cancel := context.WithTimeout(ctx, timeoutOfGetRecommendedChair)
+	defer cancel()
+
+	req = req.WithContext(timeoutCtx)
+	res, err := c.Do(req)
+
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+		if timeoutCtx.Err() != nil {
+			return nil, failure.New(fails.ErrTimeout, failure.Message("GET /api/recommended_chair: リクエストがタイムアウトしました"))
+		}
+		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: リクエストに失敗しました"))
+	}
+	defer res.Body.Close()
+
+	var chairs ChairsResponse
+
+	err = json.NewDecoder(res.Body).Decode(&chairs)
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+		if timeoutCtx.Err() != nil {
+			return nil, failure.New(fails.ErrTimeout, failure.Message("GET /api/recommended_chair: リクエストがタイムアウトしました"))
+		}
+		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: JSONデコードに失敗しました"))
+	}
+
+	passes.IncrementCount(passes.LabelOfGetRecommendedChair)
+
+	return &chairs, nil
+}
+
+func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, error) {
+	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/recommended_estate")
+	if err != nil {
+		return nil, failure.Translate(err, fails.ErrBenchmarker, failure.Message("GetRecommendedEstate client.newGetRequest error occured"))
+	}
+
+	timeoutCtx, cancel := context.WithTimeout(ctx, timeoutOfGetRecommendedEstate)
+	defer cancel()
+
+	req = req.WithContext(timeoutCtx)
+	res, err := c.Do(req)
+
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+		if timeoutCtx.Err() != nil {
+			return nil, failure.New(fails.ErrTimeout, failure.Message("GET /api/recommended_estate: リクエストがタイムアウトしました"))
+		}
+		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: リクエストに失敗しました"))
+	}
+	defer res.Body.Close()
+
+	var estate EstatesResponse
+
+	err = json.NewDecoder(res.Body).Decode(&estate)
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+		if timeoutCtx.Err() != nil {
+			return nil, failure.New(fails.ErrTimeout, failure.Message("GET /api/recommended_estate: リクエストがタイムアウトしました"))
+		}
+		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: JSONデコードに失敗しました"))
+	}
+
+	passes.IncrementCount(passes.LabelOfGetRecommendedEstate)
 
 	return &estate, nil
 }
