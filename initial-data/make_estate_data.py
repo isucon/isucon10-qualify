@@ -79,10 +79,10 @@ def generate_estate_dummy_data(estate_id, wrap={}):
         "latitude": float(latlng[0]) + random.normalvariate(mu=0.0, sigma=0.3),
         "longitude": float(latlng[1]) + random.normalvariate(mu=0.0, sigma=0.3),
         "address": fake.address(),
-        "rent": random.randint(MIN_VIEW_COUNT, MAX_VIEW_COUNT),
+        "rent": random.randint(30000, 200000),
         "door_height": random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER),
         "door_width": random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER),
-        "view_count": random.randint(3000, 1000000),
+        "view_count": random.randint(MIN_VIEW_COUNT, MAX_VIEW_COUNT),
         "description": random.choice(desc_lines).strip(),
         "features": ','.join(fake.words(nb=feature_length, ext_word_list=ESTATE_FEATURE_LIST, unique=True))
     }
@@ -90,6 +90,7 @@ def generate_estate_dummy_data(estate_id, wrap={}):
 
 
 if __name__ == '__main__':
+
     for i, random_hash in enumerate(ESTATE_IMAGE_HASH_LIST):
         image_data_list = [read_src_file_data(
             image) for image in glob.glob(os.path.join(ESTATE_IMAGE_ORIGIN_DIR, "*.png"))]
