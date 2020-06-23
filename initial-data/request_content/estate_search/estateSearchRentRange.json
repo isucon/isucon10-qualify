@@ -1,0 +1,14 @@
+{
+    "request": {
+        "method": "GET",
+        "uri": "/api/estate/search",
+        "query": {
+           "rentRangeId": "2",
+           "doorHeightRangeId": "",
+           "doorWidthRangeId": "",
+           "features": "",
+           "page": "0",
+           "perPage": "20"
+        }
+    }
+}

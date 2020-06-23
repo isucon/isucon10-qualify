@@ -1,0 +1,18 @@
+{
+    "request": {
+        "method": "GET",
+        "uri": "/api/chair/search",
+        "query": {
+           "priceRangeId": "2",
+           "heightRangeId": "1",
+           "widthRangeId": "2",
+           "depthRangeId": "3",
+           "features": "",
+           "color": "",
+           "kind": "",
+           "page": "1",
+           "perPage": "20"
+          }
+    }
+}
+

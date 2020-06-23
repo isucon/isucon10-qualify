@@ -1,0 +1,10 @@
+{
+    "request": {
+        "method": "GET",
+        "uri": "/api/recommended_estate",
+        "id":"281",
+        "query": {
+        }
+    }
+}
+
