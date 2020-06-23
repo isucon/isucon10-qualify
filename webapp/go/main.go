@@ -625,23 +625,23 @@ func searchChairs(c echo.Context) error {
 	searchCondition := strings.Join(searchQueryArray, " AND ")
 
 	limitOffset := " ORDER BY view_count DESC LIMIT ? OFFSET ?"
-	queryParams = append(queryParams, perpage, page*perpage)
 
 	countsql := "SELECT COUNT(*) FROM chair WHERE "
-	err = db.Get(&chairs.Count, countsql+searchCondition+limitOffset, queryParams...)
+	err = db.Get(&chairs.Count, countsql+searchCondition, queryParams...)
+	if err != nil {
+		c.Logger().Errorf("searchChairs DB execution error : %v", err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	searchedchairs := []ChairSchema{}
+	queryParams = append(queryParams, perpage, page*perpage)
+	err = db.Select(&searchedchairs, sqlstr+searchCondition+limitOffset, queryParams...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			chairs.Count = 0
 			chairs.Chairs = []*Chair{}
 			return c.JSON(http.StatusOK, chairs)
 		}
-		c.Logger().Errorf("searchChairs DB execution error : %v", err)
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
-	searchedchairs := []ChairSchema{}
-	err = db.Select(&searchedchairs, sqlstr+searchCondition+limitOffset, queryParams...)
-	if err != nil {
 		c.Logger().Errorf("searchChairs DB execution error : %v", err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -886,23 +886,23 @@ func searchEstates(c echo.Context) error {
 	searchQuery := strings.Join(searchQueryArray, " AND ")
 
 	limitOffset := " ORDER BY view_count DESC LIMIT ? OFFSET ?"
-	searchQueryParameter = append(searchQueryParameter, perpage, page*perpage)
 
 	countsql := "SELECT COUNT(*) FROM estate WHERE "
-	err = db.Get(&estates.Count, countsql+searchQuery+limitOffset, searchQueryParameter...)
+	err = db.Get(&estates.Count, countsql+searchQuery, searchQueryParameter...)
+	if err != nil {
+		c.Logger().Errorf("searchEstates DB execution error : %v", err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	matchestates := []EstateSchema{}
+	searchQueryParameter = append(searchQueryParameter, perpage, page*perpage)
+	err = db.Select(&matchestates, sqlstr+searchQuery+limitOffset, searchQueryParameter...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			estates.Count = 0
 			estates.Estates = []*Estate{}
 			return c.JSON(http.StatusOK, estates)
 		}
-		c.Logger().Errorf("searchEstates DB execution error : %v", err)
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
-	matchestates := []EstateSchema{}
-	err = db.Select(&matchestates, sqlstr+searchQuery+limitOffset, searchQueryParameter...)
-	if err != nil {
 		c.Logger().Errorf("searchEstates DB execution error : %v", err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
