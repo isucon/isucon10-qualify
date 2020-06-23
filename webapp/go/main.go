@@ -993,7 +993,7 @@ func searchEstateNazotte(c echo.Context) error {
 
 	sqlstr := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ? ORDER BY view_count LIMIT ?`
 
-	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude, NAZOTTELIMIT)
+	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude, NAZOTTE_LIMIT)
 
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Infof("select * from estate where latitude ...", err)
