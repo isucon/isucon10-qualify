@@ -26,6 +26,7 @@ type ErrorLabel int
 
 const (
 	ErrorOfInitialize ErrorLabel = iota
+	ErrorOfVerify
 	ErrorOfEstateSearchScenario
 	ErrorOfChairSearchScenario
 	ErrorOfEstateNazotteSearchScenario

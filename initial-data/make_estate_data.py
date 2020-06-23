@@ -20,8 +20,9 @@ RECORD_COUNT = 10 ** 4
 BULK_INSERT_COUNT = 500
 DOOR_MIN_CENTIMETER = 30
 DOOR_MAX_CENTIMETER = 200
-sqlCommands = ""
-sqlCommands += "use isuumo;\n"
+MIN_VIEW_COUNT = 3000
+MAX_VIEW_COUNT = 1000000
+sqlCommands = "use isuumo;\n"
 
 BUILDING_NAME_LIST = [
     "{name}ISUビルディング",
@@ -36,8 +37,9 @@ ESTATE_FEATURE_LIST = [
     "バストイレ別",
     "駅から徒歩5分",
     "ペット飼育可能",
-    "デザイナーズ物件",
 ]
+
+ESTATE_FEATURE_FOR_VERIFY = "デザイナーズ物件"
 
 ESTATE_IMAGE_HASH_LIST = [fake.sha256(
     raw_output=False) for _ in range(ESTATE_DUMMY_IMAGE_NUM)]
@@ -48,25 +50,43 @@ def read_src_file_data(file_path):
         return img.read()
 
 
-def generate_estate_dummy_data(estate_id):
+def dump_estate_to_json_str(estate):
+    return json.dumps({
+        "id": estate["id"],
+        "thumbnail": estate["thumbnail"],
+        "name": estate["name"],
+        "latitude": estate["latitude"],
+        "longitude": estate["longitude"],
+        "address": estate["address"],
+        "rent": estate["rent"],
+        "doorHeight": estate["door_height"],
+        "doorWidth": estate["door_width"],
+        "viewCount": estate["view_count"],
+        "description": estate["description"],
+        "features": estate["features"]
+    }, ensure_ascii=False)
+
+
+def generate_estate_dummy_data(estate_id, wrap={}):
     latlng = fake.local_latlng(country_code='JP', coords_only=True)
     feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
     image_hash = fake.word(ext_word_list=ESTATE_IMAGE_HASH_LIST)
 
-    return {
+    estate = {
         "id": estate_id,
         "thumbnail": f'/images/estate/{image_hash}.png',
         "name": fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name()),
         "latitude": float(latlng[0]) + random.normalvariate(mu=0.0, sigma=0.3),
         "longitude": float(latlng[1]) + random.normalvariate(mu=0.0, sigma=0.3),
         "address": fake.address(),
-        "rent": random.randint(30000, 200000),
+        "rent": random.randint(MIN_VIEW_COUNT, MAX_VIEW_COUNT),
         "door_height": random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER),
         "door_width": random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER),
         "view_count": random.randint(3000, 1000000),
         "description": random.choice(desc_lines).strip(),
         "features": ','.join(fake.words(nb=feature_length, ext_word_list=ESTATE_FEATURE_LIST, unique=True))
     }
+    return dict(estate, **wrap)
 
 
 if __name__ == '__main__':
@@ -87,26 +107,32 @@ if __name__ == '__main__':
                 RECORD_COUNT, BULK_INSERT_COUNT))
 
         estate_id = 1
+
+        ESTATES_FOR_VERIFY = [
+            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (2位 → 1位)
+            generate_estate_dummy_data(1, {
+                "features": ESTATE_FEATURE_FOR_VERIFY,
+                "view_count": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2
+            }),
+            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (1位 → 2位)
+            generate_estate_dummy_data(2, {
+                "features": ESTATE_FEATURE_FOR_VERIFY,
+                "view_count": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2 + 1
+            })
+        ]
+
+        sqlCommand = f"""INSERT INTO estate (id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features) VALUES {', '.join(map(lambda estate: f"('{estate['id']}', '{estate['thumbnail']}', '{estate['name']}', '{estate['latitude']}' , '{estate['longitude']}', '{estate['address']}', '{estate['rent']}', '{estate['door_height']}', '{estate['door_width']}', '{estate['view_count']}', '{estate['description']}', '{estate['features']}')", ESTATES_FOR_VERIFY))};"""
+        sqlfile.write(sqlCommand)
+        txtfile.write("\n".join([dump_estate_to_json_str(estate)
+                                 for estate in ESTATES_FOR_VERIFY]) + "\n")
+
+        estate_id += len(ESTATES_FOR_VERIFY)
+
         for _ in range(RECORD_COUNT//BULK_INSERT_COUNT):
             bulk_list = [generate_estate_dummy_data(
                 estate_id + i) for i in range(BULK_INSERT_COUNT)]
             estate_id += BULK_INSERT_COUNT
             sqlCommand = f"""INSERT INTO estate (id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features) VALUES {', '.join(map(lambda estate: f"('{estate['id']}', '{estate['thumbnail']}', '{estate['name']}', '{estate['latitude']}' , '{estate['longitude']}', '{estate['address']}', '{estate['rent']}', '{estate['door_height']}', '{estate['door_width']}', '{estate['view_count']}', '{estate['description']}', '{estate['features']}')", bulk_list))};"""
             sqlfile.write(sqlCommand)
-
-            for estate in bulk_list:
-                json_string = json.dumps({
-                    "id": estate["id"],
-                    "thumbnail": estate["thumbnail"],
-                    "name": estate["name"],
-                    "latitude": estate["latitude"],
-                    "longitude": estate["longitude"],
-                    "address": estate["address"],
-                    "rent": estate["rent"],
-                    "doorHeight": estate["door_height"],
-                    "doorWidth": estate["door_width"],
-                    "viewCount": estate["view_count"],
-                    "description": estate["description"],
-                    "features": estate["features"]
-                }, ensure_ascii=False)
-                txtfile.write(json_string + "\n")
+            txtfile.write("\n".join([dump_estate_to_json_str(estate)
+                                     for estate in bulk_list]) + "\n")

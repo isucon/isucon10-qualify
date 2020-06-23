@@ -127,13 +127,19 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
+	if chair == nil {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: イス情報が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
 	if _chair, err := asset.GetChairFromID(chair.ID); err != nil {
 		ok = false
 	} else {
 		ok = chair.Equal(_chair)
 	}
 	if !ok {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: イス情報が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}

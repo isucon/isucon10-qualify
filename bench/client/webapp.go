@@ -94,6 +94,11 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode == http.StatusNotFound {
+		io.Copy(ioutil.Discard, res.Body)
+		return nil, nil
+	}
+
 	var chair asset.Chair
 
 	err = json.NewDecoder(res.Body).Decode(&chair)

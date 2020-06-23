@@ -20,6 +20,8 @@ RECORD_COUNT = 10 ** 4
 BULK_INSERT_COUNT = 500
 CHAIR_MIN_CENTIMETER = 30
 CHAIR_MAX_CENTIMETER = 200
+MIN_VIEW_COUNT = 3000
+MAX_VIEW_COUNT = 1000000
 sqlCommands = "use isuumo;\n"
 
 CHAIR_COLOR_LIST = [
@@ -87,9 +89,10 @@ CHAIR_FEATURE_LIST = [
     "肘掛け",
     "キャスター",
     "リクライニング",
-    "高さ調節可",
-    "フットレスト"
+    "高さ調節可"
 ]
+
+CHAIR_FEATURE_FOR_VERIFY = "フットレスト"
 
 CHAIR_KIND_LIST = [
     "ゲーミングチェア",
@@ -107,11 +110,29 @@ def read_src_file_data(file_path):
         return img.read()
 
 
-def generate_chair_dummy_data(chair_id):
+def dump_chair_to_json_str(chair):
+    return json.dumps({
+        "id": chair["id"],
+        "thumbnail": chair["thumbnail"],
+        "name": chair["name"],
+        "price": chair["price"],
+        "height": chair["height"],
+        "width": chair["width"],
+        "depth": chair["depth"],
+        "color": chair["color"],
+        "view_count": chair["view_count"],
+        "stock": chair["stock"],
+        "description": chair["description"],
+        "features": chair["features"],
+        "kind": chair["kind"]
+    }, ensure_ascii=False)
+
+
+def generate_chair_dummy_data(chair_id, wrap={}):
     features_length = random.randint(0, len(CHAIR_FEATURE_LIST) - 1)
     image_hash = fake.word(ext_word_list=CHAIR_IMAGE_HASH_LIST)
 
-    return {
+    chair = {
         "id": chair_id,
         "thumbnail": f'/images/chair/{image_hash}.png',
         "name": "".join([
@@ -124,12 +145,14 @@ def generate_chair_dummy_data(chair_id):
         "width": random.randint(CHAIR_MIN_CENTIMETER, CHAIR_MAX_CENTIMETER),
         "depth": random.randint(CHAIR_MIN_CENTIMETER, CHAIR_MAX_CENTIMETER),
         "color": fake.word(ext_word_list=CHAIR_COLOR_LIST),
-        "view_count": random.randint(3000, 1000000),
+        "view_count": random.randint(MIN_VIEW_COUNT, MAX_VIEW_COUNT),
         "stock": random.randint(1, 10),
         "description": random.choice(desc_lines).strip(),
         "features": ",".join(fake.words(nb=features_length, ext_word_list=CHAIR_FEATURE_LIST, unique=True)),
         "kind": fake.word(ext_word_list=CHAIR_KIND_LIST)
     }
+
+    return dict(chair, **wrap)
 
 
 if __name__ == "__main__":
@@ -150,6 +173,33 @@ if __name__ == "__main__":
                 RECORD_COUNT, BULK_INSERT_COUNT))
 
         chair_id = 1
+
+        CHAIRS_FOR_VERIFY = [
+            # 購入された際に在庫が減ることを検証するためのデータ
+            generate_chair_dummy_data(1, {
+                "features": CHAIR_FEATURE_FOR_VERIFY,
+                "stock": 1,
+                "view_count": MIN_VIEW_COUNT
+            }),
+            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (2位 → 1位)
+            generate_chair_dummy_data(2, {
+                "features": CHAIR_FEATURE_FOR_VERIFY,
+                "view_count": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2
+            }),
+            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (1位 → 2位)
+            generate_chair_dummy_data(3, {
+                "features": CHAIR_FEATURE_FOR_VERIFY,
+                "view_count": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2 + 1
+            })
+        ]
+
+        sqlCommand = f"""INSERT INTO chair (id, thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['id']}', '{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['view_count']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", CHAIRS_FOR_VERIFY))};"""
+        sqlfile.write(sqlCommand)
+        txtfile.write(
+            "\n".join([dump_chair_to_json_str(chair) for chair in CHAIRS_FOR_VERIFY]) + "\n")
+
+        chair_id += len(CHAIRS_FOR_VERIFY)
+
         for _ in range(RECORD_COUNT // BULK_INSERT_COUNT):
             bulk_list = [generate_chair_dummy_data(
                 chair_id + i) for i in range(BULK_INSERT_COUNT)]
@@ -157,20 +207,5 @@ if __name__ == "__main__":
             sqlCommand = f"""INSERT INTO chair (id, thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['id']}', '{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['view_count']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", bulk_list))};"""
             sqlfile.write(sqlCommand)
 
-            for chair in bulk_list:
-                json_string = json.dumps({
-                    "id": chair["id"],
-                    "thumbnail": chair["thumbnail"],
-                    "name": chair["name"],
-                    "price": chair["price"],
-                    "height": chair["height"],
-                    "width": chair["width"],
-                    "depth": chair["depth"],
-                    "color": chair["color"],
-                    "view_count": chair["view_count"],
-                    "stock": chair["stock"],
-                    "description": chair["description"],
-                    "features": chair["features"],
-                    "kind": chair["kind"]
-                }, ensure_ascii=False)
-                txtfile.write(json_string + "\n")
+            txtfile.write(
+                "\n".join([dump_chair_to_json_str(chair) for chair in bulk_list]) + "\n")
