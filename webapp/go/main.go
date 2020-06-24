@@ -603,7 +603,8 @@ func searchChairs(c echo.Context) error {
 
 	if !searchOption {
 		c.Echo().Logger.Infof("Search condition not found")
-		return c.String(http.StatusBadRequest, "search condition not found")
+		var e EstateSearchResponse
+		return c.JSON(http.StatusBadRequest, e)
 	} else {
 		searchQueryArray = append(searchQueryArray, "stock > 0")
 	}
@@ -866,7 +867,8 @@ func searchEstates(c echo.Context) error {
 
 	if !searchOption {
 		c.Echo().Logger.Infof("searchEstates search condition not found")
-		return c.String(http.StatusBadRequest, "search condition not found")
+		var es EstateSearchResponse
+		return c.JSON(http.StatusBadRequest, es)
 	}
 
 	page, err := strconv.Atoi(c.QueryParam("page"))

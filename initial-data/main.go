@@ -12,6 +12,9 @@ import (
 )
 
 func main() {
+	if err := os.Mkdir("generate_verification", 0777); err != nil {
+		fmt.Println(err)
+	}
 	c := new(http.Client)
 
 	estateDirs := []string{
@@ -77,8 +80,8 @@ func RequestResponseWithFilePath(filepath string, c *http.Client) ([]byte, Reque
 	path := request.RequectContent.Uri
 	method := request.RequectContent.Method
 	u := "http://localhost:1323" + path
-	if request.RequectContent.Id != "" {
-		u = u + "/" + request.RequectContent.Id
+	if request.RequectContent.ID != "" {
+		u = u + "/" + request.RequectContent.ID
 	}
 	q := GetQueryParams(request)
 	req, err := http.NewRequest(method, u, nil)

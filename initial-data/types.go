@@ -6,7 +6,7 @@ type RequestFrame struct {
 type Request struct {
 	Method string      `json:"method"`
 	Uri    string      `json:"uri"`
-    Id string `json:"id"`
+	ID     string      `json:"id"`
 	Query  Queries     `json:"query"`
 	Body   Coordinates `json:"body"`
 }
@@ -32,11 +32,11 @@ type ChairsBody struct {
 	Body ChairsResponse `json:"body"`
 }
 type EstateResponse struct {
-	Count   string   `json:"count"`
+	Count   int64    `json:"count"`
 	Estates []Estate `json:"estates"`
 }
 type ChairsResponse struct {
-	Count  string  `json:"count"`
+	Count  int64   `json:"count"`
 	Chairs []Chair `json:"chairs"`
 }
 type Estate struct {
