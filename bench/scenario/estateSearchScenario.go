@@ -62,7 +62,7 @@ func estateSearchScenario(ctx context.Context) error {
 			break
 		}
 		vc := e.GetViewCount()
-		if i > 0 && viewCount < vc {
+		if i > 0 && viewCount-vc < -3 {
 			ok = false
 			break
 		}

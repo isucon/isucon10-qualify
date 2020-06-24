@@ -104,7 +104,7 @@ func chairSearchScenario(ctx context.Context) error {
 
 		vc := _chair.GetViewCount()
 
-		if i > 0 && viewCount < vc {
+		if i > 0 && viewCount-vc < -3 {
 			ok = false
 			break
 		}
@@ -167,7 +167,7 @@ func chairSearchScenario(ctx context.Context) error {
 			break
 		}
 		vc := e.GetViewCount()
-		if i > 0 && viewCount < vc {
+		if i > 0 && viewCount-vc < -3 {
 			ok = false
 			break
 		}
@@ -175,7 +175,7 @@ func chairSearchScenario(ctx context.Context) error {
 	}
 
 	if !ok {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: おすすめ結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
