@@ -1,0 +1,6 @@
+apps/*
+mysql/*
+nginx/*
+!apps/.gitkeep
+!nginx/.gitkeep
+!mysql/.gitkeep

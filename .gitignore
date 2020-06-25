@@ -1,6 +1,5 @@
 .DS_*
 *.log
-logs
 **/*.backup.*
 **/*.back.*
 
