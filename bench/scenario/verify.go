@@ -59,49 +59,13 @@ type Body struct {
 // 早い段階でベンチマークをFailさせて早期リターンさせるのが目的
 // ex) recommended API や Search API を叩いて初期状態を確認する
 func Verify(ctx context.Context) {
-	wg := sync.WaitGroup{}
+	dirName, _ := filepath.Abs("../initial-data/generate_verification")
+	err := verifyWithSnapshot(ctx, dirName)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+	}
 
-	wg.Add(1)
-	go func() {
-		err := verifyChairStock(ctx)
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
-		}
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		err := verifyChairViewCount(ctx)
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
-		}
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		err := verifyEstateViewCount(ctx)
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
-		}
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-
-		dirName, _ := filepath.Abs("../initial-data/generate_verification")
-		err := verifyWithSnapshot(ctx, dirName)
-		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
-		}
-		wg.Done()
-	}()
-
-	wg.Wait()
-
-	return
+	verifyWithScenario(ctx)
 }
 
 func verifyChairStock(ctx context.Context) error {
@@ -196,6 +160,40 @@ func verifyEstateViewCount(ctx context.Context) error {
 
 	return nil
 }
+
+func verifyWithScenario(ctx context.Context) {
+	wg := sync.WaitGroup{}
+
+	wg.Add(1)
+	go func() {
+		err := verifyChairStock(ctx)
+		if err != nil {
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		}
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		err := verifyChairViewCount(ctx)
+		if err != nil {
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		}
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		err := verifyEstateViewCount(ctx)
+		if err != nil {
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
+}
+
 
 func verifyWithSnapshot(ctx context.Context, snapshotsDir string) error {
 	snapshotFiles, err := ioutil.ReadDir(snapshotsDir)
