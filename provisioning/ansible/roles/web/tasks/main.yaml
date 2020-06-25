@@ -80,7 +80,7 @@
 
 - name: Make initial data
   become: yes
-  become_user: root
+  become_user: isucon
   args:
     chdir: /home/isucon/isucon10-qualify/initial-data
   environment: 
