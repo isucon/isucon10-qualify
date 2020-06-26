@@ -1023,6 +1023,7 @@ func searchEstateNazotte(c echo.Context) error {
 	}
 
 	var re EstateSearchResponse
+	re.Estates = []*Estate{}
 	for i, estate := range estatesInPolygon {
 		re.Estates = append(re.Estates, estate.ToEstate())
 		if i >= NAZOTTE_LIMIT {
