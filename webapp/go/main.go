@@ -1023,12 +1023,14 @@ func searchEstateNazotte(c echo.Context) error {
 	}
 
 	var re EstateSearchResponse
-	re.Estates = []*Estate{}
-	for _, estate := range estatesInPolygon {
+	for i, estate := range estatesInPolygon {
 		re.Estates = append(re.Estates, estate.ToEstate())
+		if i >= NAZOTTE_LIMIT {
+			break
+		}
 	}
 
-	return c.JSON(http.StatusOK, EstateSearchResponse{Estates: re[0:NAZOTTE_LIMIT]})
+	return c.JSON(http.StatusOK, re)
 }
 
 func postEstateRequestDocument(c echo.Context) error {
