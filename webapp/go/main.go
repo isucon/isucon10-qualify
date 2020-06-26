@@ -993,10 +993,9 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []EstateSchema{}
 
-	sqlstr := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ? ORDER BY view_count LIMIT ?`
+	sqlstr := `SELECT * FROM estate WHERE latitude < ? AND latitude > ? AND longitude < ? AND longitude > ? ORDER BY view_count`
 
-	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude, NAZOTTE_LIMIT)
-
+	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Infof("select * from estate where latitude ...", err)
 		return c.NoContent(http.StatusNoContent)
@@ -1026,16 +1025,16 @@ func searchEstateNazotte(c echo.Context) error {
 		}
 	}
 
-	var re EstateSearchResponse
+	var re []*Estate
 	if len(estatesInPolygon) == 0 {
-		re.Estates = []*Estate{}
+		re = []*Estate{}
 	} else {
 		for _, estate := range estatesInPolygon {
-			re.Estates = append(re.Estates, estate.ToEstate())
+			re = append(re, estate.ToEstate())
 		}
 	}
 
-	return c.JSON(http.StatusOK, re)
+	return c.JSON(http.StatusOK, EstateSearchResponse{Estates: re[0:NAZOTTE_LIMIT]})
 }
 
 func postEstateRequestDocument(c echo.Context) error {
