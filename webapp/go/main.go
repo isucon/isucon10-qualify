@@ -577,7 +577,7 @@ func searchChairs(c echo.Context) error {
 		}
 
 		if chairDepth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "depth>= ? ")
+			searchQueryArray = append(searchQueryArray, "depth >= ? ")
 			queryParams = append(queryParams, chairDepth.Min)
 		}
 		if chairDepth.Max != -1 {
@@ -961,7 +961,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	w := chair.Width
 	h := chair.Height
 	d := chair.Depth
-	sqlstr = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) order by view_count desc limit ?`
+	sqlstr = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY view_count DESC LIMIT ?`
 	err = db.Select(&recommendEstates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, limit)
 	if err != nil {
 		c.Logger().Errorf("Database execution error : %v", err)

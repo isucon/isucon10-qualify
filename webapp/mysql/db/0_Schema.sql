@@ -1,38 +1,38 @@
-drop database if exists isuumo;
-create database isuumo default character set utf8mb4;
+DROP DATABASE IF EXISTS isuumo;
+CREATE DATABASE isuumo DEFAULT CHARACTER SET utf8mb4;
 
-use isuumo;
+USE isuumo;
 
-drop table if exists estate;
-drop table if exists chair;
+DROP TABLE IF EXISTS estate;
+DROP TABLE IF EXISTS chair;
 
-create table estate (
-    id integer primary key auto_increment,
-    thumbnail varchar(256) not null,
-    name varchar(64) not null,
-    latitude double not null,
-    longitude double not null,
-    address varchar(128) not null,
-    rent integer not null,
-    door_height integer not null,
-    door_width integer not null,
-    view_count integer default 0 not null,
-    description text not null,
-    features varchar(256) not null
+CREATE TABLE estate (
+    `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+    `thumbnail` VARCHAR(256) NOT NULL,
+    `name` VARCHAR(64) NOT NULL,
+    `latitude` DOUBLE NOT NULL,
+    `longitude` DOUBLE NOT NULL,
+    `address` VARCHAR(128) NOT NULL,
+    `rent` INTEGER NOT NULL,
+    `door_height` INTEGER NOT NULL,
+    `door_width` INTEGER NOT NULL,
+    `view_count` INTEGER DEFAULT 0 NOT NULL,
+    `description` TEXT NOT NULL,
+    `features` VARCHAR(256) NOT NULL
 )ENGINE=InnoDB;
 
-create table chair (
-    id integer primary key auto_increment,
-    thumbnail text,
-    name varchar(64) not null,
-    description text not null,
-    price integer not null,
-    height integer not null,
-    width integer not null,
-    depth integer not null,
-    view_count integer not null default 0,
-    stock integer not null default 0,
-    color varchar(64) not null,
-    features varchar(64) not null,
-    kind varchar(64) not null
+CREATE TABLE chair (
+    `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+    `thumbnail` TEXT,
+    `name` VARCHAR(64) NOT NULL,
+    `description` TEXT NOT NULL,
+    `price` INTEGER NOT NULL,
+    `height` INTEGER NOT NULL,
+    `width` INTEGER NOT NULL,
+    `depth` INTEGER NOT NULL,
+    `view_count` INTEGER NOT NULL DEFAULT 0,
+    `stock` INTEGER NOT NULL DEFAULT 0,
+    `color` VARCHAR(64) NOT NULL,
+    `features` VARCHAR(64) NOT NULL,
+    `kind` VARCHAR(64) NOT NULL
 )ENGINE=InnoDB;
