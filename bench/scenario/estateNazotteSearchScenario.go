@@ -13,6 +13,8 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 )
 
+const MAX_NAZOTTE_RESPONSE_LENGTH = 200
+
 type point struct {
 	Latitude  float64
 	Longitude float64
@@ -153,7 +155,7 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if len(er.Estates) < polygonCorners {
+	if len(er.Estates) > MAX_NAZOTTE_RESPONSE_LENGTH {
 		err = failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 検索結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
