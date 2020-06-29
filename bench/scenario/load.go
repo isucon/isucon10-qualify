@@ -7,14 +7,19 @@ import (
 	"time"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/morikuni/failure"
 )
 
 const (
-  SleepTimeOnFailScenario               = 1 * time.Second
+	SleepTimeOnFailScenario               = 1 * time.Second
+	SleepSwingOnFailScenario              = 1000 // * time.Millisecond
+	SleepTimeOnUserAway                   = 500 * time.Millisecond
+	SleepSwingOnUserAway                  = 100 // * time.Millisecond
 	IntervalForCheckWorkers               = 10 * time.Second
 	NumOfInitialEstateSearchWorker        = 1
 	NumOfInitialChairSearchWorker         = 1
 	NumOfInitialEstateNazotteSearchWorker = 1
+	DisengagementResponseTime             = 1 * time.Second
 )
 
 func runEstateSearchWorker(ctx context.Context) {
@@ -29,32 +34,22 @@ func runEstateSearchWorker(ctx context.Context) {
 		}
 		err := estateSearchScenario(ctx)
 		if err != nil {
-			t = time.NewTimer(SleepTimeOnFailScenario)
+			code, _ := failure.CodeOf(err)
+			if code == fails.ErrTimeout {
+				r := rand.Intn(SleepSwingOnUserAway) - SleepSwingOnUserAway*0.5
+				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				t = time.NewTimer(s)
+			} else {
+				r := rand.Intn(SleepSwingOnFailScenario) - SleepSwingOnFailScenario*0.5
+				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				t = time.NewTimer(s)
+			}
 			select {
 			case <-t.C:
 			case <-ctx.Done():
 				t.Stop()
 				return
 			}
-		}
-	}
-}
-
-func checkEstateSearchWorker(ctx context.Context) {
-	t := time.NewTicker(IntervalForCheckWorkers)
-	for {
-		select {
-		case <-t.C:
-			et := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateSearchScenario)
-			if time.Since(et) > IntervalForCheckWorkers {
-				log.Println("物件検索シナリオの負荷レベルが上昇しました。")
-				go runEstateSearchWorker(ctx)
-			} else {
-				log.Println("物件検索シナリオでエラーが発生したため負荷レベルを上げられませんでした。")
-			}
-		case <-ctx.Done():
-			t.Stop()
-			return
 		}
 	}
 }
@@ -71,32 +66,22 @@ func runChairSearchWorker(ctx context.Context) {
 		}
 		err := chairSearchScenario(ctx)
 		if err != nil {
-			t = time.NewTimer(SleepTimeOnFailScenario)
+			code, _ := failure.CodeOf(err)
+			if code == fails.ErrTimeout {
+				r := rand.Intn(SleepSwingOnUserAway) - SleepSwingOnUserAway*0.5
+				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				t = time.NewTimer(s)
+			} else {
+				r := rand.Intn(SleepSwingOnFailScenario) - SleepSwingOnFailScenario*0.5
+				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				t = time.NewTimer(s)
+			}
 			select {
 			case <-t.C:
 			case <-ctx.Done():
 				t.Stop()
 				return
 			}
-		}
-	}
-}
-
-func checkChairSearchWorker(ctx context.Context) {
-	t := time.NewTicker(IntervalForCheckWorkers)
-	for {
-		select {
-		case <-t.C:
-			et := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfChairSearchScenario)
-			if time.Since(et) > IntervalForCheckWorkers {
-				log.Println("イス検索シナリオの負荷レベルが上昇しました。")
-				go runChairSearchWorker(ctx)
-			} else {
-				log.Println("イス検索シナリオでエラーが発生したため負荷レベルを上げられませんでした。")
-			}
-		case <-ctx.Done():
-			t.Stop()
-			return
 		}
 	}
 }
@@ -113,7 +98,16 @@ func runEstateNazotteSearchWorker(ctx context.Context) {
 		}
 		err := estateNazotteSearchScenario(ctx)
 		if err != nil {
-			t = time.NewTimer(SleepTimeOnFailScenario)
+			code, _ := failure.CodeOf(err)
+			if code == fails.ErrTimeout {
+				r := rand.Intn(SleepSwingOnUserAway) - SleepSwingOnUserAway*0.5
+				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				t = time.NewTimer(s)
+			} else {
+				r := rand.Intn(SleepSwingOnFailScenario) - SleepSwingOnFailScenario*0.5
+				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				t = time.NewTimer(s)
+			}
 			select {
 			case <-t.C:
 			case <-ctx.Done():
@@ -124,17 +118,23 @@ func runEstateNazotteSearchWorker(ctx context.Context) {
 	}
 }
 
-func checkEstateNazotteSearchWorker(ctx context.Context) {
+func checkWorkers(ctx context.Context) {
 	t := time.NewTicker(IntervalForCheckWorkers)
 	for {
 		select {
 		case <-t.C:
-			et := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateNazotteSearchScenario)
-			if time.Since(et) > IntervalForCheckWorkers {
-				log.Println("なぞって検索シナリオの負荷レベルが上昇しました。")
+			cet := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfChairSearchScenario)
+			eet := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateSearchScenario)
+			net := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateNazotteSearchScenario)
+			if time.Since(cet) > IntervalForCheckWorkers &&
+				time.Since(eet) > IntervalForCheckWorkers &&
+				time.Since(net) > IntervalForCheckWorkers {
+				log.Println("負荷レベルが上昇しました。")
+				go runChairSearchWorker(ctx)
+				go runEstateSearchWorker(ctx)
 				go runEstateNazotteSearchWorker(ctx)
 			} else {
-				log.Println("なぞって検索シナリオでエラーが発生したため負荷レベルを上げられませんでした。")
+				log.Println("シナリオ内でエラーが発生したため負荷レベルを上げられませんでした。")
 			}
 		case <-ctx.Done():
 			t.Stop()
@@ -148,17 +148,16 @@ func Load(ctx context.Context) {
 	for i := 0; i < NumOfInitialEstateSearchWorker; i++ {
 		go runEstateSearchWorker(ctx)
 	}
-	go checkEstateSearchWorker(ctx)
 
 	// イス検索から物件ページに行き、資料請求をするまでのシナリオ
 	for i := 0; i < NumOfInitialChairSearchWorker; i++ {
 		go runChairSearchWorker(ctx)
 	}
-	go checkChairSearchWorker(ctx)
 
 	// なぞって検索をするシナリオ
 	for i := 0; i < NumOfInitialEstateNazotteSearchWorker; i++ {
 		go runEstateNazotteSearchWorker(ctx)
 	}
-	go checkEstateNazotteSearchWorker(ctx)
+
+	go checkWorkers(ctx)
 }

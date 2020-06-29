@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/morikuni/failure"
 
@@ -149,10 +150,15 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 	polygon = ToCoordinates(convexHulled)
 	boundingBox := getBoundingBox(convexHulled)
 
+	t := time.Now()
 	er, err := c.SearchEstatesNazotte(ctx, polygon)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
+	}
+
+	if time.Since(t) > DisengagementResponseTime {
+		return failure.New(fails.ErrTimeout)
 	}
 
 	if len(er.Estates) > MAX_NAZOTTE_RESPONSE_LENGTH {
@@ -193,10 +199,15 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 
 	randomPosition := rand.Intn(len(er.Estates))
 	targetID := er.Estates[randomPosition].ID
+	t = time.Now()
 	e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
+	}
+
+	if time.Since(t) > DisengagementResponseTime {
+		return failure.New(fails.ErrTimeout)
 	}
 
 	estate, err := asset.GetEstateFromID(e.ID)

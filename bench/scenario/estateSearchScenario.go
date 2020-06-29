@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/morikuni/failure"
 
@@ -43,10 +44,15 @@ func estateSearchScenario(ctx context.Context) error {
 	q.Set("perPage", strconv.Itoa(ESTATE_CHECK_PER_PAGE))
 	q.Set("page", "0")
 
+	t := time.Now()
 	er, err := c.SearchEstatesWithQuery(ctx, q)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 		return failure.New(fails.ErrApplication)
+	}
+
+	if time.Since(t) > DisengagementResponseTime {
+		return failure.New(fails.ErrTimeout)
 	}
 
 	if len(er.Estates) == 0 {
@@ -66,10 +72,15 @@ func estateSearchScenario(ctx context.Context) error {
 		for i := 0; i <= ESTATE_CHECK_PAGE_COUNT; i++ {
 			q.Set("page", strconv.Itoa(rand.Intn(numOfPages)))
 
+			t := time.Now()
 			er, err := c.SearchEstatesWithQuery(ctx, q)
 			if err != nil {
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 				return failure.New(fails.ErrApplication)
+			}
+
+			if time.Since(t) > DisengagementResponseTime {
+				return failure.New(fails.ErrTimeout)
 			}
 
 			if len(er.Estates) == 0 {
@@ -89,10 +100,15 @@ func estateSearchScenario(ctx context.Context) error {
 	// Get Details with ID from previously searched list
 	randomPosition := rand.Intn(len(er.Estates))
 	targetID := er.Estates[randomPosition].ID
+	t = time.Now()
 	e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 		return failure.New(fails.ErrApplication)
+	}
+
+	if time.Since(t) > DisengagementResponseTime {
+		return failure.New(fails.ErrTimeout)
 	}
 
 	estate, err := asset.GetEstateFromID(e.ID)

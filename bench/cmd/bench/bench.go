@@ -20,7 +20,7 @@ import (
 
 type Output struct {
 	Pass     bool     `json:"pass"`
-	Score    int64    `json:"score"`
+	Score    int      `json:"score"`
 	Messages []string `json:"messages"`
 }
 
@@ -124,7 +124,7 @@ func main() {
 		return
 	}
 
-	var score int64 = 0
+	score := 0
 	score += 1 * passes.GetCount(passes.LabelOfGetChairDetailFromID)
 	score += 1 * passes.GetCount(passes.LabelOfGetEstateDetailFromID)
 	score += 1 * passes.GetCount(passes.LabelOfSearchChairsWithQuery)
@@ -135,7 +135,7 @@ func main() {
 	score += 1 * passes.GetCount(passes.LabelOfRequestEstateDocument)
 
 	// application errorは1回で10点減点
-	penalty := int64(10 * aCnt)
+	penalty := 10 * aCnt
 	log.Print(score, penalty)
 
 	score -= penalty

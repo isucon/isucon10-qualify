@@ -4,11 +4,13 @@ import (
 	"crypto/tls"
 	"fmt"
 	"math/rand"
+	"time"
 	"net/http"
 )
 
 const (
 	NumOfClient = 10
+	DefaultAPITimeoutTime = 2000 * time.Millisecond
 )
 
 var clients [NumOfClient]*Client
@@ -34,6 +36,7 @@ func newClient(userAgent string) *Client {
 					ServerName: ShareTargetURLs.TargetHost,
 				},
 			},
+			Timeout: DefaultAPITimeoutTime,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				return fmt.Errorf("redirect attempted")
 			},

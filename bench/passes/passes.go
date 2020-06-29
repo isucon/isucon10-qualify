@@ -2,15 +2,16 @@ package passes
 
 import (
 	"sync"
+	"time"
 )
 
 var (
-	passCounterMap map[Label]*counter
+	passMap map[Label]*pass
 )
 
-type counter struct {
-	count int64
-	mu    sync.RWMutex
+type pass struct {
+	durations []time.Duration
+	mu        sync.RWMutex
 }
 
 type Label = int
@@ -29,36 +30,46 @@ const (
 )
 
 func init() {
-	passCounterMap = map[Label]*counter{
-		LabelOfGetChairDetailFromID:           {},
-		LabelOfSearchChairsWithQuery:          {},
-		LabelOfGetEstateDetailFromID:          {},
-		LabelOfSearchEstatesWithQuery:         {},
-		LabelOfSearchEstatesNazotte:           {},
-		LabelOfGetRecommendedChair:            {},
-		LabelOfGetRecommendedEstate:           {},
-		LabelOfGetRecommendedEstatesFromChair: {},
-		LabelOfBuyChair:                       {},
-		LabelOfRequestEstateDocument:          {},
+	passMap = map[Label]*pass{
+		LabelOfGetChairDetailFromID:           {durations: make([]time.Duration, 0)},
+		LabelOfSearchChairsWithQuery:          {durations: make([]time.Duration, 0)},
+		LabelOfGetEstateDetailFromID:          {durations: make([]time.Duration, 0)},
+		LabelOfSearchEstatesWithQuery:         {durations: make([]time.Duration, 0)},
+		LabelOfSearchEstatesNazotte:           {durations: make([]time.Duration, 0)},
+		LabelOfGetRecommendedChair:            {durations: make([]time.Duration, 0)},
+		LabelOfGetRecommendedEstate:           {durations: make([]time.Duration, 0)},
+		LabelOfGetRecommendedEstatesFromChair: {durations: make([]time.Duration, 0)},
+		LabelOfBuyChair:                       {durations: make([]time.Duration, 0)},
+		LabelOfRequestEstateDocument:          {durations: make([]time.Duration, 0)},
 	}
 }
 
-func (c *counter) getCount() int64 {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	return c.count
+func (p *pass) getDurations() []time.Duration {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.durations
 }
 
-func (c *counter) incrementCount() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.count++
+func (p *pass) getCount() int {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return len(p.durations)
 }
 
-func GetCount(label Label) int64 {
-	return passCounterMap[label].getCount()
+func (p *pass) addDuration(d time.Duration) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.durations = append(p.durations, d)
 }
 
-func IncrementCount(label Label) {
-	passCounterMap[label].incrementCount()
+func GetDurations(label Label) []time.Duration {
+	return passMap[label].getDurations()
+}
+
+func GetCount(label Label) int {
+	return passMap[label].getCount()
+}
+
+func AddDuration(d time.Duration, label Label) {
+	passMap[label].addDuration(d)
 }

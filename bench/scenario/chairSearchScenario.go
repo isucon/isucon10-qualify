@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/morikuni/failure"
 
@@ -78,10 +79,15 @@ func chairSearchScenario(ctx context.Context) error {
 	q.Set("perPage", strconv.Itoa(CHAIR_CHECK_PER_PAGE))
 	q.Set("page", "0")
 
+	t := time.Now()
 	cr, err := c.SearchChairsWithQuery(ctx, q)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
+	}
+
+	if time.Since(t) > DisengagementResponseTime {
+		return failure.New(fails.ErrTimeout)
 	}
 
 	if len(cr.Chairs) == 0 {
@@ -100,10 +106,15 @@ func chairSearchScenario(ctx context.Context) error {
 		for i := 0; i <= CHAIR_CHECK_PAGE_COUNT; i++ {
 			q.Set("page", strconv.Itoa(rand.Intn(numOfPages)))
 
+			t := time.Now()
 			cr, err := c.SearchChairsWithQuery(ctx, q)
 			if err != nil {
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
+			}
+
+			if time.Since(t) > DisengagementResponseTime {
+				return failure.New(fails.ErrTimeout)
 			}
 
 			if len(cr.Chairs) == 0 {
@@ -123,11 +134,16 @@ func chairSearchScenario(ctx context.Context) error {
 	// Get detail of Chair
 	randomPosition := rand.Intn(len(cr.Chairs))
 	targetID := cr.Chairs[randomPosition].ID
+	t = time.Now()
 	chair, err := c.GetChairDetailFromID(ctx, strconv.FormatInt(targetID, 10))
 
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
+	}
+
+	if time.Since(t) > DisengagementResponseTime {
+		return failure.New(fails.ErrTimeout)
 	}
 
 	if chair == nil {
@@ -155,10 +171,15 @@ func chairSearchScenario(ctx context.Context) error {
 	}
 
 	// Get recommended Estates calculated with Chair
+	t = time.Now()
 	er, err := c.GetRecommendedEstatesFromChair(ctx, targetID)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
+	}
+
+	if time.Since(t) > DisengagementResponseTime {
+		return failure.New(fails.ErrTimeout)
 	}
 
 	ok = checkSearchedEstateViewCount(er.Estates)
@@ -172,10 +193,15 @@ func chairSearchScenario(ctx context.Context) error {
 	// Get detail of Estate
 	randomPosition = rand.Intn(len(er.Estates))
 	targetID = er.Estates[randomPosition].ID
+	t = time.Now()
 	e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
+	}
+
+	if time.Since(t) > DisengagementResponseTime {
+		return failure.New(fails.ErrTimeout)
 	}
 
 	if estate, err := asset.GetEstateFromID(e.ID); err != nil {
