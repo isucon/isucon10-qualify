@@ -53,8 +53,8 @@ func (c *Client) Initialize(ctx context.Context) error {
 }
 
 type ChairsResponse struct {
-	Count  int64 `json:"count"`
-	Chairs []asset.Chair
+	Count  int64         `json:"count"`
+	Chairs []asset.Chair `json:"chairs"`
 }
 
 type EstatesResponse struct {
