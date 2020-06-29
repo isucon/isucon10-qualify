@@ -981,11 +981,6 @@ func searchEstateNazotte(c echo.Context) error {
 		c.Echo().Logger.Infof("post search estate nazotte failed : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	err = coordinates.coordinatesToPolygon()
-	if err != nil {
-		c.Echo().Logger.Errorf("request coordinates are not WKT Polygon : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
 
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []EstateSchema{}
@@ -1064,13 +1059,6 @@ func responseEstateRange(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, ranges)
-}
-
-//TODO: グラハムスキャンの実装
-func (cs Coordinates) coordinatesToPolygon() error {
-	// グラハムスキャンして、Polygonにして返す
-
-	return nil
 }
 
 func (cs Coordinates) getBoundingBox() BoundingBox {
