@@ -40,7 +40,7 @@ func estateSearchScenario(ctx context.Context) error {
 		featureLength := rand.Intn(3) + 1
 		q.Set("features", strings.Join(features[:featureLength], ","))
 	}
-	q.Set("perPage", strconv.Itoa(rand.Intn(20)+30))
+	q.Set("perPage", strconv.Itoa(ESTATE_CHECK_PER_PAGE))
 	q.Set("page", "0")
 
 	er, err := c.SearchEstatesWithQuery(ctx, q)
@@ -53,26 +53,37 @@ func estateSearchScenario(ctx context.Context) error {
 		return nil
 	}
 
-	var viewCount int64 = -1
-	ok := true
-	for i, estate := range er.Estates {
-		e, err := asset.GetEstateFromID(estate.ID)
-		if err != nil {
-			ok = false
-			break
-		}
-		vc := e.GetViewCount()
-		if i > 0 && viewCount-vc < -3 {
-			ok = false
-			break
-		}
-		viewCount = vc
-	}
+	ok := checkSearchedEstateViewCount(er.Estates)
 
 	if !ok {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 		return failure.New(fails.ErrApplication)
+	}
+
+	numOfPages := int(er.Count) / ESTATE_CHECK_PER_PAGE
+	if numOfPages != 0 {
+		for i := 0; i <= ESTATE_CHECK_PAGE_COUNT; i++ {
+			q.Set("page", strconv.Itoa(rand.Intn(numOfPages)))
+
+			er, err := c.SearchEstatesWithQuery(ctx, q)
+			if err != nil {
+				fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+				return failure.New(fails.ErrApplication)
+			}
+
+			if len(er.Estates) == 0 {
+				fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+				return failure.New(fails.ErrApplication)
+			}
+
+			ok := checkSearchedEstateViewCount(er.Estates)
+			if !ok {
+				err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
+				fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+				return failure.New(fails.ErrApplication)
+			}
+		}
 	}
 
 	// Get Details with ID from previously searched list

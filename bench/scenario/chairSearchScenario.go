@@ -75,7 +75,7 @@ func chairSearchScenario(ctx context.Context) error {
 		q.Set("features", strings.Join(features[:featureLength], ","))
 	}
 
-	q.Set("perPage", strconv.Itoa(rand.Intn(20)+30))
+	q.Set("perPage", strconv.Itoa(CHAIR_CHECK_PER_PAGE))
 	q.Set("page", "0")
 
 	cr, err := c.SearchChairsWithQuery(ctx, q)
@@ -88,33 +88,36 @@ func chairSearchScenario(ctx context.Context) error {
 		return nil
 	}
 
-	var viewCount int64 = -1
-	ok := true
-	for i, chair := range cr.Chairs {
-		_chair, err := asset.GetChairFromID(chair.ID)
-		if err != nil {
-			ok = false
-			break
-		}
-
-		if _chair.GetStock() <= 0 {
-			ok = false
-			break
-		}
-
-		vc := _chair.GetViewCount()
-
-		if i > 0 && viewCount-vc < -3 {
-			ok = false
-			break
-		}
-		viewCount = vc
-	}
-
+	ok := checkSearchedChairViewCount(cr.Chairs)
 	if !ok {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
+	}
+
+	numOfPages := int(cr.Count) / CHAIR_CHECK_PER_PAGE
+	if numOfPages != 0 {
+		for i := 0; i <= CHAIR_CHECK_PAGE_COUNT; i++ {
+			q.Set("page", strconv.Itoa(rand.Intn(numOfPages)))
+
+			cr, err := c.SearchChairsWithQuery(ctx, q)
+			if err != nil {
+				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+				return failure.New(fails.ErrApplication)
+			}
+
+			if len(cr.Chairs) == 0 {
+				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+				return failure.New(fails.ErrApplication)
+			}
+
+			ok := checkSearchedChairViewCount(cr.Chairs)
+			if !ok {
+				err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
+				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+				return failure.New(fails.ErrApplication)
+			}
+		}
 	}
 
 	// Get detail of Chair
@@ -158,21 +161,7 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	viewCount = -1
-	ok = true
-	for i, estate := range er.Estates {
-		e, err := asset.GetEstateFromID(estate.ID)
-		if err != nil {
-			ok = false
-			break
-		}
-		vc := e.GetViewCount()
-		if i > 0 && viewCount-vc < -3 {
-			ok = false
-			break
-		}
-		viewCount = vc
-	}
+	ok = checkSearchedEstateViewCount(er.Estates)
 
 	if !ok {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: おすすめ結果が不正です"))

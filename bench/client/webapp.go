@@ -66,11 +66,13 @@ func (c *Client) Initialize(ctx context.Context) error {
 }
 
 type ChairsResponse struct {
+	Count  int64 `json:"count"`
 	Chairs []asset.Chair
 }
 
 type EstatesResponse struct {
-	Estates []asset.Estate
+	Count   int64          `json:"count"`
+	Estates []asset.Estate `json:"estates"`
 }
 
 func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Chair, error) {
