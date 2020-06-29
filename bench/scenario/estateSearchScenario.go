@@ -69,7 +69,7 @@ func estateSearchScenario(ctx context.Context) error {
 
 	numOfPages := int(er.Count) / ESTATE_CHECK_PER_PAGE
 	if numOfPages != 0 {
-		for i := 0; i <= ESTATE_CHECK_PAGE_COUNT; i++ {
+		for i := 0; i < ESTATE_CHECK_PAGE_COUNT; i++ {
 			q.Set("page", strconv.Itoa(rand.Intn(numOfPages)))
 
 			t := time.Now()
@@ -93,6 +93,10 @@ func estateSearchScenario(ctx context.Context) error {
 				err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 				return failure.New(fails.ErrApplication)
+			}
+			numOfPages = int(er.Count) / ESTATE_CHECK_PER_PAGE
+			if numOfPages == 0 {
+				break
 			}
 		}
 	}
