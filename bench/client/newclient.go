@@ -4,19 +4,15 @@ import (
 	"crypto/tls"
 	"fmt"
 	"math/rand"
-	"time"
 	"net/http"
+
+	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 )
 
-const (
-	NumOfClient = 10
-	DefaultAPITimeoutTime = 2000 * time.Millisecond
-)
-
-var clients [NumOfClient]*Client
+var clients [paramater.NumOfClient]*Client
 
 func InitializeClients() {
-	for i := 0; i < NumOfClient; i++ {
+	for i := 0; i < paramater.NumOfClient; i++ {
 		userAgent := fmt.Sprintf("isucon-%v-user", i)
 		clients[i] = newClient(userAgent)
 	}
@@ -36,7 +32,7 @@ func newClient(userAgent string) *Client {
 					ServerName: ShareTargetURLs.TargetHost,
 				},
 			},
-			Timeout: DefaultAPITimeoutTime,
+			Timeout: paramater.DefaultAPITimeout,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				return fmt.Errorf("redirect attempted")
 			},

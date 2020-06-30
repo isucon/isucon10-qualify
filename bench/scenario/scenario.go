@@ -2,14 +2,9 @@ package scenario
 
 import (
 	"context"
-	"time"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
-)
-
-const (
-	initializeTimeout = 180 * time.Second
-	loadTimeout       = 60 * time.Second
+	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 )
 
 func Initialize(ctx context.Context) {
@@ -17,7 +12,7 @@ func Initialize(ctx context.Context) {
 	// レギュレーションにある時間を設定する
 	// timeoutSeconds := 180
 
-	ctx, cancel := context.WithTimeout(ctx, initializeTimeout)
+	ctx, cancel := context.WithTimeout(ctx, paramater.InitializeTimeout)
 	defer cancel()
 
 	err := initialize(ctx)
@@ -27,7 +22,7 @@ func Initialize(ctx context.Context) {
 }
 
 func Validation(ctx context.Context) {
-	cancelCtx, cancel := context.WithTimeout(ctx, loadTimeout)
+	cancelCtx, cancel := context.WithTimeout(ctx, paramater.LoadTimeout)
 	defer cancel()
 	go Load(cancelCtx)
 	<-cancelCtx.Done()

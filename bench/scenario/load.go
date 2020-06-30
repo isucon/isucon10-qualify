@@ -7,19 +7,8 @@ import (
 	"time"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 	"github.com/morikuni/failure"
-)
-
-const (
-	SleepTimeOnFailScenario               = 1 * time.Second
-	SleepSwingOnFailScenario              = 1000 // * time.Millisecond
-	SleepTimeOnUserAway                   = 500 * time.Millisecond
-	SleepSwingOnUserAway                  = 100 // * time.Millisecond
-	IntervalForCheckWorkers               = 10 * time.Second
-	NumOfInitialEstateSearchWorker        = 1
-	NumOfInitialChairSearchWorker         = 1
-	NumOfInitialEstateNazotteSearchWorker = 1
-	DisengagementResponseTime             = 1 * time.Second
 )
 
 func runEstateSearchWorker(ctx context.Context) {
@@ -36,12 +25,12 @@ func runEstateSearchWorker(ctx context.Context) {
 		if err != nil {
 			code, _ := failure.CodeOf(err)
 			if code == fails.ErrTimeout {
-				r := rand.Intn(SleepSwingOnUserAway) - SleepSwingOnUserAway*0.5
-				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(paramater.SleepSwingOnUserAway) - paramater.SleepSwingOnUserAway*0.5
+				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			} else {
-				r := rand.Intn(SleepSwingOnFailScenario) - SleepSwingOnFailScenario*0.5
-				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(paramater.SleepSwingOnFailScenario) - paramater.SleepSwingOnFailScenario*0.5
+				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			}
 			select {
@@ -68,12 +57,12 @@ func runChairSearchWorker(ctx context.Context) {
 		if err != nil {
 			code, _ := failure.CodeOf(err)
 			if code == fails.ErrTimeout {
-				r := rand.Intn(SleepSwingOnUserAway) - SleepSwingOnUserAway*0.5
-				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(paramater.SleepSwingOnUserAway) - paramater.SleepSwingOnUserAway*0.5
+				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			} else {
-				r := rand.Intn(SleepSwingOnFailScenario) - SleepSwingOnFailScenario*0.5
-				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(paramater.SleepSwingOnFailScenario) - paramater.SleepSwingOnFailScenario*0.5
+				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			}
 			select {
@@ -100,12 +89,12 @@ func runEstateNazotteSearchWorker(ctx context.Context) {
 		if err != nil {
 			code, _ := failure.CodeOf(err)
 			if code == fails.ErrTimeout {
-				r := rand.Intn(SleepSwingOnUserAway) - SleepSwingOnUserAway*0.5
-				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(paramater.SleepSwingOnUserAway) - paramater.SleepSwingOnUserAway*0.5
+				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			} else {
-				r := rand.Intn(SleepSwingOnFailScenario) - SleepSwingOnFailScenario*0.5
-				s := SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(paramater.SleepSwingOnFailScenario) - paramater.SleepSwingOnFailScenario*0.5
+				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			}
 			select {
@@ -119,16 +108,16 @@ func runEstateNazotteSearchWorker(ctx context.Context) {
 }
 
 func checkWorkers(ctx context.Context) {
-	t := time.NewTicker(IntervalForCheckWorkers)
+	t := time.NewTicker(paramater.IntervalForCheckWorkers)
 	for {
 		select {
 		case <-t.C:
 			cet := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfChairSearchScenario)
 			eet := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateSearchScenario)
 			net := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateNazotteSearchScenario)
-			if time.Since(cet) > IntervalForCheckWorkers &&
-				time.Since(eet) > IntervalForCheckWorkers &&
-				time.Since(net) > IntervalForCheckWorkers {
+			if time.Since(cet) > paramater.IntervalForCheckWorkers &&
+				time.Since(eet) > paramater.IntervalForCheckWorkers &&
+				time.Since(net) > paramater.IntervalForCheckWorkers {
 				log.Println("負荷レベルが上昇しました。")
 				go runChairSearchWorker(ctx)
 				go runEstateSearchWorker(ctx)
@@ -145,17 +134,17 @@ func checkWorkers(ctx context.Context) {
 
 func Load(ctx context.Context) {
 	// 物件検索をして、資料請求をするシナリオ
-	for i := 0; i < NumOfInitialEstateSearchWorker; i++ {
+	for i := 0; i < paramater.NumOfInitialEstateSearchWorker; i++ {
 		go runEstateSearchWorker(ctx)
 	}
 
 	// イス検索から物件ページに行き、資料請求をするまでのシナリオ
-	for i := 0; i < NumOfInitialChairSearchWorker; i++ {
+	for i := 0; i < paramater.NumOfInitialChairSearchWorker; i++ {
 		go runChairSearchWorker(ctx)
 	}
 
 	// なぞって検索をするシナリオ
-	for i := 0; i < NumOfInitialEstateNazotteSearchWorker; i++ {
+	for i := 0; i < paramater.NumOfInitialEstateNazotteSearchWorker; i++ {
 		go runEstateNazotteSearchWorker(ctx)
 	}
 

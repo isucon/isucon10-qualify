@@ -1,12 +1,8 @@
 package scenario
 
-import "github.com/isucon10-qualify/isucon10-qualify/bench/asset"
-
-const CHAIR_CHECK_PAGE_COUNT = 3
-const ESTATE_CHECK_PAGE_COUNT = 3
-
-const CHAIR_CHECK_PER_PAGE = 30
-const ESTATE_CHECK_PER_PAGE = 30
+import (
+	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
+)
 
 func checkSearchedEstateViewCount(e []asset.Estate) bool {
 	var viewCount int64 = -1

@@ -13,6 +13,7 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 )
 
 var estateFeatureList = []string{
@@ -41,7 +42,7 @@ func estateSearchScenario(ctx context.Context) error {
 		featureLength := rand.Intn(3) + 1
 		q.Set("features", strings.Join(features[:featureLength], ","))
 	}
-	q.Set("perPage", strconv.Itoa(ESTATE_CHECK_PER_PAGE))
+	q.Set("perPage", strconv.Itoa(paramater.PerPageOfEstateSearch))
 	q.Set("page", "0")
 
 	t := time.Now()
@@ -51,7 +52,7 @@ func estateSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if time.Since(t) > DisengagementResponseTime {
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 
@@ -67,9 +68,9 @@ func estateSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	numOfPages := int(er.Count) / ESTATE_CHECK_PER_PAGE
+	numOfPages := int(er.Count) / paramater.PerPageOfEstateSearch
 	if numOfPages != 0 {
-		for i := 0; i < ESTATE_CHECK_PAGE_COUNT; i++ {
+		for i := 0; i < paramater.NumOfCheckEstateSearchPaging; i++ {
 			q.Set("page", strconv.Itoa(rand.Intn(numOfPages)))
 
 			t := time.Now()
@@ -79,7 +80,7 @@ func estateSearchScenario(ctx context.Context) error {
 				return failure.New(fails.ErrApplication)
 			}
 
-			if time.Since(t) > DisengagementResponseTime {
+			if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
 				return failure.New(fails.ErrTimeout)
 			}
 
@@ -94,7 +95,7 @@ func estateSearchScenario(ctx context.Context) error {
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
-			numOfPages = int(er.Count) / ESTATE_CHECK_PER_PAGE
+			numOfPages = int(er.Count) / paramater.PerPageOfEstateSearch
 			if numOfPages == 0 {
 				break
 			}
@@ -111,7 +112,7 @@ func estateSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if time.Since(t) > DisengagementResponseTime {
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 

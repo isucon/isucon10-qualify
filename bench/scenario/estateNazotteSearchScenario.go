@@ -12,9 +12,8 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 )
-
-const MAX_NAZOTTE_RESPONSE_LENGTH = 200
 
 type point struct {
 	Latitude  float64
@@ -69,15 +68,13 @@ func ToCoordinates(po []point) *client.Coordinates {
 	return &client.Coordinates{Coordinates: r}
 }
 
-const errorDistance = 1E-6
-
 // 点Pの周りの4点を返す
 func getPointNeighbors(p point) []point {
 	return []point{
-		{Latitude: p.Latitude - errorDistance, Longitude: p.Longitude + errorDistance},
-		{Latitude: p.Latitude + errorDistance, Longitude: p.Longitude + errorDistance},
-		{Latitude: p.Latitude - errorDistance, Longitude: p.Longitude - errorDistance},
-		{Latitude: p.Latitude + errorDistance, Longitude: p.Longitude - errorDistance},
+		{Latitude: p.Latitude - paramater.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude + paramater.NeighborhoodRadiusOfNazotte},
+		{Latitude: p.Latitude + paramater.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude + paramater.NeighborhoodRadiusOfNazotte},
+		{Latitude: p.Latitude - paramater.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude - paramater.NeighborhoodRadiusOfNazotte},
+		{Latitude: p.Latitude + paramater.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude - paramater.NeighborhoodRadiusOfNazotte},
 	}
 }
 
@@ -157,11 +154,11 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if time.Since(t) > DisengagementResponseTime {
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 
-	if len(er.Estates) > MAX_NAZOTTE_RESPONSE_LENGTH {
+	if len(er.Estates) > paramater.MaxLengthOfNazotteResponse {
 		err = failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 検索結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
@@ -206,7 +203,7 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if time.Since(t) > DisengagementResponseTime {
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 

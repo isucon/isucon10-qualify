@@ -13,6 +13,7 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 )
 
 var chairKindList = []string{
@@ -76,7 +77,7 @@ func chairSearchScenario(ctx context.Context) error {
 		q.Set("features", strings.Join(features[:featureLength], ","))
 	}
 
-	q.Set("perPage", strconv.Itoa(CHAIR_CHECK_PER_PAGE))
+	q.Set("perPage", strconv.Itoa(paramater.PerPageOfChairSearch))
 	q.Set("page", "0")
 
 	t := time.Now()
@@ -86,7 +87,7 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if time.Since(t) > DisengagementResponseTime {
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 
@@ -101,10 +102,10 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	numOfPages := int(cr.Count) / CHAIR_CHECK_PER_PAGE
+	numOfPages := int(cr.Count) / paramater.PerPageOfChairSearch
 
 	if numOfPages != 0 {
-		for i := 0; i < CHAIR_CHECK_PAGE_COUNT; i++ {
+		for i := 0; i < paramater.NumOfCheckChairSearchPaging; i++ {
 			q.Set("page", strconv.Itoa(rand.Intn(numOfPages)))
 
 			t := time.Now()
@@ -114,7 +115,7 @@ func chairSearchScenario(ctx context.Context) error {
 				return failure.New(fails.ErrApplication)
 			}
 
-			if time.Since(t) > DisengagementResponseTime {
+			if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
 				return failure.New(fails.ErrTimeout)
 			}
 
@@ -129,7 +130,7 @@ func chairSearchScenario(ctx context.Context) error {
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
-			numOfPages = int(cr.Count) / CHAIR_CHECK_PER_PAGE
+			numOfPages = int(cr.Count) / paramater.PerPageOfChairSearch
 			if numOfPages == 0 {
 				break
 			}
@@ -147,7 +148,7 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if time.Since(t) > DisengagementResponseTime {
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 
@@ -183,7 +184,7 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if time.Since(t) > DisengagementResponseTime {
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 
@@ -205,7 +206,7 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if time.Since(t) > DisengagementResponseTime {
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 
