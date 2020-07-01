@@ -323,11 +323,6 @@ type Range struct {
 	Max int64 `json:"max"`
 }
 
-type RangeIntResponce struct {
-	ID    int64 `json:"id"`
-	Range Range `json:"range`
-}
-
 type RangeResponse struct {
 	Prefix string   `json:"prefix"`
 	Suffix string   `json:"suffix"`
