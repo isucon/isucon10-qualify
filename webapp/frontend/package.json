@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "cross-env ENV=development node server.js",
     "build": "next build",
-    "start": "cross-env ENV=production node server.js",
+    "prod": "cross-env ENV=production node server.js",
+    "start": "next start",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "test": "echo \"Error: no test specified\" && exit 1"

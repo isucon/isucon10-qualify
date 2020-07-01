@@ -3,7 +3,7 @@ const morgan = require('morgan')
 const cors = require('cors')
 
 const path = './.dist.json'
-const port = 3010
+const port = 1323
 const middlewares = [
   cors(),
   morgan('dev')
