@@ -42,9 +42,9 @@ func (c *Client) Initialize(ctx context.Context) error {
 	defer res.Body.Close()
 
 	// MEMO: /initializeの成功ステータスによって第二引数が変わる可能性がある
-	err = checkStatusCode(res, http.StatusOK)
+	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
-		return err
+		return failure.Wrap(err, failure.Message("GET /initialize: レスポンスコードが不正です"))
 	}
 
 	io.Copy(ioutil.Discard, res.Body)
@@ -80,8 +80,16 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	}
 	defer res.Body.Close()
 
+	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNotFound})
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/:id: レスポンスコードが不正です"))
+	}
+
 	if res.StatusCode == http.StatusNotFound {
-		io.Copy(ioutil.Discard, res.Body)
+		_, err = io.Copy(ioutil.Discard, res.Body)
+		if err != nil {
+			return nil, failure.Translate(err, fails.ErrBenchmarker)
+		}
 		return nil, nil
 	}
 
@@ -119,6 +127,11 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 	}
 	defer res.Body.Close()
 
+	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: レスポンスコードが不正です"))
+	}
+
 	var chairs ChairsResponse
 
 	err = json.NewDecoder(res.Body).Decode(&chairs)
@@ -151,6 +164,11 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+
+	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: レスポンスコードが不正です"))
+	}
 
 	var estates EstatesResponse
 
@@ -190,6 +208,11 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 	}
 	defer res.Body.Close()
 
+	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: レスポンスコードが不正です"))
+	}
+
 	var estates EstatesResponse
 
 	err = json.NewDecoder(res.Body).Decode(&estates)
@@ -222,6 +245,11 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/:id: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+
+	err = checkStatusCode(res, []int{http.StatusOK})
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("GET /api/estate/:id: レスポンスコードが不正です"))
+	}
 
 	var estate asset.Estate
 
@@ -257,6 +285,11 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 	}
 	defer res.Body.Close()
 
+	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: レスポンスコードが不正です"))
+	}
+
 	var chairs ChairsResponse
 
 	err = json.NewDecoder(res.Body).Decode(&chairs)
@@ -289,6 +322,11 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+
+	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: レスポンスコードが不正です"))
+	}
 
 	var estate EstatesResponse
 
@@ -323,6 +361,11 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 	}
 	defer res.Body.Close()
 
+	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: レスポンスコードが不正です"))
+	}
+
 	var estate EstatesResponse
 
 	err = json.NewDecoder(res.Body).Decode(&estate)
@@ -356,7 +399,7 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 	}
 	defer res.Body.Close()
 
-	err = checkStatusCode(res, 200)
+	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
 		return failure.Wrap(err, failure.Message("POST /api/chair/buy/:id: リクエストに失敗しました"))
 	}
@@ -386,7 +429,7 @@ func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
 	}
 	defer res.Body.Close()
 
-	err = checkStatusCode(res, 200)
+	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
 		return failure.Wrap(err, failure.Message("POST /api/estate/req_doc/:id: リクエストに失敗しました"))
 	}

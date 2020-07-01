@@ -118,38 +118,19 @@ func (c *Client) newPostRequest(u url.URL, spath string, body io.Reader) (*http.
 	return req, nil
 }
 
-func checkStatusCode(res *http.Response, expectedStatusCode int) error {
-	prefixMsg := fmt.Sprintf("%s %s", res.Request.Method, res.Request.URL.Path)
-
-	if res.StatusCode != expectedStatusCode {
-		b, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			return failure.Wrap(err, failure.Message(prefixMsg+": bodyの読み込みに失敗しました"))
+func checkStatusCode(res *http.Response, expectedStatusCodes []int) error {
+	for _, expectedStatusCode := range expectedStatusCodes {
+		if res.StatusCode == expectedStatusCode {
+			return nil
 		}
-		return failure.Translate(
-			fmt.Errorf("status code: %d; body: %s", res.StatusCode, b),
-			fails.ErrApplication,
-			failure.Messagef("%s: got response status code %d; expected %d", prefixMsg, res.StatusCode, expectedStatusCode),
-		)
 	}
 
-	return nil
-}
-
-func checkStatusCodeWithMsg(res *http.Response, expectedStatusCode int, msg string) error {
-	prefixMsg := fmt.Sprintf("%s %s", res.Request.Method, res.Request.URL.Path)
-
-	if res.StatusCode != expectedStatusCode {
-		b, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			return failure.Wrap(err, failure.Message(prefixMsg+": bodyの読み込みに失敗しました "+msg))
-		}
-		return failure.Translate(fmt.Errorf("status code: %d; body: %s", res.StatusCode, b), fails.ErrApplication,
-			failure.Messagef("%s: got response status code %d; expected %d %s", prefixMsg, res.StatusCode, expectedStatusCode, msg),
-		)
+	_, err := io.Copy(ioutil.Discard, res.Body)
+	if err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker)
 	}
 
-	return nil
+	return failure.New(fails.ErrApplication)
 }
 
 func (c *Client) Do(req *http.Request) (*http.Response, error) {

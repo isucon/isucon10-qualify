@@ -952,8 +952,8 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	err = db.Get(&chair, sqlstr, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.Logger().Infof("Requested chair id \"%v\" nof found", id)
-			return c.JSON(http.StatusBadRequest, EstateRecommendResponse{[]*Estate{}})
+			c.Logger().Infof("Requested chair id \"%v\" not found", id)
+			return c.NoContent(http.StatusBadRequest)
 		}
 		c.Logger().Errorf("Database execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
