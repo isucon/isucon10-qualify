@@ -483,11 +483,11 @@ func getChairDetail(c echo.Context) error {
 	}
 
 	tx, err := db.Begin()
-	defer tx.Rollback()
 	if err != nil {
 		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	defer tx.Rollback()
 
 	_, err = tx.Exec("UPDATE chair SET view_count = ? WHERE id = ?", chair.ViewCount+1, id)
 	if err != nil {
@@ -758,11 +758,11 @@ func getEstateDetail(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	tx, err := db.Begin()
-	defer tx.Rollback()
 	if err != nil {
 		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	defer tx.Rollback()
 
 	_, err = tx.Exec("UPDATE estate SET view_count = ? WHERE id = ?", estate.ViewCount+1, id)
 	if err != nil {
