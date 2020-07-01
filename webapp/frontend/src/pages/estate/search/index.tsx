@@ -194,7 +194,15 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
               }}
             />
 
-            <Button onClick={onSearch}>
+            <Button
+              onClick={onSearch}
+              disabled={
+                doorWidthRangeId === '' &&
+                doorHeightRangeId === '' &&
+                rentRangeId === '' &&
+                !features.some(feature => feature)
+              }
+            >
               Search
             </Button>
           </Box>

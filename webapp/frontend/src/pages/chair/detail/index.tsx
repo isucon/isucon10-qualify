@@ -10,7 +10,7 @@ import {
 import { makeStyles, createStyles } from '@material-ui/core/styles'
 import { Loading } from '../../../components/Loading'
 import { EstateCard } from '../../../components/EstateCard'
-import Error from 'next/error'
+import ErrorPage from 'next/error'
 
 import type { FC } from 'react'
 import type { Chair, Estate } from '@types'
@@ -140,6 +140,7 @@ const ChairDetail: FC<Props> = ({ chair, recommendedEstates }) => {
 
 const ChairDetailPage = () => {
   const [chair, setChair] = useState<Chair | null>(null)
+  const [statusCode, setStatusCode] = useState(200)
   const [recommendedEstates, setRecommendedEstates] = useState<Estate[] | null>(null)
   const router = useRouter()
   const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id
@@ -150,7 +151,10 @@ const ChairDetailPage = () => {
     if (!id) return
 
     fetch(`/api/chair/${id.toString()}`, { mode: 'cors' })
-      .then(async response => await response.json())
+      .then(async response => {
+        if (response.status !== 200) setStatusCode(response.status)
+        return await response.json()
+      })
       .then(chair => setChair(chair as Chair))
       .catch(error => { throw error })
 
@@ -160,7 +164,9 @@ const ChairDetailPage = () => {
       .catch(error => { throw error })
   }, [id])
 
-  if (!id) return <Error statusCode={404} title='Page /chair/detail is required id query like /chair/detail?id=1' />
+  if (!id) return <ErrorPage statusCode={404} title='Page /chair/detail is required id query like /chair/detail?id=1' />
+
+  if (statusCode !== 200) return <ErrorPage statusCode={statusCode} />
 
   return (
     <Paper className={classes.page}>

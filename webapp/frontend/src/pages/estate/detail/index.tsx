@@ -14,6 +14,7 @@ import { Loading } from '../../../components/Loading'
 import type { FC } from 'react'
 import type { Estate, Coordinate } from '@types'
 import type { Theme } from '@material-ui/core/styles'
+import ErrorPage from 'next/error'
 
 const usePageStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -145,6 +146,7 @@ const EstateDetail: FC<Props> = ({ estate }) => {
 
 const EstateDetailPage = () => {
   const [estate, setEstate] = useState<Estate | null>(null)
+  const [statusCode, setStatusCode] = useState(200)
   const router = useRouter()
   const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id
 
@@ -153,10 +155,17 @@ const EstateDetailPage = () => {
   useEffect(() => {
     if (!id) return
     fetch(`/api/estate/${id.toString()}`, { mode: 'cors' })
-      .then(async response => await response.json())
+      .then(async response => {
+        if (response.status !== 200) setStatusCode(response.status)
+        return await response.json()
+      })
       .then(estate => setEstate(estate as Estate))
       .catch(console.error)
   }, [id])
+
+  if (!id) return <ErrorPage statusCode={404} title='Page /estate/detail is required id query like /estate/detail?id=1' />
+
+  if (statusCode !== 200) return <ErrorPage statusCode={statusCode} />
 
   return (
     <Paper className={classes.page}>

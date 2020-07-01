@@ -197,7 +197,18 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
               }}
             />
 
-            <Button onClick={onSearch}>
+            <Button
+              onClick={onSearch}
+              disabled={
+                heightRangeId === '' &&
+                widthRangeId === '' &&
+                depthRangeId === '' &&
+                priceRangeId === '' &&
+                color === '' &&
+                kind === '' &&
+                !features.some(feature => feature)
+              }
+            >
               Search
             </Button>
           </Box>
