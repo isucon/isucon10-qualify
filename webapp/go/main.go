@@ -985,6 +985,10 @@ func searchEstateNazotte(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	if len(coordinates.Coordinates) == 0 {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []EstateSchema{}
 
