@@ -163,10 +163,10 @@ if __name__ == "__main__":
             image_file.write(
                 image_data_list[i % len(image_data_list)] + random_hash.encode('utf-8'))
 
-    with open(DESCRIPTION_LINES_FILE, mode="r") as description_lines:
+    with open(DESCRIPTION_LINES_FILE, mode='r', encoding='utf-8') as description_lines:
         desc_lines = description_lines.readlines()
 
-    with open(OUTPUT_SQL_FILE, mode='w') as sqlfile, open(OUTPUT_TXT_FILE, mode='w') as txtfile:
+    with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
         sqlfile.write(sqlCommands)
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
