@@ -28,7 +28,7 @@ type Request struct {
 	URI    string             `json:"uri"`
 	ID     string             `json:"id"`
 	Query  Query              `json:"query"`
-	Body   client.Coordinates `json:"coordinates"`
+	Body   client.Coordinates `json:"body"`
 }
 
 type Query struct {
