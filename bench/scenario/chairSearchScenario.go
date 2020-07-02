@@ -172,8 +172,10 @@ func chairSearchScenario(ctx context.Context) error {
 	// Buy Chair
 	err = c.BuyChair(ctx, strconv.FormatInt(targetID, 10))
 	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
+		if _chair, err := asset.GetChairFromID(targetID); err != nil || _chair.GetStock() > 0 {
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
 	}
 
 	// Get recommended Estates calculated with Chair

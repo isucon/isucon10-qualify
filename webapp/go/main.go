@@ -655,7 +655,7 @@ func buyChair(c echo.Context) error {
 	}
 
 	var chair ChairSchema
-	err = db.Get(&chair, "SELECT * FROM chair WHERE id = ?", id)
+	err = db.Get(&chair, "SELECT * FROM chair WHERE id = ? AND stock > 0", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Echo().Logger.Infof("buyChair chair id \"%v\" not found", id)
