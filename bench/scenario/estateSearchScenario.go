@@ -20,7 +20,6 @@ var estateFeatureList = []string{
 	"バストイレ別",
 	"駅から徒歩5分",
 	"ペット飼育可能",
-	"デザイナーズ物件",
 }
 
 func estateSearchScenario(ctx context.Context) error {
