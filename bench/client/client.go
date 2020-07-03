@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -123,11 +122,6 @@ func checkStatusCode(res *http.Response, expectedStatusCodes []int) error {
 		if res.StatusCode == expectedStatusCode {
 			return nil
 		}
-	}
-
-	_, err := io.Copy(ioutil.Discard, res.Body)
-	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	return failure.New(fails.ErrApplication)

@@ -40,14 +40,13 @@ func (c *Client) Initialize(ctx context.Context) error {
 		return failure.Wrap(err, failure.Message("GET /initialize: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
 
 	// MEMO: /initializeの成功ステータスによって第二引数が変わる可能性がある
 	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
 		return failure.Wrap(err, failure.Message("GET /initialize: レスポンスコードが不正です"))
 	}
-
-	io.Copy(ioutil.Discard, res.Body)
 
 	return nil
 }
@@ -79,6 +78,7 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/:id: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNotFound})
 	if err != nil {
@@ -126,6 +126,7 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
@@ -164,6 +165,7 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
@@ -207,6 +209,7 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
@@ -245,6 +248,7 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/:id: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
 
 	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
@@ -284,6 +288,7 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
@@ -322,6 +327,7 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
@@ -360,6 +366,7 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
@@ -398,6 +405,7 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 		return failure.Wrap(err, failure.Message("POST /api/chair/buy/:id: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
 
 	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
@@ -428,6 +436,7 @@ func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
 		return failure.Wrap(err, failure.Message("POST /api/estate/req_doc/:id: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
 
 	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
