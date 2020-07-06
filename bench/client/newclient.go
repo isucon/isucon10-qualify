@@ -55,3 +55,20 @@ func NewClientForInitialize() *Client {
 		},
 	}
 }
+
+func NewClientForVerify() *Client {
+	return &Client{
+		httpClient: &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					// HTTPのときには無視される
+					ServerName: ShareTargetURLs.TargetHost,
+				},
+			},
+			Timeout: paramater.VerifyTimeout,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return fmt.Errorf("redirect attempted")
+			},
+		},
+	}
+}

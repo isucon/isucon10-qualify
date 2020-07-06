@@ -21,5 +21,6 @@ const (
 	ThresholdTimeOfAbandonmentPage        = 1 * time.Second
 	DefaultAPITimeout                     = 2000 * time.Millisecond
 	InitializeTimeout                     = 180 * time.Second
+	VerifyTimeout                         = 10 * time.Second
 	LoadTimeout                           = 60 * time.Second
 )

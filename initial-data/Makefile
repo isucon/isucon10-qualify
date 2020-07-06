@@ -1,4 +1,4 @@
-all: chair_data estate_data
+all: chair_data estate_data verification_data
 
 refresh_chair_data:
 	find ../webapp/frontend/public/images/chair -name *.png | xargs rm
@@ -14,10 +14,12 @@ estate_data: make_estate_data.py
 	python3 make_estate_data.py
 	cp result/1_DummyEstateData.sql ../webapp/mysql/db/1_DummyEstateData.sql
 
-verification_data: main.go types.go
+verification_data: ./make_verification_data
+	rm -rf ./result/verification_data
 	docker-compose -f ../webapp/docker-compose.yaml down -v
 	docker-compose -f ../webapp/docker-compose.yaml up -d mysql api-server
 	wayt http -u "http://localhost:1323/api/estate/range"
 	curl "localhost:1323/initialize"
-	go run types.go main.go
+	go build -o ./make_verification_data/main ./make_verification_data/*.go
+	./make_verification_data/main -dest-dir ./result/verification_data -target-url http://localhost:1323
 	docker-compose -f ../webapp/docker-compose.yaml down -v

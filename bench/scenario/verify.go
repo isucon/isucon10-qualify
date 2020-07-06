@@ -2,74 +2,24 @@ package scenario
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/url"
-	"path"
-	"path/filepath"
-	"reflect"
-	"strconv"
 	"sync"
 
-	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/morikuni/failure"
 )
 
-type VerifySnapShot struct {
-	Request  Request  `json:"request"`
-	Response Response `json:"response"`
-}
-
-type Request struct {
-	Method string             `json:"method"`
-	URI    string             `json:"uri"`
-	ID     string             `json:"id"`
-	Query  Query              `json:"query"`
-	Body   client.Coordinates `json:"body"`
-}
-
-type Query struct {
-	RentRangeID       string `json:"rentRangeId"`
-	PriceRangeID      string `json:"priceRangeId"`
-	DoorHeightRangeID string `json:"doorHeightRangeId"`
-	DoorWidthRangeID  string `json:"doorWidthRangeId"`
-	HeightRangeID     string `json:"heightRangeId"`
-	WidthRangeID      string `json:"widthRangeId"`
-	DepthRangeID      string `json:"depthRangeId"`
-	Features          string `json:"features"`
-	Kind              string `json:"kind"`
-	Page              string `json:"page"`
-	PerPage           string `json:"perPage"`
-}
-
-type Response struct {
-	Body Body `json:"body"`
-}
-
-type Body struct {
-	Count   int64          `json:"count"`
-	Estates []asset.Estate `json:"estates"`
-	Chairs  []asset.Chair  `json:"chairs"`
-}
-
 // Verify Initialize後のアプリケーションサーバーに対して、副作用のない検証を実行する
 // 早い段階でベンチマークをFailさせて早期リターンさせるのが目的
 // ex) recommended API や Search API を叩いて初期状態を確認する
-func Verify(ctx context.Context) {
-	dirName, _ := filepath.Abs("../initial-data/generate_verification")
-	err := verifyWithSnapshot(ctx, dirName)
-	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
-	}
-
-	verifyWithScenario(ctx)
+func Verify(ctx context.Context, snapshotsParentsDirPath string) {
+	c := client.NewClientForVerify()
+	verifyWithSnapshot(ctx, c, snapshotsParentsDirPath)
+	verifyWithScenario(ctx, c)
 }
 
-func verifyChairStock(ctx context.Context) error {
-	c := client.PickClient()
+func verifyChairStock(ctx context.Context, c *client.Client) error {
 	err := c.BuyChair(ctx, "1")
 	if err != nil {
 		if ctxErr := ctx.Err(); ctxErr != nil {
@@ -96,9 +46,7 @@ func verifyChairStock(ctx context.Context) error {
 	return nil
 }
 
-func verifyChairViewCount(ctx context.Context) error {
-	c := client.PickClient()
-
+func verifyChairViewCount(ctx context.Context, c *client.Client) error {
 	for i := 0; i < 2; i++ {
 		_, err := c.GetChairDetailFromID(ctx, "2")
 		if err != nil {
@@ -130,9 +78,7 @@ func verifyChairViewCount(ctx context.Context) error {
 	return nil
 }
 
-func verifyEstateViewCount(ctx context.Context) error {
-	c := client.PickClient()
-
+func verifyEstateViewCount(ctx context.Context, c *client.Client) error {
 	for i := 0; i < 2; i++ {
 		_, err := c.GetEstateDetailFromID(ctx, "1")
 		if err != nil {
@@ -161,12 +107,12 @@ func verifyEstateViewCount(ctx context.Context) error {
 	return nil
 }
 
-func verifyWithScenario(ctx context.Context) {
+func verifyWithScenario(ctx context.Context, c *client.Client) {
 	wg := sync.WaitGroup{}
 
 	wg.Add(1)
 	go func() {
-		err := verifyChairStock(ctx)
+		err := verifyChairStock(ctx, c)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 		}
@@ -175,7 +121,7 @@ func verifyWithScenario(ctx context.Context) {
 
 	wg.Add(1)
 	go func() {
-		err := verifyChairViewCount(ctx)
+		err := verifyChairViewCount(ctx, c)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 		}
@@ -184,7 +130,7 @@ func verifyWithScenario(ctx context.Context) {
 
 	wg.Add(1)
 	go func() {
-		err := verifyEstateViewCount(ctx)
+		err := verifyEstateViewCount(ctx, c)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 		}
@@ -192,121 +138,4 @@ func verifyWithScenario(ctx context.Context) {
 	}()
 
 	wg.Wait()
-}
-
-
-func verifyWithSnapshot(ctx context.Context, snapshotsDir string) error {
-	snapshotFiles, err := ioutil.ReadDir(snapshotsDir)
-	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("verify snapshot error snapshot file not found "))
-	}
-
-	for _, sf := range snapshotFiles {
-		c := client.PickClient()
-		raw, err := ioutil.ReadFile(path.Join(snapshotsDir, sf.Name()))
-		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("verify snapshot error ReadFile error "))
-		}
-
-		var verifyData VerifySnapShot
-		err = json.Unmarshal(raw, &verifyData)
-		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("verify snapshot error Unmarshal "))
-		}
-
-		params := url.Values{}
-		elems := reflect.ValueOf(&(verifyData.Request.Query)).Elem()
-		for i := 0; i < elems.NumField(); i++ {
-			valueField := elems.Field(i)
-			typeField := elems.Type().Field(i)
-			tag := typeField.Tag
-			if fmt.Sprintf("%v", valueField.Interface()) == "" {
-				continue
-			} else {
-				params.Set(tag.Get("json"), fmt.Sprintf("%v", valueField.Interface()))
-			}
-		}
-
-		prefixMsg := fmt.Sprintf("%v %v: ", verifyData.Request.Method, verifyData.Request.URI)
-
-		switch verifyData.Request.URI {
-		case "/api/estate/search":
-			er, err := c.SearchEstatesWithQuery(ctx, params)
-			if err != nil {
-				return failure.Translate(err, fails.ErrBenchmarker, failure.Message(prefixMsg+" リクエストに失敗しました"))
-			}
-
-			if len(er.Estates) != int(verifyData.Response.Body.Count) {
-				return failure.Translate(err, fails.ErrApplication, failure.Message(prefixMsg+" 不正なレスポンスです"))
-			}
-
-			if !reflect.DeepEqual(er.Estates, verifyData.Response.Body.Estates) {
-				return failure.New(fails.ErrApplication, failure.Message("物件の検索結果が不正です"))
-			}
-		case "/api/estate/nazotte":
-			er, err := c.SearchEstatesNazotte(ctx, &verifyData.Request.Body)
-			if err != nil {
-				return failure.Translate(err, fails.ErrBenchmarker, failure.Message(prefixMsg+" リクエストに失敗しました"))
-			}
-
-			if len(er.Estates) != len(verifyData.Response.Body.Estates) {
-				return failure.New(fails.ErrApplication, failure.Message(prefixMsg+" 物件の検索結果が不正です"))
-			}
-
-			if !reflect.DeepEqual(verifyData.Response.Body.Estates, er.Estates) {
-				return failure.New(fails.ErrApplication, failure.Message(prefixMsg+" 物件の検索結果が不正です"))
-			}
-		case "/api/chair/search":
-			cr, err := c.SearchChairsWithQuery(ctx, params)
-			if err != nil {
-				failure.Translate(err, fails.ErrBenchmarker, failure.Message(prefixMsg+" リクエストに失敗しました"))
-			}
-
-			if len(cr.Chairs) != len(verifyData.Response.Body.Chairs) {
-				return failure.New(fails.ErrApplication, failure.Message(prefixMsg+" イスの検索結果が不正です"))
-			}
-
-			if !reflect.DeepEqual(verifyData.Response.Body.Chairs, cr.Chairs) {
-				return failure.New(fails.ErrApplication, failure.Message(prefixMsg+" イスの検索結果が不正です"))
-			}
-		case "/api/recommended_chair":
-			cr, err := c.GetRecommendedChair(ctx)
-			if err != nil {
-				failure.Translate(err, fails.ErrBenchmarker, failure.Message(prefixMsg+" リクエストに失敗しました"))
-			}
-			if !reflect.DeepEqual(verifyData.Response.Body.Chairs, cr.Chairs) {
-				return failure.New(fails.ErrApplication, failure.Message(prefixMsg+" レスポンスが不正です"))
-			}
-		case "/api/recommended_estate":
-			if verifyData.Request.ID != "" {
-				id, err := strconv.ParseInt(verifyData.Request.ID, 10, 64)
-				if err != nil {
-					failure.Translate(err, fails.ErrBenchmarker, failure.Message(prefixMsg+" リクエストに失敗しました"))
-				}
-				er, err := c.GetRecommendedEstatesFromChair(ctx, id)
-				if err != nil {
-					failure.Translate(err, fails.ErrBenchmarker, failure.Message(prefixMsg+" リクエストに失敗しました"))
-				}
-
-				if !reflect.DeepEqual(verifyData.Response.Body.Estates, er.Estates) {
-					return failure.New(fails.ErrApplication, failure.Message(prefixMsg+" レスポンスが不正です"))
-				}
-
-			} else {
-				er, err := c.GetRecommendedEstate(ctx)
-				if err != nil {
-					failure.Translate(err, fails.ErrBenchmarker, failure.Message(prefixMsg+" リクエストに失敗しました"))
-				}
-
-				if !reflect.DeepEqual(verifyData.Response.Body.Estates, er.Estates) {
-					return failure.New(fails.ErrApplication, failure.Message(prefixMsg+" レスポンスが不正です"))
-				}
-			}
-		default:
-			return failure.New(fails.ErrBenchmarker, failure.Message("snapshot invalid check API endpoint"))
-		}
-
-	}
-
-	return nil
 }
