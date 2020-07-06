@@ -9,7 +9,7 @@ import {
   Button
 } from '@material-ui/core'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
-import { Loading } from '../../../components/Loading'
+import { Loading } from '../../components/Loading'
 
 import type { FC } from 'react'
 import type { Estate, Coordinate } from '@types'
@@ -57,7 +57,7 @@ const EstateDetail: FC<Props> = ({ estate }) => {
   const classes = useEstateDetailStyles()
   const LeafletMap = dynamic(
     async () => {
-      const module = await import('../../../components/LeafletMap')
+      const module = await import('../../components/LeafletMap')
       return module.LeafletMap
     },
     { ssr: false }
@@ -148,7 +148,7 @@ const EstateDetailPage = () => {
   const [estate, setEstate] = useState<Estate | null>(null)
   const [statusCode, setStatusCode] = useState(200)
   const router = useRouter()
-  const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id
+  const { id } = router.query
 
   const classes = usePageStyles()
 
@@ -163,7 +163,7 @@ const EstateDetailPage = () => {
       .catch(console.error)
   }, [id])
 
-  if (!id) return <ErrorPage statusCode={404} title='Page /estate/detail is required id query like /estate/detail?id=1' />
+  if (!id) return null
 
   if (statusCode !== 200) return <ErrorPage statusCode={statusCode} />
 

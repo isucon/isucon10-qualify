@@ -36,7 +36,7 @@ const useStyles = makeStyles(theme =>
 export const ChairCard: FC<Props> = ({ chair }) => {
   const classes = useStyles()
   return (
-    <Link href={`/chair/detail?id=${chair.id}`}>
+    <Link href='/chair/[id]' as={`/chair/${chair.id}`}>
       <Card className={classes.cardContainer}>
         <CardActionArea component='div' disableRipple className={classes.card}>
           <CardMedia

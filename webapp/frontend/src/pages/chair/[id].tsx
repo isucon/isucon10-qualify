@@ -8,8 +8,8 @@ import {
   Button
 } from '@material-ui/core'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
-import { Loading } from '../../../components/Loading'
-import { EstateCard } from '../../../components/EstateCard'
+import { Loading } from '../../components/Loading'
+import { EstateCard } from '../../components/EstateCard'
 import ErrorPage from 'next/error'
 
 import type { FC } from 'react'
@@ -143,7 +143,7 @@ const ChairDetailPage = () => {
   const [statusCode, setStatusCode] = useState(200)
   const [recommendedEstates, setRecommendedEstates] = useState<Estate[] | null>(null)
   const router = useRouter()
-  const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id
+  const { id } = router.query
 
   const classes = usePageStyles()
 
@@ -164,7 +164,7 @@ const ChairDetailPage = () => {
       .catch(error => { throw error })
   }, [id])
 
-  if (!id) return <ErrorPage statusCode={404} title='Page /chair/detail is required id query like /chair/detail?id=1' />
+  if (!id) return null
 
   if (statusCode !== 200) return <ErrorPage statusCode={statusCode} />
 

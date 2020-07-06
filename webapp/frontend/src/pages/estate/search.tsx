@@ -13,9 +13,9 @@ import {
 } from '@material-ui/core'
 import { Pagination } from '@material-ui/lab'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
-import { Loading } from '../../../components/Loading'
-import { RangeForm } from '../../../components/RangeForm'
-import { CheckboxForm } from '../../../components/CheckboxForm'
+import { Loading } from '../../components/Loading'
+import { RangeForm } from '../../components/RangeForm'
+import { CheckboxForm } from '../../components/CheckboxForm'
 
 import type { FC } from 'react'
 import type { Estate, EstateRangeMap, EstateSearchCondition, EstateSearchResponse } from '@types'
@@ -105,7 +105,7 @@ const EstateItem: FC<EstateItemProps> = ({ estate }) => {
   const classes = useEstateItemStyles()
 
   return (
-    <Link key={estate.id} href={`/estate/detail?id=${estate.id}`}>
+    <Link key={estate.id} href='/estate/[id]' as={`/estate/${estate.id}`}>
       <Card className={classes.card}>
         <CardActionArea className={classes.cardActionArea}>
           <CardMedia image={estate.thumbnail} className={classes.cardMedia} />
