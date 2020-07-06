@@ -11,7 +11,9 @@ import (
 
 var (
 	chairMap  map[int64]*Chair
+	chairIDs  []int64
 	estateMap map[int64]*Estate
+	estateIDs []int64
 )
 
 // メモリ上にデータを展開する
@@ -23,6 +25,7 @@ func Initialize(dataDir string) {
 	}
 
 	chairMap = map[int64]*Chair{}
+	chairIDs = make([]int64, 0)
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -32,6 +35,7 @@ func Initialize(dataDir string) {
 			log.Fatal(err)
 		}
 		chairMap[chair.ID] = &chair
+		chairIDs = append(chairIDs, chair.ID)
 	}
 	f.Close()
 
@@ -41,6 +45,7 @@ func Initialize(dataDir string) {
 	}
 
 	estateMap = map[int64]*Estate{}
+	estateIDs = make([]int64, 0)
 
 	scanner = bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -50,6 +55,7 @@ func Initialize(dataDir string) {
 			log.Fatal(err)
 		}
 		estateMap[estate.ID] = &estate
+		estateIDs = append(estateIDs, estate.ID)
 	}
 	f.Close()
 }
@@ -57,6 +63,10 @@ func Initialize(dataDir string) {
 func ExistsChairInMap(id int64) bool {
 	_, ok := chairMap[id]
 	return ok
+}
+
+func GetChairIDs() []int64 {
+	return chairIDs
 }
 
 func GetChairFromID(id int64) (*Chair, error) {
@@ -84,6 +94,10 @@ func DecrementChairStock(id int64) {
 func ExistsEstateInMap(id int64) bool {
 	_, ok := estateMap[id]
 	return ok
+}
+
+func GetEstateIDs() []int64 {
+	return estateIDs
 }
 
 func GetEstateFromID(id int64) (*Estate, error) {

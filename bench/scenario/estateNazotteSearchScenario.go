@@ -128,19 +128,25 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 	// corners 3 <= N <= 8
 	polygonCorners := rand.Intn(6) + 3
 
+	estateIDs := asset.GetEstateIDs()
 	estateNeighborsPoint := make([]point, 0, 4*polygonCorners)
 	choosedEstateIDs := make([]int64, polygonCorners)
 
-	for i := 0; i < polygonCorners; i++ {
-		target := rand.Int63n(10000) + 1
-		e, _ := asset.GetEstateFromID(target)
-		if !contains(choosedEstateIDs, e.ID) {
-			p := point{Latitude: e.Latitude, Longitude: e.Longitude}
-			estateNeighborsPoint = append(estateNeighborsPoint, getPointNeighbors(p)...)
-			choosedEstateIDs[i] = e.ID
-		} else {
-			i--
+	if len(estateIDs) > polygonCorners {
+		for i := 0; i < polygonCorners; i++ {
+			r := rand.Intn(len(estateIDs))
+			target := estateIDs[r]
+			e, _ := asset.GetEstateFromID(target)
+			if !contains(choosedEstateIDs, e.ID) {
+				p := point{Latitude: e.Latitude, Longitude: e.Longitude}
+				estateNeighborsPoint = append(estateNeighborsPoint, getPointNeighbors(p)...)
+				choosedEstateIDs[i] = e.ID
+			} else {
+				i--
+			}
 		}
+	} else {
+		choosedEstateIDs = append(choosedEstateIDs, estateIDs...)
 	}
 
 	convexHulled := convexHull(estateNeighborsPoint)
