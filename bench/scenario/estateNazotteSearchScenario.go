@@ -122,6 +122,26 @@ func getBoundingBox(points []point) []point {
 func estateNazotteSearchScenario(ctx context.Context) error {
 	var c *client.Client = client.PickClient()
 
+	t := time.Now()
+	err := c.AccessTopPage(ctx)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+		return failure.New(fails.ErrTimeout)
+	}
+
+	t = time.Now()
+	err = c.AccessEstateNazottePage(ctx)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+		return failure.New(fails.ErrTimeout)
+	}
+
 	// Nazotte Search
 	// create nazotte data randomly
 	polygon := &client.Coordinates{}
@@ -153,7 +173,7 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 	polygon = ToCoordinates(convexHulled)
 	boundingBox := getBoundingBox(convexHulled)
 
-	t := time.Now()
+	t = time.Now()
 	er, err := c.SearchEstatesNazotte(ctx, polygon)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
@@ -203,7 +223,7 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 	randomPosition := rand.Intn(len(er.Estates))
 	targetID := er.Estates[randomPosition].ID
 	t = time.Now()
-	e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
+	e, err := c.AccessEstateDetailPage(ctx, targetID)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)

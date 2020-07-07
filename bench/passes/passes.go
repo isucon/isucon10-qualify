@@ -27,6 +27,7 @@ const (
 	LabelOfGetRecommendedEstatesFromChair
 	LabelOfBuyChair
 	LabelOfRequestEstateDocument
+	LabelOfStaticFiles
 )
 
 func init() {
@@ -41,6 +42,7 @@ func init() {
 		LabelOfGetRecommendedEstatesFromChair: {durations: make([]time.Duration, 0)},
 		LabelOfBuyChair:                       {durations: make([]time.Duration, 0)},
 		LabelOfRequestEstateDocument:          {durations: make([]time.Duration, 0)},
+		LabelOfStaticFiles:                    {durations: make([]time.Duration, 0)},
 	}
 }
 

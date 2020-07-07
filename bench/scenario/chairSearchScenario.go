@@ -50,6 +50,26 @@ var chairFeatureList = []string{
 func chairSearchScenario(ctx context.Context) error {
 	var c *client.Client = client.PickClient()
 
+	t := time.Now()
+	err := c.AccessTopPage(ctx)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+		return failure.New(fails.ErrTimeout)
+	}
+
+	t = time.Now()
+	err = c.AccessChairSearchPage(ctx)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+		return failure.New(fails.ErrTimeout)
+	}
+
 	// Search Chairs with Query
 	q := url.Values{}
 	q.Set("priceRangeId", strconv.Itoa(rand.Intn(6)))
@@ -80,7 +100,7 @@ func chairSearchScenario(ctx context.Context) error {
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfChairSearch))
 	q.Set("page", "0")
 
-	t := time.Now()
+	t = time.Now()
 	cr, err := c.SearchChairsWithQuery(ctx, q)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
@@ -141,7 +161,7 @@ func chairSearchScenario(ctx context.Context) error {
 	randomPosition := rand.Intn(len(cr.Chairs))
 	targetID := cr.Chairs[randomPosition].ID
 	t = time.Now()
-	chair, err := c.GetChairDetailFromID(ctx, strconv.FormatInt(targetID, 10))
+	chair, er, err := c.AccessChairDetailPage(ctx, targetID)
 
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
@@ -169,6 +189,14 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
+	ok = checkSearchedEstateViewCount(er.Estates)
+
+	if !ok {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: おすすめ結果が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
 	// Buy Chair
 	err = c.BuyChair(ctx, strconv.FormatInt(targetID, 10))
 	if err != nil {
@@ -178,31 +206,11 @@ func chairSearchScenario(ctx context.Context) error {
 		}
 	}
 
-	// Get recommended Estates calculated with Chair
-	t = time.Now()
-	er, err := c.GetRecommendedEstatesFromChair(ctx, targetID)
-	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
-
-	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
-		return failure.New(fails.ErrTimeout)
-	}
-
-	ok = checkSearchedEstateViewCount(er.Estates)
-
-	if !ok {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: おすすめ結果が不正です"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
-
 	// Get detail of Estate
 	randomPosition = rand.Intn(len(er.Estates))
 	targetID = er.Estates[randomPosition].ID
 	t = time.Now()
-	e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
+	e, err := c.AccessEstateDetailPage(ctx, targetID)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)

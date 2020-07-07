@@ -25,6 +25,26 @@ var estateFeatureList = []string{
 func estateSearchScenario(ctx context.Context) error {
 	var c *client.Client = client.PickClient()
 
+	t := time.Now()
+	err := c.AccessTopPage(ctx)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+		return failure.New(fails.ErrTimeout)
+	}
+
+	t = time.Now()
+	err = c.AccessEstateSearchPage(ctx)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+		return failure.New(fails.ErrTimeout)
+	}
+
 	// Search Estates with Query
 	q := url.Values{}
 	q.Set("rentRangeId", strconv.Itoa(rand.Intn(4)))
@@ -44,7 +64,7 @@ func estateSearchScenario(ctx context.Context) error {
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfEstateSearch))
 	q.Set("page", "0")
 
-	t := time.Now()
+	t = time.Now()
 	er, err := c.SearchEstatesWithQuery(ctx, q)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
@@ -105,7 +125,7 @@ func estateSearchScenario(ctx context.Context) error {
 	randomPosition := rand.Intn(len(er.Estates))
 	targetID := er.Estates[randomPosition].ID
 	t = time.Now()
-	e, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(targetID, 10))
+	e, err := c.AccessEstateDetailPage(ctx, targetID)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 		return failure.New(fails.ErrApplication)

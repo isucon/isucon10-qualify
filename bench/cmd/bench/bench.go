@@ -130,9 +130,12 @@ func main() {
 	score += 1 * passes.GetCount(passes.LabelOfSearchChairsWithQuery)
 	score += 1 * passes.GetCount(passes.LabelOfSearchEstatesWithQuery)
 	score += 1 * passes.GetCount(passes.LabelOfSearchEstatesNazotte)
+	score += 1 * passes.GetCount(passes.LabelOfGetRecommendedChair)
+	score += 1 * passes.GetCount(passes.LabelOfGetRecommendedEstate)
 	score += 1 * passes.GetCount(passes.LabelOfGetRecommendedEstatesFromChair)
 	score += 1 * passes.GetCount(passes.LabelOfBuyChair)
 	score += 1 * passes.GetCount(passes.LabelOfRequestEstateDocument)
+	score += 1 * passes.GetCount(passes.LabelOfStaticFiles)
 
 	// application errorは1回で10点減点
 	penalty := 10 * aCnt
