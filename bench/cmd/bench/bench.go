@@ -14,8 +14,8 @@ import (
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/conversion"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
-	"github.com/isucon10-qualify/isucon10-qualify/bench/passes"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/scenario"
 )
 
@@ -123,18 +123,7 @@ func main() {
 		return
 	}
 
-	score := 0
-	score += 1 * passes.GetCount(passes.LabelOfGetChairDetailFromID)
-	score += 1 * passes.GetCount(passes.LabelOfGetEstateDetailFromID)
-	score += 1 * passes.GetCount(passes.LabelOfSearchChairsWithQuery)
-	score += 1 * passes.GetCount(passes.LabelOfSearchEstatesWithQuery)
-	score += 1 * passes.GetCount(passes.LabelOfSearchEstatesNazotte)
-	score += 1 * passes.GetCount(passes.LabelOfGetRecommendedChair)
-	score += 1 * passes.GetCount(passes.LabelOfGetRecommendedEstate)
-	score += 1 * passes.GetCount(passes.LabelOfGetRecommendedEstatesFromChair)
-	score += 1 * passes.GetCount(passes.LabelOfBuyChair)
-	score += 1 * passes.GetCount(passes.LabelOfRequestEstateDocument)
-	score += 1 * passes.GetCount(passes.LabelOfStaticFiles)
+	score := int(conversion.GetCount())
 
 	cv := 0
 	cv += passes.GetCount(passes.LabelOfBuyChair)

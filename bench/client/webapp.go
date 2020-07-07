@@ -11,8 +11,8 @@ import (
 	"strconv"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/conversion"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
-	"github.com/isucon10-qualify/isucon10-qualify/bench/passes"
 	"github.com/morikuni/failure"
 )
 
@@ -105,9 +105,6 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	}
 
 	asset.IncrementChairViewCount(chair.ID)
-	if !c.isBot {
-		passes.IncrementCount(passes.LabelOfGetChairDetailFromID)
-	}
 
 	return &chair, nil
 }
@@ -148,10 +145,6 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: JSONデコードに失敗しました"))
 	}
 
-	if !c.isBot {
-		passes.IncrementCount(passes.LabelOfSearchChairsWithQuery)
-	}
-
 	return &chairs, nil
 }
 
@@ -189,10 +182,6 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 			return nil, ctxErr
 		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: JSONデコードに失敗しました"))
-	}
-
-	if !c.isBot {
-		passes.IncrementCount(passes.LabelOfSearchEstatesWithQuery)
 	}
 
 	return &estates, nil
@@ -239,10 +228,6 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: JSONデコードに失敗しました"))
 	}
 
-	if !c.isBot {
-		passes.IncrementCount(passes.LabelOfSearchEstatesNazotte)
-	}
-
 	return &estates, nil
 }
 
@@ -283,9 +268,6 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 	}
 
 	asset.IncrementEstateViewCount(estate.ID)
-	if !c.isBot {
-		passes.IncrementCount(passes.LabelOfGetEstateDetailFromID)
-	}
 
 	return &estate, nil
 }
@@ -324,10 +306,6 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 			return nil, ctxErr
 		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: JSONデコードに失敗しました"))
-	}
-
-	if !c.isBot {
-		passes.IncrementCount(passes.LabelOfGetRecommendedChair)
 	}
 
 	return &chairs, nil
@@ -369,10 +347,6 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: JSONデコードに失敗しました"))
 	}
 
-	if !c.isBot {
-		passes.IncrementCount(passes.LabelOfGetRecommendedEstate)
-	}
-
 	return &estate, nil
 }
 
@@ -412,10 +386,6 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: JSONデコードに失敗しました"))
 	}
 
-	if !c.isBot {
-		passes.IncrementCount(passes.LabelOfGetRecommendedEstatesFromChair)
-	}
-
 	return &estate, nil
 }
 
@@ -448,7 +418,7 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 	intid, _ := strconv.ParseInt(id, 10, 64)
 	asset.DecrementChairStock(intid)
 	if !c.isBot {
-		passes.IncrementCount(passes.LabelOfBuyChair)
+		conversion.IncrementCount()
 	}
 
 	return nil
@@ -481,7 +451,7 @@ func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
 	}
 
 	if !c.isBot {
-		passes.IncrementCount(passes.LabelOfRequestEstateDocument)
+		conversion.IncrementCount()
 	}
 
 	return nil
