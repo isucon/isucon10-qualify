@@ -121,25 +121,29 @@ func estateSearchScenario(ctx context.Context) error {
 		}
 	}
 
-	// Get Details with ID from previously searched list
 	randomPosition := rand.Intn(len(er.Estates))
 	targetID := er.Estates[randomPosition].ID
-	t = time.Now()
-	e, err := c.AccessEstateDetailPage(ctx, targetID)
-	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
+	for i := 0; i < paramater.NumOfCheckEstateDetail; i++ {
+		// Get Details with ID from previously searched list
+		randomPosition = rand.Intn(len(er.Estates))
+		targetID = er.Estates[randomPosition].ID
+		t = time.Now()
+		e, err := c.AccessEstateDetailPage(ctx, targetID)
+		if err != nil {
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
 
-	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
-		return failure.New(fails.ErrTimeout)
-	}
+		if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+			return failure.New(fails.ErrTimeout)
+		}
 
-	estate, err := asset.GetEstateFromID(e.ID)
-	if err != nil || !e.Equal(estate) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
-		return failure.New(fails.ErrApplication)
+		estate, err := asset.GetEstateFromID(e.ID)
+		if err != nil || !e.Equal(estate) {
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
 	}
 
 	err = c.RequestEstateDocument(ctx, strconv.FormatInt(targetID, 10))

@@ -9,6 +9,7 @@ const (
 	NumOfClient                           = 10
 	NumOfCheckChairSearchPaging           = 3
 	NumOfCheckEstateSearchPaging          = 3
+	NumOfCheckEstateDetail                = 5
 	PerPageOfChairSearch                  = 30
 	PerPageOfEstateSearch                 = 30
 	MaxLengthOfNazotteResponse            = 200
