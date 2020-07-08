@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"time"
 
 	"golang.org/x/sync/errgroup"
 
@@ -24,7 +23,6 @@ func (c *Client) fetch(ctx context.Context, resource string, dst io.Writer) erro
 	}
 
 	req = req.WithContext(ctx)
-	t := time.Now()
 	res, err := c.Do(req)
 	if err != nil {
 		if ctxErr := ctx.Err(); ctxErr != nil {
@@ -46,7 +44,7 @@ func (c *Client) fetch(ctx context.Context, resource string, dst io.Writer) erro
 		io.Copy(ioutil.Discard, res.Body)
 	}
 
-	passes.AddDuration(time.Since(t), passes.LabelOfStaticFiles)
+	passes.IncrementCount(passes.LabelOfStaticFiles)
 	return nil
 }
 

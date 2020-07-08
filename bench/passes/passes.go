@@ -2,17 +2,12 @@ package passes
 
 import (
 	"sync"
-	"time"
 )
 
 var (
-	passMap map[Label]*pass
+	passMap map[Label]int
+	mu      sync.RWMutex
 )
-
-type pass struct {
-	durations []time.Duration
-	mu        sync.RWMutex
-}
 
 type Label = int
 
@@ -31,47 +26,17 @@ const (
 )
 
 func init() {
-	passMap = map[Label]*pass{
-		LabelOfGetChairDetailFromID:           {durations: make([]time.Duration, 0)},
-		LabelOfSearchChairsWithQuery:          {durations: make([]time.Duration, 0)},
-		LabelOfGetEstateDetailFromID:          {durations: make([]time.Duration, 0)},
-		LabelOfSearchEstatesWithQuery:         {durations: make([]time.Duration, 0)},
-		LabelOfSearchEstatesNazotte:           {durations: make([]time.Duration, 0)},
-		LabelOfGetRecommendedChair:            {durations: make([]time.Duration, 0)},
-		LabelOfGetRecommendedEstate:           {durations: make([]time.Duration, 0)},
-		LabelOfGetRecommendedEstatesFromChair: {durations: make([]time.Duration, 0)},
-		LabelOfBuyChair:                       {durations: make([]time.Duration, 0)},
-		LabelOfRequestEstateDocument:          {durations: make([]time.Duration, 0)},
-		LabelOfStaticFiles:                    {durations: make([]time.Duration, 0)},
-	}
-}
-
-func (p *pass) getDurations() []time.Duration {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-	return p.durations
-}
-
-func (p *pass) getCount() int {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-	return len(p.durations)
-}
-
-func (p *pass) addDuration(d time.Duration) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.durations = append(p.durations, d)
-}
-
-func GetDurations(label Label) []time.Duration {
-	return passMap[label].getDurations()
+	passMap = map[Label]int{}
 }
 
 func GetCount(label Label) int {
-	return passMap[label].getCount()
+	mu.RLock()
+	defer mu.RUnlock()
+	return passMap[label]
 }
 
-func AddDuration(d time.Duration, label Label) {
-	passMap[label].addDuration(d)
+func IncrementCount(label Label) {
+	mu.Lock()
+	defer mu.Unlock()
+	passMap[label]++
 }

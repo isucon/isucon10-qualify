@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"time"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
@@ -68,7 +67,6 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	}
 
 	req = req.WithContext(ctx)
-	t := time.Now()
 	res, err := c.Do(req)
 
 	if err != nil {
@@ -104,7 +102,7 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	}
 
 	asset.IncrementChairViewCount(chair.ID)
-	passes.AddDuration(time.Since(t), passes.LabelOfGetChairDetailFromID)
+	passes.IncrementCount(passes.LabelOfGetChairDetailFromID)
 
 	return &chair, nil
 }
@@ -116,7 +114,6 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 	}
 
 	req = req.WithContext(ctx)
-	t := time.Now()
 	res, err := c.Do(req)
 
 	if err != nil {
@@ -143,7 +140,7 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: JSONデコードに失敗しました"))
 	}
 
-	passes.AddDuration(time.Since(t), passes.LabelOfSearchChairsWithQuery)
+	passes.IncrementCount(passes.LabelOfSearchChairsWithQuery)
 
 	return &chairs, nil
 }
@@ -155,7 +152,6 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 	}
 
 	req = req.WithContext(ctx)
-	t := time.Now()
 	res, err := c.Do(req)
 
 	if err != nil {
@@ -182,7 +178,7 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: JSONデコードに失敗しました"))
 	}
 
-	passes.AddDuration(time.Since(t), passes.LabelOfSearchEstatesWithQuery)
+	passes.IncrementCount(passes.LabelOfSearchEstatesWithQuery)
 
 	return &estates, nil
 }
@@ -199,7 +195,6 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 	}
 
 	req = req.WithContext(ctx)
-	t := time.Now()
 	res, err := c.Do(req)
 
 	if err != nil {
@@ -226,7 +221,7 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: JSONデコードに失敗しました"))
 	}
 
-	passes.AddDuration(time.Since(t), passes.LabelOfSearchEstatesNazotte)
+	passes.IncrementCount(passes.LabelOfSearchEstatesNazotte)
 
 	return &estates, nil
 }
@@ -238,7 +233,6 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 	}
 
 	req = req.WithContext(ctx)
-	t := time.Now()
 	res, err := c.Do(req)
 
 	if err != nil {
@@ -266,7 +260,7 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 	}
 
 	asset.IncrementEstateViewCount(estate.ID)
-	passes.AddDuration(time.Since(t), passes.LabelOfGetEstateDetailFromID)
+	passes.IncrementCount(passes.LabelOfGetEstateDetailFromID)
 
 	return &estate, nil
 }
@@ -278,7 +272,6 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 	}
 
 	req = req.WithContext(ctx)
-	t := time.Now()
 	res, err := c.Do(req)
 
 	if err != nil {
@@ -305,7 +298,7 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: JSONデコードに失敗しました"))
 	}
 
-	passes.AddDuration(time.Since(t), passes.LabelOfGetRecommendedChair)
+	passes.IncrementCount(passes.LabelOfGetRecommendedChair)
 
 	return &chairs, nil
 }
@@ -317,7 +310,6 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 	}
 
 	req = req.WithContext(ctx)
-	t := time.Now()
 	res, err := c.Do(req)
 
 	if err != nil {
@@ -344,7 +336,7 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: JSONデコードに失敗しました"))
 	}
 
-	passes.AddDuration(time.Since(t), passes.LabelOfGetRecommendedEstate)
+	passes.IncrementCount(passes.LabelOfGetRecommendedEstate)
 
 	return &estate, nil
 }
@@ -356,7 +348,6 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 	}
 
 	req = req.WithContext(ctx)
-	t := time.Now()
 	res, err := c.Do(req)
 
 	if err != nil {
@@ -383,7 +374,7 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: JSONデコードに失敗しました"))
 	}
 
-	passes.AddDuration(time.Since(t), passes.LabelOfGetRecommendedEstatesFromChair)
+	passes.IncrementCount(passes.LabelOfGetRecommendedEstatesFromChair)
 
 	return &estate, nil
 }
@@ -395,7 +386,6 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 	}
 
 	req = req.WithContext(ctx)
-	t := time.Now()
 	res, err := c.Do(req)
 
 	if err != nil {
@@ -414,7 +404,7 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 
 	intid, _ := strconv.ParseInt(id, 10, 64)
 	asset.DecrementChairStock(intid)
-	passes.AddDuration(time.Since(t), passes.LabelOfBuyChair)
+	passes.IncrementCount(passes.LabelOfBuyChair)
 
 	return nil
 }
@@ -426,7 +416,6 @@ func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
 	}
 
 	req = req.WithContext(ctx)
-	t := time.Now()
 	res, err := c.Do(req)
 
 	if err != nil {
@@ -443,7 +432,7 @@ func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
 		return failure.Wrap(err, failure.Message("POST /api/estate/req_doc/:id: リクエストに失敗しました"))
 	}
 
-	passes.AddDuration(time.Since(t), passes.LabelOfRequestEstateDocument)
+	passes.IncrementCount(passes.LabelOfRequestEstateDocument)
 
 	return nil
 }
