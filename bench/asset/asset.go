@@ -1,12 +1,14 @@
 package asset
 
 import (
-	"bufio"
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
+
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -19,45 +21,60 @@ var (
 // メモリ上にデータを展開する
 // このデータを使用してAPIからのレスポンスを確認する
 func Initialize(dataDir string) {
-	f, err := os.Open(filepath.Join(dataDir, "result/chair_json.txt"))
-	if err != nil {
-		log.Fatal(err)
-	}
+	eg := errgroup.Group{}
 
-	chairMap = map[int64]*Chair{}
-	chairIDs = make([]int64, 0)
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		var chair Chair
-		err := json.Unmarshal([]byte(scanner.Text()), &chair)
+	eg.Go(func() error {
+		f, err := os.Open(filepath.Join(dataDir, "result/chair_json.txt"))
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
-		chairMap[chair.ID] = &chair
-		chairIDs = append(chairIDs, chair.ID)
-	}
-	f.Close()
+		defer f.Close()
 
-	f, err = os.Open(filepath.Join(dataDir, "result/estate_json.txt"))
-	if err != nil {
-		log.Fatal(err)
-	}
+		chairMap = map[int64]*Chair{}
+		chairIDs = make([]int64, 0)
+		decoder := json.NewDecoder(f)
+		for {
+			var chair Chair
+			if err := decoder.Decode(&chair); err != nil {
+				if err == io.EOF {
+					break
+				}
+				return err
+			}
+			chairMap[chair.ID] = &chair
+			chairIDs = append(chairIDs, chair.ID)
+		}
+		return nil
+	})
 
-	estateMap = map[int64]*Estate{}
-	estateIDs = make([]int64, 0)
-
-	scanner = bufio.NewScanner(f)
-	for scanner.Scan() {
-		var estate Estate
-		err := json.Unmarshal([]byte(scanner.Text()), &estate)
+	eg.Go(func() error {
+		f, err := os.Open(filepath.Join(dataDir, "result/estate_json.txt"))
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
-		estateMap[estate.ID] = &estate
-		estateIDs = append(estateIDs, estate.ID)
+		defer f.Close()
+
+		estateMap = map[int64]*Estate{}
+		estateIDs = make([]int64, 0)
+		decoder := json.NewDecoder(f)
+		for {
+			var estate Estate
+			if err := decoder.Decode(&estate); err != nil {
+				if err == io.EOF {
+					break
+				}
+				return err
+			}
+			estateMap[estate.ID] = &estate
+			estateIDs = append(estateIDs, estate.ID)
+		}
+
+		return nil
+	})
+
+	if err := eg.Wait(); err != nil {
+		log.Fatal()
 	}
-	f.Close()
 }
 
 func ExistsChairInMap(id int64) bool {
