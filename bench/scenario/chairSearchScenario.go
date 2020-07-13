@@ -115,8 +115,7 @@ func chairSearchScenario(ctx context.Context) error {
 		return nil
 	}
 
-	ok := checkSearchedChairViewCount(cr.Chairs)
-	if !ok {
+	if !isChairsOrderedByViewCount(cr.Chairs) {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
@@ -144,8 +143,7 @@ func chairSearchScenario(ctx context.Context) error {
 				return failure.New(fails.ErrApplication)
 			}
 
-			ok := checkSearchedChairViewCount(cr.Chairs)
-			if !ok {
+			if !isChairsOrderedByViewCount(cr.Chairs) {
 				err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
@@ -178,20 +176,13 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if _chair, err := asset.GetChairFromID(chair.ID); err != nil {
-		ok = false
-	} else {
-		ok = chair.Equal(_chair)
-	}
-	if !ok {
+	if !isChairEqualToAsset(chair) {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: イス情報が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
 
-	ok = checkSearchedEstateViewCount(er.Estates)
-
-	if !ok {
+	if !isEstatesOrderedByViewCount(er.Estates) {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: おすすめ結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
@@ -220,13 +211,7 @@ func chairSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrTimeout)
 	}
 
-	if estate, err := asset.GetEstateFromID(e.ID); err != nil {
-		ok = false
-	} else {
-		ok = e.Equal(estate)
-	}
-
-	if !ok {
+	if !isEstateEqualToAsset(e) {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)

@@ -87,8 +87,8 @@ func contains(s []int64, e int64) bool {
 	return false
 }
 
-func getBoundingBox(points []point) []point {
-	boundingBox := []point{
+func getBoundingBox(points []point) [2]point {
+	boundingBox := [2]point{
 		{
 			// TopLeftCorner
 			Latitude: points[0].Latitude, Longitude: points[0].Longitude,
@@ -190,31 +190,7 @@ func estateNazotteSearchScenario(ctx context.Context) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	ok := true
-	for _, estate := range er.Estates {
-		e, err := asset.GetEstateFromID(estate.ID)
-		if err != nil || !e.Equal(&estate) {
-			ok = false
-			break
-		}
-
-		if !(boundingBox[0].Latitude <= e.Latitude && boundingBox[1].Latitude >= e.Latitude) {
-			ok = false
-			break
-		}
-		if !(boundingBox[0].Longitude <= e.Longitude && boundingBox[1].Longitude >= e.Longitude) {
-			ok = false
-			break
-		}
-
-		if !e.Equal(&estate) {
-			ok = false
-			break
-		}
-
-	}
-
-	if !ok {
+	if !isEstatesInBoundingBox(er.Estates, boundingBox) {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/nazotte: 検索結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
