@@ -2,16 +2,22 @@ package scenario
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"time"
 
+	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 	"github.com/morikuni/failure"
+	"github.com/google/uuid"
 )
 
 func runEstateSearchWorker(ctx context.Context) {
+	u, _ := uuid.NewRandom()
+	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()))
+
 	for {
 		r := rand.Intn(100)
 		t := time.NewTimer(time.Duration(r) * time.Millisecond)
@@ -21,7 +27,7 @@ func runEstateSearchWorker(ctx context.Context) {
 			t.Stop()
 			return
 		}
-		err := estateSearchScenario(ctx)
+		err := estateSearchScenario(ctx, c)
 		if err != nil {
 			code, _ := failure.CodeOf(err)
 			if code == fails.ErrTimeout {
@@ -44,6 +50,9 @@ func runEstateSearchWorker(ctx context.Context) {
 }
 
 func runChairSearchWorker(ctx context.Context) {
+	u, _ := uuid.NewRandom()
+	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()))
+
 	for {
 		r := rand.Intn(100)
 		t := time.NewTimer(time.Duration(r) * time.Millisecond)
@@ -53,7 +62,7 @@ func runChairSearchWorker(ctx context.Context) {
 			t.Stop()
 			return
 		}
-		err := chairSearchScenario(ctx)
+		err := chairSearchScenario(ctx, c)
 		if err != nil {
 			code, _ := failure.CodeOf(err)
 			if code == fails.ErrTimeout {
@@ -76,6 +85,9 @@ func runChairSearchWorker(ctx context.Context) {
 }
 
 func runEstateNazotteSearchWorker(ctx context.Context) {
+	u, _ := uuid.NewRandom()
+	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()))
+
 	for {
 		r := rand.Intn(100)
 		t := time.NewTimer(time.Duration(r) * time.Millisecond)
@@ -85,7 +97,7 @@ func runEstateNazotteSearchWorker(ctx context.Context) {
 			t.Stop()
 			return
 		}
-		err := estateNazotteSearchScenario(ctx)
+		err := estateNazotteSearchScenario(ctx, c)
 		if err != nil {
 			code, _ := failure.CodeOf(err)
 			if code == fails.ErrTimeout {

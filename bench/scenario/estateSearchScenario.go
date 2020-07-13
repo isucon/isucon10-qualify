@@ -22,8 +22,7 @@ var estateFeatureList = []string{
 	"ペット飼育可能",
 }
 
-func estateSearchScenario(ctx context.Context) error {
-	var c *client.Client = client.PickClient()
+func estateSearchScenario(ctx context.Context, c *client.Client) error {
 
 	t := time.Now()
 	err := c.AccessTopPage(ctx)

@@ -119,9 +119,7 @@ func getBoundingBox(points []point) [2]point {
 	return boundingBox
 }
 
-func estateNazotteSearchScenario(ctx context.Context) error {
-	var c *client.Client = client.PickClient()
-
+func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 	t := time.Now()
 	err := c.AccessTopPage(ctx)
 	if err != nil {

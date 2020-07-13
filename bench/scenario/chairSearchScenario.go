@@ -47,9 +47,7 @@ var chairFeatureList = []string{
 	"フットレスト",
 }
 
-func chairSearchScenario(ctx context.Context) error {
-	var c *client.Client = client.PickClient()
-
+func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	t := time.Now()
 	err := c.AccessTopPage(ctx)
 	if err != nil {
