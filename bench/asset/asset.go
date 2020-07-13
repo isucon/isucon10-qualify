@@ -1,13 +1,15 @@
 package asset
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/morikuni/failure"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -20,8 +22,8 @@ var (
 
 // メモリ上にデータを展開する
 // このデータを使用してAPIからのレスポンスを確認する
-func Initialize(dataDir string) {
-	eg := errgroup.Group{}
+func Initialize(ctx context.Context, dataDir string) {
+	eg, childCtx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
 		f, err := os.Open(filepath.Join(dataDir, "result/chair_json.txt"))
@@ -34,6 +36,10 @@ func Initialize(dataDir string) {
 		chairIDs = make([]int64, 0)
 		decoder := json.NewDecoder(f)
 		for {
+			if err := childCtx.Err(); err != nil {
+				return err
+			}
+
 			var chair Chair
 			if err := decoder.Decode(&chair); err != nil {
 				if err == io.EOF {
@@ -58,6 +64,10 @@ func Initialize(dataDir string) {
 		estateIDs = make([]int64, 0)
 		decoder := json.NewDecoder(f)
 		for {
+			if err := childCtx.Err(); err != nil {
+				return err
+			}
+
 			var estate Estate
 			if err := decoder.Decode(&estate); err != nil {
 				if err == io.EOF {
@@ -73,7 +83,8 @@ func Initialize(dataDir string) {
 	})
 
 	if err := eg.Wait(); err != nil {
-		log.Fatal()
+		err = failure.Translate(err, fails.ErrBenchmarker, failure.Message("assetの初期化に失敗しました"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfInitialize)
 	}
 }
 
