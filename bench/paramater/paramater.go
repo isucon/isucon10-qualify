@@ -6,7 +6,6 @@ const (
 	NumOfInitialEstateSearchWorker        = 1
 	NumOfInitialChairSearchWorker         = 1
 	NumOfInitialEstateNazotteSearchWorker = 1
-	NumOfClient                           = 10
 	NumOfCheckChairSearchPaging           = 3
 	NumOfCheckEstateSearchPaging          = 3
 	PerPageOfChairSearch                  = 30
