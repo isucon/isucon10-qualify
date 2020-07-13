@@ -30,6 +30,7 @@ const (
 	ErrorOfEstateSearchScenario
 	ErrorOfChairSearchScenario
 	ErrorOfEstateNazotteSearchScenario
+	ErrorOfBotScenario
 )
 
 var (

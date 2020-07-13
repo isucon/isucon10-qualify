@@ -119,6 +119,24 @@ func runEstateNazotteSearchWorker(ctx context.Context) {
 	}
 }
 
+func runBotWorker(ctx context.Context) {
+	u, _ := uuid.NewRandom()
+	c := client.NewClient(fmt.Sprintf("isucon-bot-%v", u.String()))
+
+	for {
+		go botScenario(ctx, c)
+		r := rand.Intn(paramater.SleepSwingOnBotInterval) - paramater.SleepSwingOnBotInterval*0.5
+		s := paramater.SleepTimeOnBotInterval + time.Duration(r)*time.Millisecond
+		t := time.NewTimer(s)
+		select {
+		case <-t.C:
+		case <-ctx.Done():
+			t.Stop()
+			return
+		}
+	}
+}
+
 func checkWorkers(ctx context.Context) {
 	t := time.NewTicker(paramater.IntervalForCheckWorkers)
 	for {
@@ -158,6 +176,11 @@ func Load(ctx context.Context) {
 	// なぞって検索をするシナリオ
 	for i := 0; i < paramater.NumOfInitialEstateNazotteSearchWorker; i++ {
 		go runEstateNazotteSearchWorker(ctx)
+	}
+
+	// ボットによる検索シナリオ
+	for i := 0; i < paramater.NumOfInitialBotWorker; i++ {
+		go runBotWorker(ctx)
 	}
 
 	go checkWorkers(ctx)
