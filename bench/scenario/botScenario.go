@@ -2,7 +2,6 @@ package scenario
 
 import (
 	"context"
-	"log"
 	"math/rand"
 	"net/url"
 	"strconv"
@@ -15,7 +14,6 @@ import (
 )
 
 func botScenario(ctx context.Context, c *client.Client) {
-	log.Println("bot request start")
 	wg := sync.WaitGroup{}
 
 	wg.Add(1)
@@ -84,5 +82,4 @@ func botScenario(ctx context.Context, c *client.Client) {
 	}()
 
 	wg.Wait()
-	log.Println("bot request end")
 }
