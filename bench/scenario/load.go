@@ -121,7 +121,7 @@ func runEstateNazotteSearchWorker(ctx context.Context) {
 
 func runBotWorker(ctx context.Context) {
 	u, _ := uuid.NewRandom()
-	c := client.NewClient(fmt.Sprintf("isucon-bot-%v", u.String()), false)
+	c := client.NewClient(fmt.Sprintf("isucon-bot-%v", u.String()), true)
 
 	for {
 		go botScenario(ctx, c)
