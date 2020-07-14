@@ -8,6 +8,7 @@ const (
 	NumOfInitialEstateNazotteSearchWorker = 1
 	NumOfClient                           = 10
 	NumOfCheckChairSearchPaging           = 3
+	NumOfCheckChairDetail                 = 5
 	NumOfCheckEstateSearchPaging          = 3
 	NumOfCheckEstateDetail                = 5
 	PerPageOfChairSearch                  = 30
