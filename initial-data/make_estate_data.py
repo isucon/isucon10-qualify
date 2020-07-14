@@ -11,18 +11,16 @@ Faker.seed(19700101)
 random.seed(19700101)
 
 DESCRIPTION_LINES_FILE = "./description.txt"
-OUTPUT_SQL_FILE = "./result/1_DummyEstateData.sql"
+OUTPUT_CSV_FILE = "./result/estateData.csv"
 OUTPUT_TXT_FILE = "./result/estate_json.txt"
 ESTATE_IMAGE_ORIGIN_DIR = "./origin/estate"
 ESTATE_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/estate"
 ESTATE_DUMMY_IMAGE_NUM = 1000
 RECORD_COUNT = 10 ** 4
-BULK_INSERT_COUNT = 500
 DOOR_MIN_CENTIMETER = 30
 DOOR_MAX_CENTIMETER = 200
 MIN_VIEW_COUNT = 3000
 MAX_VIEW_COUNT = 1000000
-sqlCommands = "use isuumo;\n"
 
 BUILDING_NAME_LIST = [
     "{name}ISUビルディング",
@@ -48,6 +46,11 @@ ESTATE_IMAGE_HASH_LIST = [fake.sha256(
 def read_src_file_data(file_path):
     with open(file_path, mode='rb') as img:
         return img.read()
+
+
+def dump_estate_to_csv_str(estate):
+    # id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features
+    return f"{estate['id']},\"{estate['thumbnail']}\",\"{estate['name']}\",{estate['latitude']},{estate['longitude']},\"{estate['address']}\",{estate['rent']},{estate['door_height']},{estate['door_width']},{estate['view_count']},\"{estate['description']}\",\"{estate['features']}\""
 
 
 def dump_estate_to_json_str(estate):
@@ -90,7 +93,6 @@ def generate_estate_dummy_data(estate_id, wrap={}):
 
 
 if __name__ == '__main__':
-
     for i, random_hash in enumerate(ESTATE_IMAGE_HASH_LIST):
         image_data_list = [read_src_file_data(
             image) for image in glob.glob(os.path.join(ESTATE_IMAGE_ORIGIN_DIR, "*.png"))]
@@ -101,14 +103,7 @@ if __name__ == '__main__':
     with open(DESCRIPTION_LINES_FILE, mode='r', encoding='utf-8') as description_lines:
         desc_lines = description_lines.readlines()
 
-    with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
-        sqlfile.write(sqlCommands)
-        if RECORD_COUNT % BULK_INSERT_COUNT != 0:
-            raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
-                RECORD_COUNT, BULK_INSERT_COUNT))
-
-        estate_id = 1
-
+    with open(OUTPUT_CSV_FILE, mode='w', encoding='utf-8') as csvfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
         ESTATES_FOR_VERIFY = [
             # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (2位 → 1位)
             generate_estate_dummy_data(1, {
@@ -122,18 +117,12 @@ if __name__ == '__main__':
             })
         ]
 
-        sqlCommand = f"""INSERT INTO estate (id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features) VALUES {', '.join(map(lambda estate: f"('{estate['id']}', '{estate['thumbnail']}', '{estate['name']}', '{estate['latitude']}' , '{estate['longitude']}', '{estate['address']}', '{estate['rent']}', '{estate['door_height']}', '{estate['door_width']}', '{estate['view_count']}', '{estate['description']}', '{estate['features']}')", ESTATES_FOR_VERIFY))};"""
-        sqlfile.write(sqlCommand)
+        estates = ESTATES_FOR_VERIFY + \
+            [generate_estate_dummy_data(len(ESTATES_FOR_VERIFY) + i + 1)
+             for i in range(RECORD_COUNT)]
+
+        csvfile.write(
+            "\n".join([dump_estate_to_csv_str(estate) for estate in estates]))
+
         txtfile.write("\n".join([dump_estate_to_json_str(estate)
-                                 for estate in ESTATES_FOR_VERIFY]) + "\n")
-
-        estate_id += len(ESTATES_FOR_VERIFY)
-
-        for _ in range(RECORD_COUNT//BULK_INSERT_COUNT):
-            bulk_list = [generate_estate_dummy_data(
-                estate_id + i) for i in range(BULK_INSERT_COUNT)]
-            estate_id += BULK_INSERT_COUNT
-            sqlCommand = f"""INSERT INTO estate (id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features) VALUES {', '.join(map(lambda estate: f"('{estate['id']}', '{estate['thumbnail']}', '{estate['name']}', '{estate['latitude']}' , '{estate['longitude']}', '{estate['address']}', '{estate['rent']}', '{estate['door_height']}', '{estate['door_width']}', '{estate['view_count']}', '{estate['description']}', '{estate['features']}')", bulk_list))};"""
-            sqlfile.write(sqlCommand)
-            txtfile.write("\n".join([dump_estate_to_json_str(estate)
-                                     for estate in bulk_list]) + "\n")
+                                 for estate in estates]) + "\n")
