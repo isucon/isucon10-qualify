@@ -135,8 +135,7 @@ func estateSearchScenario(ctx context.Context) error {
 			return failure.New(fails.ErrTimeout)
 		}
 
-		estate, err := asset.GetEstateFromID(e.ID)
-		if err != nil || !e.Equal(estate) {
+		if !isEstateEqualToAsset(e) {
 			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 			return failure.New(fails.ErrApplication)
