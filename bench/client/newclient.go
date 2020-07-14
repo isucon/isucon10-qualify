@@ -8,9 +8,10 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 )
 
-func NewClient(userAgent string) *Client {
+func NewClient(userAgent string, isBot bool) *Client {
 	return &Client{
 		userAgent: userAgent,
+		isBot: isBot,
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
@@ -28,6 +29,8 @@ func NewClient(userAgent string) *Client {
 
 func NewClientForInitialize() *Client {
 	return &Client{
+		userAgent: "isucon-initialize",
+		isBot: false,
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
@@ -44,6 +47,8 @@ func NewClientForInitialize() *Client {
 
 func NewClientForVerify() *Client {
 	return &Client{
+		userAgent: "isucon-verify",
+		isBot: false,
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{

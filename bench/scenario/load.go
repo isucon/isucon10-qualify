@@ -16,7 +16,7 @@ import (
 
 func runEstateSearchWorker(ctx context.Context) {
 	u, _ := uuid.NewRandom()
-	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()))
+	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()), false)
 
 	for {
 		r := rand.Intn(100)
@@ -51,7 +51,7 @@ func runEstateSearchWorker(ctx context.Context) {
 
 func runChairSearchWorker(ctx context.Context) {
 	u, _ := uuid.NewRandom()
-	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()))
+	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()), false)
 
 	for {
 		r := rand.Intn(100)
@@ -86,7 +86,7 @@ func runChairSearchWorker(ctx context.Context) {
 
 func runEstateNazotteSearchWorker(ctx context.Context) {
 	u, _ := uuid.NewRandom()
-	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()))
+	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()), false)
 
 	for {
 		r := rand.Intn(100)
@@ -121,7 +121,7 @@ func runEstateNazotteSearchWorker(ctx context.Context) {
 
 func runBotWorker(ctx context.Context) {
 	u, _ := uuid.NewRandom()
-	c := client.NewClient(fmt.Sprintf("isucon-bot-%v", u.String()))
+	c := client.NewClient(fmt.Sprintf("isucon-bot-%v", u.String()), false)
 
 	for {
 		go botScenario(ctx, c)
