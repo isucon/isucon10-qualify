@@ -49,8 +49,6 @@ func (c *Client) fetch(ctx context.Context, resource string, dst io.Writer) erro
 }
 
 func (c *Client) AccessTopPage(ctx context.Context) error {
-	c.fetch(ctx, "/", nil)
-
 	eg, childCtx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
@@ -71,11 +69,6 @@ func (c *Client) AccessTopPage(ctx context.Context) error {
 }
 
 func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Chair, *EstatesResponse, error) {
-	err := c.fetch(ctx, fmt.Sprintf("/chair/%v", id), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	eg, childCtx := errgroup.WithContext(ctx)
 
 	chairCh := make(chan *asset.Chair, 1)
@@ -90,12 +83,6 @@ func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Ch
 		if chair == nil {
 			chairCh <- nil
 			return nil
-		}
-
-		err = c.fetch(childCtx, chair.Thumbnail, nil)
-		if err != nil {
-			chairCh <- nil
-			return err
 		}
 
 		chairCh <- chair
@@ -121,17 +108,7 @@ func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Ch
 }
 
 func (c *Client) AccessEstateDetailPage(ctx context.Context, id int64) (*asset.Estate, error) {
-	err := c.fetch(ctx, fmt.Sprintf("/estate/%v", id), nil)
-	if err != nil {
-		return nil, err
-	}
-
 	estate, err := c.GetEstateDetailFromID(ctx, strconv.FormatInt(id, 10))
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.fetch(ctx, estate.Thumbnail, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -140,12 +117,7 @@ func (c *Client) AccessEstateDetailPage(ctx context.Context, id int64) (*asset.E
 }
 
 func (c *Client) AccessChairSearchPage(ctx context.Context) error {
-	err := c.fetch(ctx, "/chair/search", nil)
-	if err != nil {
-		return err
-	}
-
-	err = c.fetch(ctx, "/api/chair/range", nil)
+	err := c.fetch(ctx, "/api/chair/range", nil)
 	if err != nil {
 		return err
 	}
@@ -154,12 +126,7 @@ func (c *Client) AccessChairSearchPage(ctx context.Context) error {
 }
 
 func (c *Client) AccessEstateSearchPage(ctx context.Context) error {
-	err := c.fetch(ctx, "/estate/search", nil)
-	if err != nil {
-		return err
-	}
-
-	err = c.fetch(ctx, "/api/estate/range", nil)
+	err := c.fetch(ctx, "/api/estate/range", nil)
 	if err != nil {
 		return err
 	}
@@ -168,10 +135,5 @@ func (c *Client) AccessEstateSearchPage(ctx context.Context) error {
 }
 
 func (c *Client) AccessEstateNazottePage(ctx context.Context) error {
-	err := c.fetch(ctx, "/estate/nazotte", nil)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
