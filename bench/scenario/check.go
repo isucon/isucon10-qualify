@@ -4,7 +4,15 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 )
 
-func checkSearchedEstateViewCount(e []asset.Estate) bool {
+func isEstateEqualToAsset(e *asset.Estate) bool {
+	estate, err := asset.GetEstateFromID(e.ID)
+	if err != nil {
+		return false
+	}
+	return estate.Equal(e)
+}
+
+func isEstatesOrderedByViewCount(e []asset.Estate) bool {
 	var viewCount int64 = -1
 	for i, estate := range e {
 		e, err := asset.GetEstateFromID(estate.ID)
@@ -20,7 +28,15 @@ func checkSearchedEstateViewCount(e []asset.Estate) bool {
 	return true
 }
 
-func checkSearchedChairViewCount(c []asset.Chair) bool {
+func isChairEqualToAsset(c *asset.Chair) bool {
+	chair, err := asset.GetChairFromID(c.ID)
+	if err != nil {
+		return false
+	}
+	return chair.Equal(c)
+}
+
+func isChairsOrderedByViewCount(c []asset.Chair) bool {
 	var viewCount int64 = -1
 	for i, chair := range c {
 		_chair, err := asset.GetChairFromID(chair.ID)
@@ -39,5 +55,24 @@ func checkSearchedChairViewCount(c []asset.Chair) bool {
 		}
 		viewCount = vc
 	}
+	return true
+}
+
+func isEstatesInBoundingBox(estates []asset.Estate, boundingBox [2]point) bool {
+	for _, estate := range estates {
+		e, err := asset.GetEstateFromID(estate.ID)
+		if err != nil || !e.Equal(&estate) {
+			return false
+		}
+
+		if !(boundingBox[0].Latitude <= e.Latitude && boundingBox[1].Latitude >= e.Latitude) {
+			return false
+		}
+
+		if !(boundingBox[0].Longitude <= e.Longitude && boundingBox[1].Longitude >= e.Longitude) {
+			return false
+		}
+	}
+
 	return true
 }
