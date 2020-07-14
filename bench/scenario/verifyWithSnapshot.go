@@ -45,7 +45,7 @@ type Snapshot struct {
 	Response Response `json:"response"`
 }
 
-func loadExpectedFromFile(filePath string) (*Snapshot, error) {
+func loadSnapshotFromFile(filePath string) (*Snapshot, error) {
 	raw, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func loadExpectedFromFile(filePath string) (*Snapshot, error) {
 }
 
 func verifyChairSearch(ctx context.Context, c *client.Client, filePath string) error {
-	snapshot, err := loadExpectedFromFile(filePath)
+	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search: Snapshotの読み込みに失敗しました"))
 	}
@@ -99,7 +99,7 @@ func verifyChairSearch(ctx context.Context, c *client.Client, filePath string) e
 }
 
 func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) error {
-	snapshot, err := loadExpectedFromFile(filePath)
+	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search: Snapshotの読み込みに失敗しました"))
 	}
@@ -137,7 +137,7 @@ func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) 
 }
 
 func verifyRecommendedChair(ctx context.Context, c *client.Client, filePath string) error {
-	snapshot, err := loadExpectedFromFile(filePath)
+	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_chair: Snapshotの読み込みに失敗しました"))
 	}
@@ -170,7 +170,7 @@ func verifyRecommendedChair(ctx context.Context, c *client.Client, filePath stri
 }
 
 func verifyRecommendedEstate(ctx context.Context, c *client.Client, filePath string) error {
-	snapshot, err := loadExpectedFromFile(filePath)
+	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate: Snapshotの読み込みに失敗しました"))
 	}
@@ -203,7 +203,7 @@ func verifyRecommendedEstate(ctx context.Context, c *client.Client, filePath str
 }
 
 func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, filePath string) error {
-	snapshot, err := loadExpectedFromFile(filePath)
+	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate: Snapshotの読み込みに失敗しました"))
 	}
@@ -244,7 +244,7 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 }
 
 func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string) error {
-	snapshot, err := loadExpectedFromFile(filePath)
+	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("POST /api/estate/nazotte: Snapshotの読み込みに失敗しました"))
 	}
