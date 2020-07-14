@@ -11,18 +11,16 @@ Faker.seed(19700101)
 random.seed(19700101)
 
 DESCRIPTION_LINES_FILE = "./description_chair.txt"
-OUTPUT_SQL_FILE = "./result/2_DummyChairData.sql"
+OUTPUT_CSV_FILE = "./result/chairData.csv"
 OUTPUT_TXT_FILE = "./result/chair_json.txt"
 CHAIR_IMAGE_ORIGIN_DIR = "./origin/chair"
 CHAIR_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/chair"
 CHAIR_DUMMY_IMAGE_NUM = 1000
 RECORD_COUNT = 10 ** 4
-BULK_INSERT_COUNT = 500
 CHAIR_MIN_CENTIMETER = 30
 CHAIR_MAX_CENTIMETER = 200
 MIN_VIEW_COUNT = 3000
 MAX_VIEW_COUNT = 1000000
-sqlCommands = "use isuumo;\n"
 
 CHAIR_COLOR_LIST = [
     "黒",
@@ -110,6 +108,11 @@ def read_src_file_data(file_path):
         return img.read()
 
 
+def dump_chair_to_csv_str(chair):
+    # id, thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind
+    return f"{chair['id']},\"{chair['thumbnail']}\",\"{chair['name']}\",{chair['price']},{chair['height']},{chair['width']},{chair['depth']},{chair['view_count']},{chair['stock']},\"{chair['color']}\",\"{chair['description']}\",\"{chair['features']}\",\"{chair['kind']}\""
+
+
 def dump_chair_to_json_str(chair):
     return json.dumps({
         "id": chair["id"],
@@ -166,14 +169,7 @@ if __name__ == "__main__":
     with open(DESCRIPTION_LINES_FILE, mode='r', encoding='utf-8') as description_lines:
         desc_lines = description_lines.readlines()
 
-    with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
-        sqlfile.write(sqlCommands)
-        if RECORD_COUNT % BULK_INSERT_COUNT != 0:
-            raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
-                RECORD_COUNT, BULK_INSERT_COUNT))
-
-        chair_id = 1
-
+    with open(OUTPUT_CSV_FILE, mode='w', encoding='utf-8') as csvfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
         CHAIRS_FOR_VERIFY = [
             # 購入された際に在庫が減ることを検証するためのデータ
             generate_chair_dummy_data(1, {
@@ -193,19 +189,12 @@ if __name__ == "__main__":
             })
         ]
 
-        sqlCommand = f"""INSERT INTO chair (id, thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['id']}', '{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['view_count']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", CHAIRS_FOR_VERIFY))};"""
-        sqlfile.write(sqlCommand)
-        txtfile.write(
-            "\n".join([dump_chair_to_json_str(chair) for chair in CHAIRS_FOR_VERIFY]) + "\n")
+        chairs = CHAIRS_FOR_VERIFY + \
+            [generate_chair_dummy_data(len(CHAIRS_FOR_VERIFY) + i + 1)
+             for i in range(RECORD_COUNT)]
 
-        chair_id += len(CHAIRS_FOR_VERIFY)
+        csvfile.write(
+            "\n".join([dump_chair_to_csv_str(chair) for chair in chairs]))
 
-        for _ in range(RECORD_COUNT // BULK_INSERT_COUNT):
-            bulk_list = [generate_chair_dummy_data(
-                chair_id + i) for i in range(BULK_INSERT_COUNT)]
-            chair_id += BULK_INSERT_COUNT
-            sqlCommand = f"""INSERT INTO chair (id, thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['id']}', '{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['view_count']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", bulk_list))};"""
-            sqlfile.write(sqlCommand)
-
-            txtfile.write(
-                "\n".join([dump_chair_to_json_str(chair) for chair in bulk_list]) + "\n")
+        txtfile.write("\n".join([dump_chair_to_json_str(chair)
+                                 for chair in chairs]) + "\n")

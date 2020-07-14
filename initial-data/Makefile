@@ -8,11 +8,11 @@ refresh_estate_data:
 
 chair_data: make_chair_data.py
 	python3 make_chair_data.py
-	cp result/2_DummyChairData.sql ../webapp/mysql/db/2_DummyChairData.sql
+	cp result/chairData.csv ../webapp/mysql/files/chairData.csv
 
 estate_data: make_estate_data.py
 	python3 make_estate_data.py
-	cp result/1_DummyEstateData.sql ../webapp/mysql/db/1_DummyEstateData.sql
+	cp result/estateData.csv ../webapp/mysql/files/estateData.csv
 
 verification_data: ./make_verification_data
 	rm -rf ./result/verification_data
