@@ -13,10 +13,10 @@ import {
 } from '@material-ui/core'
 import { Pagination } from '@material-ui/lab'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
-import { Loading } from '../../components/Loading'
-import { RangeForm } from '../../components/RangeForm'
-import { RadioButtonForm } from '../../components/RadioButtonForm'
-import { CheckboxForm } from '../../components/CheckboxForm'
+import { Loading } from '../../../components/Loading'
+import { RangeForm } from '../../../components/RangeForm'
+import { RadioButtonForm } from '../../../components/RadioButtonForm'
+import { CheckboxForm } from '../../../components/CheckboxForm'
 
 import type { FC } from 'react'
 import type { ChairRangeMap, ChairSearchCondition, ChairSearchResponse } from '@types'
@@ -244,7 +244,7 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
                   />
                   {
                     searchResult.chairs.map((chair) => (
-                      <Link key={chair.id} href='/chair/[id]' as={`/chair/${chair.id}`}>
+                      <Link key={chair.id} href={`/chair/detail?id=${chair.id}`}>
                         <Card className={classes.card}>
                           <CardActionArea className={classes.cardActionArea}>
                             <CardMedia image={chair.thumbnail} className={classes.cardMedia} />

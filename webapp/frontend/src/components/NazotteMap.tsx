@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme: Theme) =>
 const EstateMarker: FC<{ estate: Estate }> = ({ estate }) => (
   <Marker position={[estate.latitude, estate.longitude]}>
     <Popup>
-      <Link href='/estate/[id]' as={`/estate/${estate.id}`}>
+      <Link href={`/estate/detail?id=${estate.id}`}>
         <a> {estate.name} </a>
       </Link>
     </Popup>

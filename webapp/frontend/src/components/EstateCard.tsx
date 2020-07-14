@@ -36,7 +36,7 @@ const useStyles = makeStyles(theme =>
 export const EstateCard: FC<Props> = ({ estate }) => {
   const classes = useStyles()
   return (
-    <Link href='/estate/[id]' as={`/estate/${estate.id}`}>
+    <Link href={`/estate/detail?id=${estate.id}`}>
       <Card className={classes.cardContainer}>
         <CardActionArea component='div' disableRipple className={classes.card}>
           <CardMedia
