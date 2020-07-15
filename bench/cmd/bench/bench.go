@@ -22,6 +22,7 @@ import (
 type Output struct {
 	Pass     bool     `json:"pass"`
 	Score    int      `json:"score"`
+	CV       int      `json:"cv"`
 	Messages []string `json:"messages"`
 }
 
@@ -137,9 +138,13 @@ func main() {
 	score += 1 * passes.GetCount(passes.LabelOfRequestEstateDocument)
 	score += 1 * passes.GetCount(passes.LabelOfStaticFiles)
 
+	cv := 0
+	cv += passes.GetCount(passes.LabelOfBuyChair)
+	cv += passes.GetCount(passes.LabelOfRequestEstateDocument)
+
 	// application errorは1回で10点減点
 	penalty := 10 * aCnt
-	log.Print(score, penalty)
+	log.Print(score, penalty, cv)
 
 	score -= penalty
 	// 0点以下なら失格
@@ -157,6 +162,7 @@ func main() {
 	output := Output{
 		Pass:     true,
 		Score:    score,
+		CV:       cv,
 		Messages: uniqMsgs(eMsgs),
 	}
 	json.NewEncoder(os.Stdout).Encode(output)
