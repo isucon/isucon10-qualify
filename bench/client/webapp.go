@@ -80,6 +80,9 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNotFound})
 	if err != nil {
+		if c.isBot {
+			return nil, failure.Translate(err, fails.ErrBot)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/:id: レスポンスコードが不正です"))
 	}
 
@@ -102,7 +105,9 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	}
 
 	asset.IncrementChairViewCount(chair.ID)
-	passes.IncrementCount(passes.LabelOfGetChairDetailFromID)
+	if !c.isBot {
+		passes.IncrementCount(passes.LabelOfGetChairDetailFromID)
+	}
 
 	return &chair, nil
 }
@@ -127,6 +132,9 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
+		if c.isBot {
+			return nil, failure.Translate(err, fails.ErrBot)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: レスポンスコードが不正です"))
 	}
 
@@ -140,7 +148,9 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: JSONデコードに失敗しました"))
 	}
 
-	passes.IncrementCount(passes.LabelOfSearchChairsWithQuery)
+	if !c.isBot {
+		passes.IncrementCount(passes.LabelOfSearchChairsWithQuery)
+	}
 
 	return &chairs, nil
 }
@@ -165,6 +175,9 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
+		if c.isBot {
+			return nil, failure.Translate(err, fails.ErrBot)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: レスポンスコードが不正です"))
 	}
 
@@ -178,7 +191,9 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: JSONデコードに失敗しました"))
 	}
 
-	passes.IncrementCount(passes.LabelOfSearchEstatesWithQuery)
+	if !c.isBot {
+		passes.IncrementCount(passes.LabelOfSearchEstatesWithQuery)
+	}
 
 	return &estates, nil
 }
@@ -208,6 +223,9 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
+		if c.isBot {
+			return nil, failure.Translate(err, fails.ErrBot)
+		}
 		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: レスポンスコードが不正です"))
 	}
 
@@ -221,7 +239,9 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: JSONデコードに失敗しました"))
 	}
 
-	passes.IncrementCount(passes.LabelOfSearchEstatesNazotte)
+	if !c.isBot {
+		passes.IncrementCount(passes.LabelOfSearchEstatesNazotte)
+	}
 
 	return &estates, nil
 }
@@ -246,6 +266,9 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 
 	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
+		if c.isBot {
+			return nil, failure.Translate(err, fails.ErrBot)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/:id: レスポンスコードが不正です"))
 	}
 
@@ -260,7 +283,9 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 	}
 
 	asset.IncrementEstateViewCount(estate.ID)
-	passes.IncrementCount(passes.LabelOfGetEstateDetailFromID)
+	if !c.isBot {
+		passes.IncrementCount(passes.LabelOfGetEstateDetailFromID)
+	}
 
 	return &estate, nil
 }
@@ -285,6 +310,9 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
+		if c.isBot {
+			return nil, failure.Translate(err, fails.ErrBot)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: レスポンスコードが不正です"))
 	}
 
@@ -298,7 +326,9 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: JSONデコードに失敗しました"))
 	}
 
-	passes.IncrementCount(passes.LabelOfGetRecommendedChair)
+	if !c.isBot {
+		passes.IncrementCount(passes.LabelOfGetRecommendedChair)
+	}
 
 	return &chairs, nil
 }
@@ -323,6 +353,9 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
+		if c.isBot {
+			return nil, failure.Translate(err, fails.ErrBot)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: レスポンスコードが不正です"))
 	}
 
@@ -336,7 +369,9 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: JSONデコードに失敗しました"))
 	}
 
-	passes.IncrementCount(passes.LabelOfGetRecommendedEstate)
+	if !c.isBot {
+		passes.IncrementCount(passes.LabelOfGetRecommendedEstate)
+	}
 
 	return &estate, nil
 }
@@ -361,6 +396,9 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 
 	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
 	if err != nil {
+		if c.isBot {
+			return nil, failure.Translate(err, fails.ErrBot)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: レスポンスコードが不正です"))
 	}
 
@@ -374,7 +412,9 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: JSONデコードに失敗しました"))
 	}
 
-	passes.IncrementCount(passes.LabelOfGetRecommendedEstatesFromChair)
+	if !c.isBot {
+		passes.IncrementCount(passes.LabelOfGetRecommendedEstatesFromChair)
+	}
 
 	return &estate, nil
 }
@@ -399,12 +439,17 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 
 	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
+		if c.isBot {
+			return failure.Translate(err, fails.ErrBot)
+		}
 		return failure.Wrap(err, failure.Message("POST /api/chair/buy/:id: リクエストに失敗しました"))
 	}
 
 	intid, _ := strconv.ParseInt(id, 10, 64)
 	asset.DecrementChairStock(intid)
-	passes.IncrementCount(passes.LabelOfBuyChair)
+	if !c.isBot {
+		passes.IncrementCount(passes.LabelOfBuyChair)
+	}
 
 	return nil
 }
@@ -429,10 +474,15 @@ func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
 
 	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
+		if c.isBot {
+			return failure.Translate(err, fails.ErrBot)
+		}
 		return failure.Wrap(err, failure.Message("POST /api/estate/req_doc/:id: リクエストに失敗しました"))
 	}
 
-	passes.IncrementCount(passes.LabelOfRequestEstateDocument)
+	if !c.isBot {
+		passes.IncrementCount(passes.LabelOfRequestEstateDocument)
+	}
 
 	return nil
 }

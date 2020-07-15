@@ -14,6 +14,7 @@ import (
 
 type Client struct {
 	userAgent  string
+	isBot      bool
 	httpClient *http.Client
 }
 

@@ -3,28 +3,15 @@ package client
 import (
 	"crypto/tls"
 	"fmt"
-	"math/rand"
 	"net/http"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 )
 
-var clients [paramater.NumOfClient]*Client
-
-func InitializeClients() {
-	for i := 0; i < paramater.NumOfClient; i++ {
-		userAgent := fmt.Sprintf("isucon-%v-user", i)
-		clients[i] = newClient(userAgent)
-	}
-}
-
-func PickClient() *Client {
-	return clients[rand.Intn(len(clients))]
-}
-
-func newClient(userAgent string) *Client {
+func NewClient(userAgent string, isBot bool) *Client {
 	return &Client{
 		userAgent: userAgent,
+		isBot: isBot,
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
@@ -42,6 +29,8 @@ func newClient(userAgent string) *Client {
 
 func NewClientForInitialize() *Client {
 	return &Client{
+		userAgent: "isucon-initialize",
+		isBot: false,
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
@@ -58,6 +47,8 @@ func NewClientForInitialize() *Client {
 
 func NewClientForVerify() *Client {
 	return &Client{
+		userAgent: "isucon-verify",
+		isBot: false,
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{

@@ -20,6 +20,8 @@ const (
 	ErrTemporary failure.StringCode = "error temporary"
 	// ErrBenchmarker はベンチマーカ側のエラー。基本的には運営に連絡してもらう
 	ErrBenchmarker failure.StringCode = "error benchmarker"
+	// ErrBot はBotによるリクエストによって発生したエラー。
+	ErrBot failure.StringCode = "error bot"
 )
 
 type ErrorLabel int
@@ -30,6 +32,7 @@ const (
 	ErrorOfEstateSearchScenario
 	ErrorOfChairSearchScenario
 	ErrorOfEstateNazotteSearchScenario
+	ErrorOfBotScenario
 )
 
 var (

@@ -47,30 +47,7 @@ var chairFeatureList = []string{
 	"フットレスト",
 }
 
-func chairSearchScenario(ctx context.Context) error {
-	var c *client.Client = client.PickClient()
-
-	t := time.Now()
-	err := c.AccessTopPage(ctx)
-	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
-	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
-		return failure.New(fails.ErrTimeout)
-	}
-
-	t = time.Now()
-	err = c.AccessChairSearchPage(ctx)
-	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
-	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
-		return failure.New(fails.ErrTimeout)
-	}
-
-	// Search Chairs with Query
+func generateRandomQueryForSearchChairs() url.Values {
 	q := url.Values{}
 	q.Set("priceRangeId", strconv.Itoa(rand.Intn(6)))
 	if (rand.Intn(100) % 5) == 0 {
@@ -99,6 +76,33 @@ func chairSearchScenario(ctx context.Context) error {
 
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfChairSearch))
 	q.Set("page", "0")
+
+	return q
+}
+
+func chairSearchScenario(ctx context.Context, c *client.Client) error {
+	t := time.Now()
+	err := c.AccessTopPage(ctx)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+		return failure.New(fails.ErrTimeout)
+	}
+
+	t = time.Now()
+	err = c.AccessChairSearchPage(ctx)
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+		return failure.New(fails.ErrTimeout)
+	}
+
+	// Search Chairs with Query
+	q := generateRandomQueryForSearchChairs()
 
 	t = time.Now()
 	cr, err := c.SearchChairsWithQuery(ctx, q)
