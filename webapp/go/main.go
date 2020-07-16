@@ -392,6 +392,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// Initialize
+	e.GET("/cleanup", cleanup)
 	e.GET("/initialize", initialize)
 
 	// Chair Handler
@@ -429,12 +430,26 @@ func main() {
 	e.Logger.Fatal(e.Start(serverPort))
 }
 
+func cleanup(c echo.Context) error {
+	cmdstr := fmt.Sprintf("mysql -h %v -u %v -p%v %v < %v",
+		MySQLConnectionData.Host,
+		MySQLConnectionData.User,
+		MySQLConnectionData.Password,
+		MySQLConnectionData.DBName,
+		filepath.Abs(filepath.Join("..", "mysql", "db", "0_Schema.sql")),
+	)
+	if err := exec.Command("bash", "-c", cmdstr).Run(); err != nil {
+		c.Logger().Errorf("Cleanup script error : %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
 func initialize(c echo.Context) error {
 	fpathprefix := filepath.Join("..", "mysql", "db")
 	paths := []string{
-		filepath.Join(fpathprefix, "0_Schema.sql"),
-		// filepath.Join(fpathprefix, "1_DummyEstateData.sql"),
-		// filepath.Join(fpathprefix, "2_DummyChairData.sql"),
+		filepath.Join(fpathprefix, "1_Initialize.sql"),
 	}
 
 	for _, p := range paths {
