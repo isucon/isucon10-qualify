@@ -17,11 +17,11 @@ ESTATE_IMAGE_ORIGIN_DIR = "./origin/estate"
 ESTATE_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/estate"
 CSV_COLUMNS_ORDER = "id,thumbnail,name,latitude,longitude,address,rent,door_height,door_width,view_count,description,features\n"
 ESTATE_DUMMY_IMAGE_NUM = 1000
+ESTATE_VERIFY_DATA_NUM = 2
 RECORD_COUNT = 10 ** 4
 DOOR_MIN_CENTIMETER = 30
 DOOR_MAX_CENTIMETER = 200
-MIN_VIEW_COUNT = 3000
-MAX_VIEW_COUNT = 1000000
+ESTATE_VIEW_COUNT = 10000
 
 BUILDING_NAME_LIST = [
     "{name}ISUビルディング",
@@ -71,12 +71,12 @@ def dump_estate_to_json_str(estate):
     }, ensure_ascii=False)
 
 
-def generate_estate_dummy_data(estate_id, wrap={}):
+def generate_estate_dummy_data(estate_id):
     latlng = fake.local_latlng(country_code='JP', coords_only=True)
     feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
     image_hash = fake.word(ext_word_list=ESTATE_IMAGE_HASH_LIST)
 
-    estate = {
+    return {
         "id": estate_id,
         "thumbnail": f'/images/estate/{image_hash}.png',
         "name": fake.word(ext_word_list=BUILDING_NAME_LIST).format(name=fake.last_name()),
@@ -86,11 +86,10 @@ def generate_estate_dummy_data(estate_id, wrap={}):
         "rent": random.randint(30000, 200000),
         "door_height": random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER),
         "door_width": random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER),
-        "view_count": random.randint(MIN_VIEW_COUNT, MAX_VIEW_COUNT),
+        "view_count": ESTATE_VIEW_COUNT,
         "description": random.choice(desc_lines).strip(),
         "features": ','.join(fake.words(nb=feature_length, ext_word_list=ESTATE_FEATURE_LIST, unique=True))
     }
-    return dict(estate, **wrap)
 
 
 if __name__ == '__main__':
@@ -105,22 +104,12 @@ if __name__ == '__main__':
         desc_lines = description_lines.readlines()
 
     with open(OUTPUT_CSV_FILE, mode='w', encoding='utf-8') as csvfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
-        ESTATES_FOR_VERIFY = [
-            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (2位 → 1位)
-            generate_estate_dummy_data(1, {
-                "features": ESTATE_FEATURE_FOR_VERIFY,
-                "view_count": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2
-            }),
-            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (1位 → 2位)
-            generate_estate_dummy_data(2, {
-                "features": ESTATE_FEATURE_FOR_VERIFY,
-                "view_count": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2 + 1
-            })
-        ]
 
-        estates = ESTATES_FOR_VERIFY + \
-            [generate_estate_dummy_data(len(ESTATES_FOR_VERIFY) + i + 1)
-             for i in range(RECORD_COUNT)]
+        estates = [generate_estate_dummy_data(i)
+                   for i in range(1, RECORD_COUNT + 1)]
+
+        for i in range(ESTATE_VERIFY_DATA_NUM):
+            estates[i]["features"] = ESTATE_FEATURE_FOR_VERIFY
 
         csvfile.write(
             CSV_COLUMNS_ORDER + "\n".join([dump_estate_to_csv_str(estate) for estate in estates]))

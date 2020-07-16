@@ -17,11 +17,12 @@ CHAIR_IMAGE_ORIGIN_DIR = "./origin/chair"
 CHAIR_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/chair"
 CSV_COLUMNS_ORDER = "id,thumbnail,name,price,height,width,depth,view_count,stock,color,description,features,kind\n"
 CHAIR_DUMMY_IMAGE_NUM = 1000
+CHAIR_VERIFY_DATA_NUM = 3
 RECORD_COUNT = 10 ** 4
 CHAIR_MIN_CENTIMETER = 30
 CHAIR_MAX_CENTIMETER = 200
-MIN_VIEW_COUNT = 3000
-MAX_VIEW_COUNT = 1000000
+CHAIR_VIEW_COUNT = 10000
+CHAIR_STOCK = 2
 
 CHAIR_COLOR_LIST = [
     "黒",
@@ -132,11 +133,11 @@ def dump_chair_to_json_str(chair):
     }, ensure_ascii=False)
 
 
-def generate_chair_dummy_data(chair_id, wrap={}):
+def generate_chair_dummy_data(chair_id):
     features_length = random.randint(0, len(CHAIR_FEATURE_LIST) - 1)
     image_hash = fake.word(ext_word_list=CHAIR_IMAGE_HASH_LIST)
 
-    chair = {
+    return {
         "id": chair_id,
         "thumbnail": f'/images/chair/{image_hash}.png',
         "name": "".join([
@@ -149,14 +150,12 @@ def generate_chair_dummy_data(chair_id, wrap={}):
         "width": random.randint(CHAIR_MIN_CENTIMETER, CHAIR_MAX_CENTIMETER),
         "depth": random.randint(CHAIR_MIN_CENTIMETER, CHAIR_MAX_CENTIMETER),
         "color": fake.word(ext_word_list=CHAIR_COLOR_LIST),
-        "view_count": random.randint(MIN_VIEW_COUNT, MAX_VIEW_COUNT),
-        "stock": random.randint(1, 10),
+        "view_count": CHAIR_VIEW_COUNT,
+        "stock": CHAIR_STOCK,
         "description": random.choice(desc_lines).strip(),
         "features": ",".join(fake.words(nb=features_length, ext_word_list=CHAIR_FEATURE_LIST, unique=True)),
         "kind": fake.word(ext_word_list=CHAIR_KIND_LIST)
     }
-
-    return dict(chair, **wrap)
 
 
 if __name__ == "__main__":
@@ -171,28 +170,11 @@ if __name__ == "__main__":
         desc_lines = description_lines.readlines()
 
     with open(OUTPUT_CSV_FILE, mode='w', encoding='utf-8') as csvfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
-        CHAIRS_FOR_VERIFY = [
-            # 購入された際に在庫が減ることを検証するためのデータ
-            generate_chair_dummy_data(1, {
-                "features": CHAIR_FEATURE_FOR_VERIFY,
-                "stock": 1,
-                "view_count": MIN_VIEW_COUNT
-            }),
-            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (2位 → 1位)
-            generate_chair_dummy_data(2, {
-                "features": CHAIR_FEATURE_FOR_VERIFY,
-                "view_count": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2
-            }),
-            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (1位 → 2位)
-            generate_chair_dummy_data(3, {
-                "features": CHAIR_FEATURE_FOR_VERIFY,
-                "view_count": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2 + 1
-            })
-        ]
+        chairs = [generate_chair_dummy_data(i)
+                  for i in range(1, RECORD_COUNT + 1)]
 
-        chairs = CHAIRS_FOR_VERIFY + \
-            [generate_chair_dummy_data(len(CHAIRS_FOR_VERIFY) + i + 1)
-             for i in range(RECORD_COUNT)]
+        for i in range(CHAIR_VERIFY_DATA_NUM):
+            chairs[i]["features"] = CHAIR_FEATURE_FOR_VERIFY
 
         csvfile.write(
             CSV_COLUMNS_ORDER + "\n".join([dump_chair_to_csv_str(chair) for chair in chairs]))
