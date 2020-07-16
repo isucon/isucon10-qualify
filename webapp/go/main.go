@@ -431,12 +431,13 @@ func main() {
 }
 
 func cleanup(c echo.Context) error {
+	MySQLFilePath, _ := filepath.Abs(filepath.Join("..", "mysql", "db", "0_Schema.sql"))
 	cmdstr := fmt.Sprintf("mysql -h %v -u %v -p%v %v < %v",
 		MySQLConnectionData.Host,
 		MySQLConnectionData.User,
 		MySQLConnectionData.Password,
 		MySQLConnectionData.DBName,
-		filepath.Abs(filepath.Join("..", "mysql", "db", "0_Schema.sql")),
+		MySQLFilePath,
 	)
 	if err := exec.Command("bash", "-c", cmdstr).Run(); err != nil {
 		c.Logger().Errorf("Cleanup script error : %v", err)
