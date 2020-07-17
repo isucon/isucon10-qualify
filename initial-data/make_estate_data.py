@@ -10,7 +10,7 @@ fake = Faker('ja_JP')
 Faker.seed(19700101)
 random.seed(19700101)
 
-DESCRIPTION_LINES_FILE = "./description_estate.txt"
+DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_SQL_FILE = "./result/1_DummyEstateData.sql"
 OUTPUT_TXT_FILE = "./result/estate_json.txt"
 ESTATE_IMAGE_ORIGIN_DIR = "./origin/estate"
