@@ -10,7 +10,7 @@ fake = Faker("ja_JP")
 Faker.seed(19700101)
 random.seed(19700101)
 
-DESCRIPTION_LINES_FILE = "./description.txt"
+DESCRIPTION_LINES_FILE = "./description_chair.txt"
 OUTPUT_CSV_FILE = "./result/chairData.csv"
 OUTPUT_TXT_FILE = "./result/chair_json.txt"
 CHAIR_IMAGE_ORIGIN_DIR = "./origin/chair"
