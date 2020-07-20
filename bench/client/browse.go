@@ -19,7 +19,7 @@ import (
 func (c *Client) fetch(ctx context.Context, resource string, dst io.Writer) error {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, resource)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("Initialize client.newGetRequest error occured"))
+		return failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req = req.WithContext(ctx)
