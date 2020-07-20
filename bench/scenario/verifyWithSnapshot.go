@@ -74,7 +74,7 @@ func verifyChairSearch(ctx context.Context, c *client.Client, filePath string) e
 	actual, err := c.SearchChairsWithQuery(ctx, q)
 
 	switch snapshot.Response.StatusCode {
-	case http.StatusOK, http.StatusNoContent:
+	case http.StatusOK:
 		if err != nil {
 			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/search: イスの検索結果が不正です"))
 		}
@@ -112,7 +112,7 @@ func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) 
 	actual, err := c.SearchEstatesWithQuery(ctx, q)
 
 	switch snapshot.Response.StatusCode {
-	case http.StatusOK, http.StatusNoContent:
+	case http.StatusOK:
 		if err != nil {
 			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/search: 物件の検索結果が不正です"))
 		}
@@ -145,7 +145,7 @@ func verifyRecommendedChair(ctx context.Context, c *client.Client, filePath stri
 	actual, err := c.GetRecommendedChair(ctx)
 
 	switch snapshot.Response.StatusCode {
-	case http.StatusOK, http.StatusNoContent:
+	case http.StatusOK:
 		if err != nil {
 			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスのおすすめ結果が不正です"))
 		}
@@ -178,7 +178,7 @@ func verifyRecommendedEstate(ctx context.Context, c *client.Client, filePath str
 	actual, err := c.GetRecommendedEstate(ctx)
 
 	switch snapshot.Response.StatusCode {
-	case http.StatusOK, http.StatusNoContent:
+	case http.StatusOK:
 		if err != nil {
 			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_estate: 物件のおすすめ結果が不正です"))
 		}
@@ -220,7 +220,7 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 	actual, err := c.GetRecommendedEstatesFromChair(ctx, id)
 
 	switch snapshot.Response.StatusCode {
-	case http.StatusOK, http.StatusNoContent:
+	case http.StatusOK:
 		if err != nil {
 			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_estate:id: 物件のおすすめ結果が不正です"))
 		}
@@ -258,7 +258,7 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 	actual, err := c.SearchEstatesNazotte(ctx, coordinates)
 
 	switch snapshot.Response.StatusCode {
-	case http.StatusOK, http.StatusNoContent:
+	case http.StatusOK:
 		if err != nil {
 			return failure.Translate(err, fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 物件の検索結果が不正です"))
 		}

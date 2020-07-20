@@ -130,7 +130,7 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
 
-	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
 		if c.isBot {
 			return nil, failure.Translate(err, fails.ErrBot)
@@ -173,7 +173,7 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
 
-	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
 		if c.isBot {
 			return nil, failure.Translate(err, fails.ErrBot)
@@ -221,7 +221,7 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
 
-	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
 		if c.isBot {
 			return nil, failure.Translate(err, fails.ErrBot)
@@ -308,7 +308,7 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
 
-	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
 		if c.isBot {
 			return nil, failure.Translate(err, fails.ErrBot)
@@ -351,7 +351,7 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
 
-	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
 		if c.isBot {
 			return nil, failure.Translate(err, fails.ErrBot)
@@ -394,7 +394,7 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
 
-	err = checkStatusCode(res, []int{http.StatusOK, http.StatusNoContent})
+	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
 		if c.isBot {
 			return nil, failure.Translate(err, fails.ErrBot)
