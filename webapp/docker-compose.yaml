@@ -41,11 +41,8 @@ services:
 
   frontend:
     build: ./frontend
-    environment:
-      API_HOST: http://api-server
-      API_PORT: 1323
-    ports:
-      - "3000:3000"
+    volumes:
+      - ./nginx/out:/frontend/out
 
   nginx:
     build: ./nginx
@@ -53,6 +50,7 @@ services:
         - ../provisioning/ansible/roles/web/files/accesslog-nginx.conf.template:/etc/nginx/nginx.conf.template
         - ./logs/nginx:/var/log/nginx
         - ./nginx/cond.d:/etc/nginx/conf.d
+        - ./nginx/out:/www/data
     ports:
       - "8080:80"
     entrypoint:
@@ -63,12 +61,12 @@ services:
       - http://api-server:1323/api/estate/range
     environment:
       API_SERVER: api-server
-      FRONTEND_SERVER: frontend
+    depends_on:
+      - frontend
     command: >
       /bin/sh -c
       "envsubst '
       $$API_SERVER
-      $$FRONTEND_SERVER
       '< /etc/nginx/nginx.conf.template
       > /etc/nginx/nginx.conf
       && nginx -g 'daemon off;'"
