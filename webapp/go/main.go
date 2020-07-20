@@ -1024,10 +1024,6 @@ func searchEstateNazotte(c echo.Context) error {
 		}
 	}
 
-	if len(estatesInPolygon) == 0 {
-		return c.JSON(http.StatusOK, EstateSearchResponse{Count: 0, Estates: []*Estate{}})
-	}
-
 	var re EstateSearchResponse
 	re.Estates = []*Estate{}
 	for i, estate := range estatesInPolygon {
