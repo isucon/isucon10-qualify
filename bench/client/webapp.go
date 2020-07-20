@@ -28,7 +28,7 @@ type Coordinate struct {
 func (c *Client) Initialize(ctx context.Context) error {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/initialize")
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("Initialize client.newGetRequest error occured"))
+		return failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	// T/O付きのコンテキストが入る
@@ -63,7 +63,7 @@ type EstatesResponse struct {
 func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Chair, error) {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/chair/"+id)
 	if err != nil {
-		return nil, failure.Translate(err, fails.ErrBenchmarker, failure.Message("GetChairDerailFromID client.newGetRequest error occured"))
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req = req.WithContext(ctx)
@@ -115,7 +115,7 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*ChairsResponse, error) {
 	req, err := c.newGetRequestWithQuery(ShareTargetURLs.AppURL, "/api/chair/search", q)
 	if err != nil {
-		return nil, failure.Translate(err, fails.ErrBenchmarker, failure.Message("SearchChairsWithQuery client.newGetRequestWithQuery error occured"))
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req = req.WithContext(ctx)
@@ -158,7 +158,7 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*EstatesResponse, error) {
 	req, err := c.newGetRequestWithQuery(ShareTargetURLs.AppURL, "/api/estate/search", q)
 	if err != nil {
-		return nil, failure.Translate(err, fails.ErrBenchmarker, failure.Message("SearchEstatesWithQuery client.newGetRequestWithQuery error occured"))
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req = req.WithContext(ctx)
@@ -201,12 +201,12 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates) (*EstatesResponse, error) {
 	b, err := json.Marshal(polygon)
 	if err != nil {
-		return nil, failure.Translate(err, fails.ErrBenchmarker, failure.Message("SearchEstatesNazotte json.Marshal error occured"))
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/estate/nazotte", bytes.NewBuffer(b))
 	if err != nil {
-		return nil, failure.Translate(err, fails.ErrBenchmarker, failure.Message("SearchEstatesNazotte client.newPostRequest error occured"))
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req = req.WithContext(ctx)
@@ -249,7 +249,7 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.Estate, error) {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/estate/"+id)
 	if err != nil {
-		return nil, failure.Translate(err, fails.ErrBenchmarker, failure.Message("GetEstateDetailFromID client.newGetRequest error occured"))
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req = req.WithContext(ctx)
@@ -293,7 +293,7 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, error) {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/recommended_chair")
 	if err != nil {
-		return nil, failure.Translate(err, fails.ErrBenchmarker, failure.Message("GetRecommendedChair client.newGetRequest error occured"))
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req = req.WithContext(ctx)
@@ -336,7 +336,7 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, error) {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/recommended_estate")
 	if err != nil {
-		return nil, failure.Translate(err, fails.ErrBenchmarker, failure.Message("GetRecommendedEstate client.newGetRequest error occured"))
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req = req.WithContext(ctx)
@@ -379,7 +379,7 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (*EstatesResponse, error) {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/recommended_estate/"+strconv.FormatInt(id, 10))
 	if err != nil {
-		return nil, failure.Translate(err, fails.ErrBenchmarker, failure.Message("GetRecommendedEstatesFromChair client.newGetRequest error occured"))
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req = req.WithContext(ctx)
@@ -422,7 +422,7 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 func (c *Client) BuyChair(ctx context.Context, id string) error {
 	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/chair/buy/"+id, nil)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("BuyChair client.newPostRequest error occured"))
+		return failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req = req.WithContext(ctx)
@@ -457,7 +457,7 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
 	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/estate/req_doc/"+id, nil)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("RequestEstateDocument client.newPostRequest error occured"))
+		return failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	req = req.WithContext(ctx)
