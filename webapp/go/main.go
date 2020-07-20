@@ -1098,8 +1098,6 @@ func (cs Coordinates) getBoundingBox() BoundingBox {
 }
 
 func (cs Coordinates) coordinatesToText() string {
-	// return such as POLYGON((35 137,35 140,37 140, 37 137,35 137)),6668)
-	// for _, c := range coordinates { fmt.Spritf("")	}
 	PolygonArray := make([]string, 0, len(cs.Coordinates))
 	for _, c := range cs.Coordinates {
 		PolygonArray = append(PolygonArray, fmt.Sprintf("%f %f", c.Latitude, c.Longitude))
