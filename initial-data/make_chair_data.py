@@ -15,6 +15,7 @@ OUTPUT_CSV_FILE = "./result/chairData.csv"
 OUTPUT_TXT_FILE = "./result/chair_json.txt"
 CHAIR_IMAGE_ORIGIN_DIR = "./origin/chair"
 CHAIR_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/chair"
+CSV_COLUMNS_ORDER = "id,thumbnail,name,price,height,width,depth,view_count,stock,color,description,features,kind\n"
 CHAIR_DUMMY_IMAGE_NUM = 1000
 RECORD_COUNT = 10 ** 4
 CHAIR_MIN_CENTIMETER = 30
@@ -194,7 +195,7 @@ if __name__ == "__main__":
              for i in range(RECORD_COUNT)]
 
         csvfile.write(
-            "\n".join([dump_chair_to_csv_str(chair) for chair in chairs]))
+            CSV_COLUMNS_ORDER + "\n".join([dump_chair_to_csv_str(chair) for chair in chairs]))
 
         txtfile.write("\n".join([dump_chair_to_json_str(chair)
                                  for chair in chairs]) + "\n")

@@ -15,6 +15,7 @@ OUTPUT_CSV_FILE = "./result/estateData.csv"
 OUTPUT_TXT_FILE = "./result/estate_json.txt"
 ESTATE_IMAGE_ORIGIN_DIR = "./origin/estate"
 ESTATE_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/estate"
+CSV_COLUMNS_ORDER = "id,thumbnail,name,latitude,longitude,address,rent,door_height,door_width,view_count,description,features\n"
 ESTATE_DUMMY_IMAGE_NUM = 1000
 RECORD_COUNT = 10 ** 4
 DOOR_MIN_CENTIMETER = 30
@@ -122,7 +123,7 @@ if __name__ == '__main__':
              for i in range(RECORD_COUNT)]
 
         csvfile.write(
-            "\n".join([dump_estate_to_csv_str(estate) for estate in estates]))
+            CSV_COLUMNS_ORDER + "\n".join([dump_estate_to_csv_str(estate) for estate in estates]))
 
         txtfile.write("\n".join([dump_estate_to_json_str(estate)
                                  for estate in estates]) + "\n")
