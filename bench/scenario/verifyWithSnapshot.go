@@ -147,7 +147,7 @@ func verifyRecommendedChair(ctx context.Context, c *client.Client, filePath stri
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK, http.StatusNoContent:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/search: 物件の検索結果が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスの検索結果が不正です"))
 		}
 
 		var expected *client.ChairsResponse
@@ -157,12 +157,12 @@ func verifyRecommendedChair(ctx context.Context, c *client.Client, filePath stri
 		}
 
 		if !reflect.DeepEqual(expected, actual) {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_chair: 物件のおすすめ結果が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスのおすすめ結果が不正です"))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_chair: 物件のおすすめ結果が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスのおすすめ結果が不正です"))
 		}
 	}
 
@@ -228,7 +228,7 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate:id: Response BodyのUnmarshalでエラーが発生しました"))
 		}
 		if !reflect.DeepEqual(expected, actual) {
 			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate:id: 物件のおすすめ結果が不正です"))
