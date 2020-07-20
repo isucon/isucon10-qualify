@@ -230,6 +230,10 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 		return failure.New(fails.ErrApplication)
 	}
 
+	if len(er.Estates) == 0 {
+		return nil
+	}
+
 	randomPosition := rand.Intn(len(er.Estates))
 	targetID := er.Estates[randomPosition].ID
 	t = time.Now()
