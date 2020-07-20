@@ -162,7 +162,7 @@ func verifyRecommendedChair(ctx context.Context, c *client.Client, filePath stri
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 物件の検索結果が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_chair: 物件のおすすめ結果が不正です"))
 		}
 	}
 
@@ -205,16 +205,16 @@ func verifyRecommendedEstate(ctx context.Context, c *client.Client, filePath str
 func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, filePath string) error {
 	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate: Snapshotの読み込みに失敗しました"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate:id: Snapshotの読み込みに失敗しました"))
 	}
 
 	idx := strings.LastIndex(snapshot.Request.Resource, "/")
 	if idx == -1 || idx == len(snapshot.Request.Resource)-1 {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate: 不正なSnapshotです"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate:id: 不正なSnapshotです"))
 	}
 	id, err := strconv.ParseInt(string([]rune(snapshot.Request.Resource)[idx+1:]), 10, 64)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate: 不正なSnapshotです"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate:id: 不正なSnapshotです"))
 	}
 
 	actual, err := c.GetRecommendedEstatesFromChair(ctx, id)
@@ -260,7 +260,7 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK, http.StatusNoContent:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 物件のおすすめ結果が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 物件の検索結果が不正です"))
 		}
 
 		var expected *client.EstatesResponse
@@ -270,12 +270,12 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 		}
 
 		if !reflect.DeepEqual(expected, actual) {
-			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 物件のおすすめ結果が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 物件の検索結果が不正です"))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 物件のおすすめ結果が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 物件の検索結果が不正です"))
 		}
 	}
 
