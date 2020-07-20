@@ -17,8 +17,6 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-const SRID = 6668
-
 const LIMIT = 20
 const NAZOTTE_LIMIT = 200
 
@@ -1004,8 +1002,8 @@ func searchEstateNazotte(c echo.Context) error {
 		validatedEstate := EstateSchema{}
 
 		point := fmt.Sprintf("'POINT(%f %f)'", estate.Latitude, estate.Longitude)
-		sqlstr := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s, %v))`
-		sqlstr = fmt.Sprintf(sqlstr, coordinates.coordinatesToText(), point, SRID)
+		sqlstr := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))`
+		sqlstr = fmt.Sprintf(sqlstr, coordinates.coordinatesToText(), point)
 
 		err = db.Get(&validatedEstate, sqlstr, estate.ID)
 		if err != nil {
@@ -1098,5 +1096,5 @@ func (cs Coordinates) coordinatesToText() string {
 	for _, c := range cs.Coordinates {
 		PolygonArray = append(PolygonArray, fmt.Sprintf("%f %f", c.Latitude, c.Longitude))
 	}
-	return fmt.Sprintf("'POLYGON((%s))', %d", strings.Join(PolygonArray, ","), SRID)
+	return fmt.Sprintf("'POLYGON((%s))'", strings.Join(PolygonArray, ","))
 }
