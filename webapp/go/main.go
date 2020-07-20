@@ -433,8 +433,8 @@ func initialize(c echo.Context) error {
 	fpathprefix := filepath.Join("..", "mysql", "db")
 	paths := []string{
 		filepath.Join(fpathprefix, "0_Schema.sql"),
-		filepath.Join(fpathprefix, "1_DummyEstateData.sql"),
-		filepath.Join(fpathprefix, "2_DummyChairData.sql"),
+		// filepath.Join(fpathprefix, "1_DummyEstateData.sql"),
+		// filepath.Join(fpathprefix, "2_DummyChairData.sql"),
 	}
 
 	for _, p := range paths {

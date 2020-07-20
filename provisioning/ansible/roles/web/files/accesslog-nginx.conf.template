@@ -31,7 +31,7 @@ http {
         }
 
         location / {
-                proxy_pass http://${FRONTEND_SERVER}:3000;
+                root /www/data;
         }
     }
 

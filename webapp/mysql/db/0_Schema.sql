@@ -36,3 +36,6 @@ CREATE TABLE chair (
     `features` VARCHAR(64) NOT NULL,
     `kind` VARCHAR(64) NOT NULL
 )ENGINE=InnoDB;
+
+LOAD DATA INFILE '/var/lib/mysql-files/chairData.csv' INTO TABLE chair FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 LINES (id, thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind);
+LOAD DATA INFILE '/var/lib/mysql-files/estateData.csv' INTO TABLE estate FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 LINES (id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features);
