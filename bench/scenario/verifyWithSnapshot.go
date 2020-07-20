@@ -147,7 +147,7 @@ func verifyRecommendedChair(ctx context.Context, c *client.Client, filePath stri
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK, http.StatusNoContent:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスの検索結果が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスのおすすめ結果が不正です"))
 		}
 
 		var expected *client.ChairsResponse
