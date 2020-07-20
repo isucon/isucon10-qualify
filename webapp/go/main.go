@@ -1006,7 +1006,7 @@ func searchEstateNazotte(c echo.Context) error {
 		validatedEstate := EstateSchema{}
 
 		point := fmt.Sprintf("'POINT(%f %f)'", estate.Latitude, estate.Longitude)
-		sqlstr := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s, %v))`
+		sqlstr := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))`
 		sqlstr = fmt.Sprintf(sqlstr, coordinates.coordinatesToText(), point)
 
 		err = db.Get(&validatedEstate, sqlstr, estate.ID)
