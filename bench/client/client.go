@@ -142,7 +142,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 
-	if res.StatusCode == http.StatusServiceUnavailable {
+	if  !c.isBot && res.StatusCode == http.StatusServiceUnavailable {
 		return nil, failure.New(fails.ErrTemporary)
 	}
 
