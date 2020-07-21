@@ -19,7 +19,7 @@ const (
 	SleepSwingOnUserAway                  = 100 // * time.Millisecond
 	SleepTimeOnBotInterval                = 500 * time.Millisecond
 	SleepSwingOnBotInterval               = 100 // * time.Millisecond
-	IntervalForCheckWorkers               = 10 * time.Second
+	IntervalForCheckWorkers               = 5 * time.Second
 	ThresholdTimeOfAbandonmentPage        = 1 * time.Second
 	DefaultAPITimeout                     = 2000 * time.Millisecond
 	InitializeTimeout                     = 180 * time.Second
