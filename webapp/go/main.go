@@ -211,11 +211,11 @@ type Chair struct {
 
 type ChairSearchResponse struct {
 	Count  int64    `json:"count"`
-	Chairs []*Chair `json:"chairs"`
+	Chairs []Chair `json:"chairs"`
 }
 
 type ChairRecommendResponse struct {
-	Chairs []*Chair `json:"chairs"`
+	Chairs []Chair `json:"chairs"`
 }
 
 
@@ -238,11 +238,11 @@ type Estate struct {
 //EstateSearchResponse estate/searchへのレスポンスの形式
 type EstateSearchResponse struct {
 	Count   int64     `json:"count"`
-	Estates []*Estate `json:"estates"`
+	Estates []Estate `json:"estates"`
 }
 
 type EstateRecommendResponse struct {
-	Estates []*Estate `json:"estates"`
+	Estates []Estate `json:"estates"`
 }
 
 type Coordinate struct {
@@ -550,7 +550,7 @@ func searchChairs(c echo.Context) error {
 	}
 
 	var chairs ChairSearchResponse
-	chairs.Chairs = []*Chair{}
+	chairs.Chairs = []Chair{}
 	sqlstr := "SELECT * FROM chair WHERE "
 	searchCondition := strings.Join(searchQueryArray, " AND ")
 
@@ -568,14 +568,14 @@ func searchChairs(c echo.Context) error {
 	err = db.Select(&searchedchairs, sqlstr+searchCondition+limitOffset, queryParams...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusOK, ChairSearchResponse{Count: 0, Chairs: []*Chair{}})
+			return c.JSON(http.StatusOK, ChairSearchResponse{Count: 0, Chairs: []Chair{}})
 		}
 		c.Logger().Errorf("searchChairs DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	for _, c := range searchedchairs {
-		chairs.Chairs = append(chairs.Chairs, &c)
+		chairs.Chairs = append(chairs.Chairs, c)
 	}
 
 	return c.JSON(http.StatusOK, chairs)
@@ -654,7 +654,7 @@ func searchRecommendChair(c echo.Context) error {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Logger().Error("searchRecommendChair not found")
-			return c.JSON(http.StatusOK, ChairRecommendResponse{[]*Chair{}})
+			return c.JSON(http.StatusOK, ChairRecommendResponse{[]Chair{}})
 		}
 		c.Logger().Errorf("searchRecommendChair DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -663,7 +663,7 @@ func searchRecommendChair(c echo.Context) error {
 	var rc ChairRecommendResponse
 
 	for _, chair := range recommendChairs {
-		rc.Chairs = append(rc.Chairs, &chair)
+		rc.Chairs = append(rc.Chairs, chair)
 	}
 
 	return c.JSON(http.StatusOK, rc)
@@ -814,7 +814,7 @@ func searchEstates(c echo.Context) error {
 	}
 
 	var estates EstateSearchResponse
-	estates.Estates = []*Estate{}
+	estates.Estates = []Estate{}
 	sqlstr := "SELECT * FROM estate WHERE "
 	searchQuery := strings.Join(searchQueryArray, " AND ")
 
@@ -832,14 +832,14 @@ func searchEstates(c echo.Context) error {
 	err = db.Select(&matchestates, sqlstr+searchQuery+limitOffset, searchQueryParameter...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusOK, EstateSearchResponse{Count: 0, Estates: []*Estate{}})
+			return c.JSON(http.StatusOK, EstateSearchResponse{Count: 0, Estates: []Estate{}})
 		}
 		c.Logger().Errorf("searchEstates DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	for _, e := range matchestates {
-		estates.Estates = append(estates.Estates, &e)
+		estates.Estates = append(estates.Estates, e)
 	}
 
 	return c.JSON(http.StatusOK, estates)
@@ -854,7 +854,7 @@ func searchRecommendEstate(c echo.Context) error {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Logger().Error("searchRecommendEstate not found")
-			return c.JSON(http.StatusOK, EstateRecommendResponse{[]*Estate{}})
+			return c.JSON(http.StatusOK, EstateRecommendResponse{[]Estate{}})
 		}
 		c.Logger().Errorf("searchRecommendEstate DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -862,7 +862,7 @@ func searchRecommendEstate(c echo.Context) error {
 	var re EstateRecommendResponse
 
 	for _, estate := range recommendEstates {
-		re.Estates = append(re.Estates, &estate)
+		re.Estates = append(re.Estates, estate)
 	}
 
 	return c.JSON(http.StatusOK, re)
@@ -896,7 +896,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	err = db.Select(&recommendEstates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, LIMIT)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusOK, EstateRecommendResponse{[]*Estate{}})
+			return c.JSON(http.StatusOK, EstateRecommendResponse{[]Estate{}})
 		}
 		c.Logger().Errorf("Database execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -905,7 +905,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	var re EstateRecommendResponse
 
 	for _, estate := range recommendEstates {
-		re.Estates = append(re.Estates, &estate)
+		re.Estates = append(re.Estates, estate)
 	}
 
 	return c.JSON(http.StatusOK, re)
@@ -931,7 +931,7 @@ func searchEstateNazotte(c echo.Context) error {
 	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Infof("select * from estate where latitude ...", err)
-		return c.JSON(http.StatusOK, EstateSearchResponse{Count: 0, Estates: []*Estate{}})
+		return c.JSON(http.StatusOK, EstateSearchResponse{Count: 0, Estates: []Estate{}})
 	} else if err != nil {
 		c.Echo().Logger.Errorf("database execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -959,12 +959,12 @@ func searchEstateNazotte(c echo.Context) error {
 	}
 
 	var re EstateSearchResponse
-	re.Estates = []*Estate{}
+	re.Estates = []Estate{}
 	for i, estate := range estatesInPolygon {
 		if i >= NAZOTTE_LIMIT {
 			break
 		}
-		re.Estates = append(re.Estates, &estate)
+		re.Estates = append(re.Estates, estate)
 	}
 	re.Count = int64(len(re.Estates))
 
