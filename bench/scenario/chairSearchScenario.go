@@ -39,17 +39,32 @@ var chairColorList = []string{
 }
 
 var chairFeatureList = []string{
+	"ユニバーサルデザイン",
+	"通気性抜群",
+	"革張り",
+	"骨盤矯正",
+	"分解可能",
+	"ヘッドレスト付き",
+	"丸洗い可能",
+	"クッション付き",
+	"サスペンション",
+	"座奥調節可能",
+	"メタルフレーム",
+	"低反発",
+	"ロッキング機構",
+	"アーム高さ調節可能",
 	"折りたたみ可",
 	"肘掛け",
 	"キャスター",
 	"リクライニング",
 	"高さ調節可",
-	"フットレスト",
 }
 
 func generateRandomQueryForSearchChairs() url.Values {
 	q := url.Values{}
-	q.Set("priceRangeId", strconv.Itoa(rand.Intn(6)))
+	if (rand.Intn(100) % 5) == 0 {
+		q.Set("priceRangeId", strconv.Itoa(rand.Intn(6)))
+	}
 	if (rand.Intn(100) % 5) == 0 {
 		q.Set("heightRangeId", strconv.Itoa(rand.Intn(4)))
 	}
@@ -66,14 +81,12 @@ func generateRandomQueryForSearchChairs() url.Values {
 	if (rand.Intn(100) % 20) == 0 {
 		q.Set("color", chairColorList[rand.Intn(len(chairColorList))])
 	}
-	if (rand.Intn(100) % 20) == 0 {
-		features := make([]string, len(chairFeatureList))
-		copy(features, chairFeatureList)
-		rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
-		featureLength := rand.Intn(3) + 1
-		q.Set("features", strings.Join(features[:featureLength], ","))
-	}
 
+	features := make([]string, len(chairFeatureList))
+	copy(features, chairFeatureList)
+	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
+	featureLength := rand.Intn(10) + 3
+	q.Set("features", strings.Join(features[:featureLength], ","))
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfChairSearch))
 	q.Set("page", "0")
 

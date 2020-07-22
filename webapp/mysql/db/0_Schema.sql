@@ -33,6 +33,6 @@ CREATE TABLE chair (
     `view_count` INTEGER NOT NULL DEFAULT 0,
     `stock` INTEGER NOT NULL DEFAULT 0,
     `color` VARCHAR(64) NOT NULL,
-    `features` VARCHAR(64) NOT NULL,
+    `features` VARCHAR(256) NOT NULL,
     `kind` VARCHAR(64) NOT NULL
 )ENGINE=InnoDB;
