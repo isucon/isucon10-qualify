@@ -210,14 +210,13 @@ type Chair struct {
 }
 
 type ChairSearchResponse struct {
-	Count  int64    `json:"count"`
+	Count  int64   `json:"count"`
 	Chairs []Chair `json:"chairs"`
 }
 
 type ChairRecommendResponse struct {
 	Chairs []Chair `json:"chairs"`
 }
-
 
 //Estate 物件
 type Estate struct {
@@ -237,7 +236,7 @@ type Estate struct {
 
 //EstateSearchResponse estate/searchへのレスポンスの形式
 type EstateSearchResponse struct {
-	Count   int64     `json:"count"`
+	Count   int64    `json:"count"`
 	Estates []Estate `json:"estates"`
 }
 
