@@ -39,6 +39,7 @@ const useEstateItemStyles = makeStyles(theme =>
       marginBottom: theme.spacing(2)
     },
     cardActionArea: {
+      height: 270,
       display: 'flex',
       alignItems: 'flex-start',
       justifyContent: 'flex-start'
@@ -48,6 +49,7 @@ const useEstateItemStyles = makeStyles(theme =>
       height: 270
     },
     cardContent: {
+      width: 'fit-content',
       marginLeft: theme.spacing(1)
     }
   })
