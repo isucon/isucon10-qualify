@@ -494,11 +494,10 @@ func getChairDetail(c echo.Context) error {
 }
 
 func searchChairs(c echo.Context) error {
-	var searchOption bool
 	var chairHeight, chairWidth, chairDepth, chairPrice *Range
 	var err error
 
-	var searchQueryArray []string
+	searchQueryArray := make([]string, 0)
 	queryParams := make([]interface{}, 0)
 
 	if c.QueryParam("priceRangeId") != "" {
@@ -507,8 +506,6 @@ func searchChairs(c echo.Context) error {
 			c.Echo().Logger.Infof("priceRangeID invalid, %v : %v", c.QueryParam("priceRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
 		}
-
-		searchOption = true
 
 		if chairPrice.Min != -1 {
 			searchQueryArray = append(searchQueryArray, "price >= ? ")
@@ -535,8 +532,6 @@ func searchChairs(c echo.Context) error {
 			searchQueryArray = append(searchQueryArray, "height < ? ")
 			queryParams = append(queryParams, chairHeight.Max)
 		}
-
-		searchOption = true
 	}
 
 	if c.QueryParam("widthRangeId") != "" {
@@ -554,8 +549,6 @@ func searchChairs(c echo.Context) error {
 			searchQueryArray = append(searchQueryArray, "width < ? ")
 			queryParams = append(queryParams, chairWidth.Max)
 		}
-
-		searchOption = true
 	}
 
 	if c.QueryParam("depthRangeId") != "" {
@@ -573,8 +566,6 @@ func searchChairs(c echo.Context) error {
 			searchQueryArray = append(searchQueryArray, "depth < ? ")
 			queryParams = append(queryParams, chairDepth.Max)
 		}
-
-		searchOption = true
 	}
 
 	if c.QueryParam("color") != "" {
@@ -587,15 +578,14 @@ func searchChairs(c echo.Context) error {
 			searchQueryArray = append(searchQueryArray, "features LIKE CONCAT('%', ?, '%')")
 			queryParams = append(queryParams, f)
 		}
-		searchOption = true
 	}
 
-	if !searchOption {
+	if len(searchQueryArray) == 0 {
 		c.Echo().Logger.Infof("Search condition not found")
 		return c.NoContent(http.StatusBadRequest)
-	} else {
-		searchQueryArray = append(searchQueryArray, "stock > 0")
 	}
+
+	searchQueryArray = append(searchQueryArray, "stock > 0")
 
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil {
@@ -784,11 +774,10 @@ func getRange(RangeID string, Ranges []*Range) (*Range, error) {
 }
 
 func searchEstates(c echo.Context) error {
-	var searchOption bool
 	var doorHeight, doorWidth, estateRent *Range
 	var err error
 
-	var searchQueryArray []string
+	searchQueryArray := make([]string, 0)
 	var searchQueryParameter []interface{}
 
 	if c.QueryParam("doorHeightRangeId") != "" {
@@ -806,8 +795,6 @@ func searchEstates(c echo.Context) error {
 			searchQueryArray = append(searchQueryArray, "door_height < ? ")
 			searchQueryParameter = append(searchQueryParameter, doorHeight.Max)
 		}
-
-		searchOption = true
 	}
 
 	if c.QueryParam("doorWidthRangeId") != "" {
@@ -825,8 +812,6 @@ func searchEstates(c echo.Context) error {
 			searchQueryArray = append(searchQueryArray, "door_width < ? ")
 			searchQueryParameter = append(searchQueryParameter, doorWidth.Max)
 		}
-
-		searchOption = true
 	}
 
 	if c.QueryParam("rentRangeId") != "" {
@@ -835,7 +820,6 @@ func searchEstates(c echo.Context) error {
 			c.Echo().Logger.Infof("rentRangeID invalid, %v : %v", c.QueryParam("rentRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
 		}
-		searchOption = true
 
 		if estateRent.Min != -1 {
 			searchQueryArray = append(searchQueryArray, "rent >= ? ")
@@ -853,10 +837,9 @@ func searchEstates(c echo.Context) error {
 			searchQueryArray = append(searchQueryArray, "features like concat('%', ?, '%')")
 			searchQueryParameter = append(searchQueryParameter, f)
 		}
-		searchOption = true
 	}
 
-	if !searchOption {
+	if len(searchQueryArray) == 0 {
 		c.Echo().Logger.Infof("searchEstates search condition not found")
 		return c.NoContent(http.StatusBadRequest)
 	}
