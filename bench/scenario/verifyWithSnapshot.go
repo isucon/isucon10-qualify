@@ -9,11 +9,13 @@ import (
 	"net/url"
 	"path"
 	"path/filepath"
-	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/morikuni/failure"
@@ -26,6 +28,11 @@ const (
 	NumOfVerifyRecommendedEstate          = 1
 	NumOfVerifyRecommendedEstateWithChair = 3
 	NumOfVerifyEstateNazotte              = 3
+)
+
+var (
+	ignoreChairUnexported  = cmpopts.IgnoreUnexported(asset.Chair{})
+	ignoreEstateUnexported = cmpopts.IgnoreUnexported(asset.Estate{})
 )
 
 type Request struct {
@@ -85,8 +92,9 @@ func verifyChairSearch(ctx context.Context, c *client.Client, filePath string) e
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search: Response BodyのUnmarshalでエラーが発生しました"))
 		}
 
-		if !reflect.DeepEqual(expected, actual) {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: イスの検索結果が不正です"))
+		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
+			diff := cmp.Diff(*expected, *actual, ignoreChairUnexported)
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: イスの検索結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
 		}
 
 	default:
@@ -123,8 +131,9 @@ func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) 
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search: Response BodyのUnmarshalでエラーが発生しました"))
 		}
 
-		if !reflect.DeepEqual(expected, actual) {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 物件の検索結果が不正です"))
+		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
+			diff := cmp.Diff(*expected, *actual, ignoreEstateUnexported)
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 物件の検索結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
 		}
 
 	default:
@@ -156,8 +165,9 @@ func verifyRecommendedChair(ctx context.Context, c *client.Client, filePath stri
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_chair: Response BodyのUnmarshalでエラーが発生しました"))
 		}
 
-		if !reflect.DeepEqual(expected, actual) {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスのおすすめ結果が不正です"))
+		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
+			diff := cmp.Diff(*expected, *actual, ignoreChairUnexported)
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスのおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
 		}
 
 	default:
@@ -189,8 +199,9 @@ func verifyRecommendedEstate(ctx context.Context, c *client.Client, filePath str
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate: Response BodyのUnmarshalでエラーが発生しました"))
 		}
 
-		if !reflect.DeepEqual(expected, actual) {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate: 物件のおすすめ結果が不正です"))
+		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
+			diff := cmp.Diff(*expected, *actual, ignoreEstateUnexported)
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
 		}
 
 	default:
@@ -230,8 +241,9 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 		if err != nil {
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate:id: Response BodyのUnmarshalでエラーが発生しました"))
 		}
-		if !reflect.DeepEqual(expected, actual) {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate:id: 物件のおすすめ結果が不正です"))
+		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
+			diff := cmp.Diff(*expected, *actual, ignoreEstateUnexported)
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate:id: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
 		}
 
 	default:
@@ -269,8 +281,9 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("POST /api/estate/nazotte: Response BodyのUnmarshalでエラーが発生しました"))
 		}
 
-		if !reflect.DeepEqual(expected, actual) {
-			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 物件の検索結果が不正です"))
+		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
+			diff := cmp.Diff(*expected, *actual, ignoreEstateUnexported)
+			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 物件の検索結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
 		}
 
 	default:
