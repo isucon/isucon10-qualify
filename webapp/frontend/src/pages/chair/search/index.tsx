@@ -252,8 +252,8 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
                             <CardMedia image={chair.thumbnail} className={classes.cardMedia} />
                             <CardContent className={classes.cardContent}>
                               <h2>{chair.name}</h2>
-                              <p>価格: {chair.price}円</p>
-                              <p>詳細: {chair.description}</p>
+                              <p><strong>価格:</strong> {chair.price}円</p>
+                              <p><strong>詳細:</strong> {chair.description}</p>
                             </CardContent>
                           </CardActionArea>
                         </Card>
