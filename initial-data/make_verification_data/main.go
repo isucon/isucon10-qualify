@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
 )
 
 const (
@@ -21,7 +20,7 @@ const (
 )
 
 func init() {
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(19700101)
 }
 
 func writeSnapshotDataToFile(path string, snapshot Snapshot) {
