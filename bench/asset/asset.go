@@ -1,12 +1,16 @@
 package asset
 
 import (
-	"bufio"
+	"context"
 	"encoding/json"
 	"errors"
-	"log"
+	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/morikuni/failure"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -18,46 +22,70 @@ var (
 
 // メモリ上にデータを展開する
 // このデータを使用してAPIからのレスポンスを確認する
-func Initialize(dataDir string) {
-	f, err := os.Open(filepath.Join(dataDir, "result/chair_json.txt"))
-	if err != nil {
-		log.Fatal(err)
-	}
+func Initialize(ctx context.Context, dataDir string) {
+	eg, childCtx := errgroup.WithContext(ctx)
 
-	chairMap = map[int64]*Chair{}
-	chairIDs = make([]int64, 0)
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		var chair Chair
-		err := json.Unmarshal([]byte(scanner.Text()), &chair)
+	eg.Go(func() error {
+		f, err := os.Open(filepath.Join(dataDir, "result/chair_json.txt"))
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
-		chairMap[chair.ID] = &chair
-		chairIDs = append(chairIDs, chair.ID)
-	}
-	f.Close()
+		defer f.Close()
 
-	f, err = os.Open(filepath.Join(dataDir, "result/estate_json.txt"))
-	if err != nil {
-		log.Fatal(err)
-	}
+		chairMap = map[int64]*Chair{}
+		chairIDs = make([]int64, 0)
+		decoder := json.NewDecoder(f)
+		for {
+			if err := childCtx.Err(); err != nil {
+				return err
+			}
 
-	estateMap = map[int64]*Estate{}
-	estateIDs = make([]int64, 0)
+			var chair Chair
+			if err := decoder.Decode(&chair); err != nil {
+				if err == io.EOF {
+					break
+				}
+				return err
+			}
+			chairMap[chair.ID] = &chair
+			chairIDs = append(chairIDs, chair.ID)
+		}
+		return nil
+	})
 
-	scanner = bufio.NewScanner(f)
-	for scanner.Scan() {
-		var estate Estate
-		err := json.Unmarshal([]byte(scanner.Text()), &estate)
+	eg.Go(func() error {
+		f, err := os.Open(filepath.Join(dataDir, "result/estate_json.txt"))
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
-		estateMap[estate.ID] = &estate
-		estateIDs = append(estateIDs, estate.ID)
+		defer f.Close()
+
+		estateMap = map[int64]*Estate{}
+		estateIDs = make([]int64, 0)
+		decoder := json.NewDecoder(f)
+		for {
+			if err := childCtx.Err(); err != nil {
+				return err
+			}
+
+			var estate Estate
+			if err := decoder.Decode(&estate); err != nil {
+				if err == io.EOF {
+					break
+				}
+				return err
+			}
+			estateMap[estate.ID] = &estate
+			estateIDs = append(estateIDs, estate.ID)
+		}
+
+		return nil
+	})
+
+	if err := eg.Wait(); err != nil {
+		err = failure.Translate(err, fails.ErrBenchmarker, failure.Message("assetの初期化に失敗しました"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfInitialize)
 	}
-	f.Close()
 }
 
 func ExistsChairInMap(id int64) bool {

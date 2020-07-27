@@ -62,12 +62,25 @@ func main() {
 	}
 
 	// 初期データの準備
-	asset.Initialize(dataDir)
+	asset.Initialize(context.Background(), dataDir)
+	eMsgs := fails.ErrorsForCheck.GetMsgs()
+	if len(eMsgs) > 0 {
+		log.Print("asset initialize failed")
+
+		output := Output{
+			Pass:     false,
+			Score:    0,
+			Messages: eMsgs,
+		}
+		json.NewEncoder(os.Stdout).Encode(output)
+
+		return
+	}
 
 	log.Print("=== initialize ===")
 	// 初期化：/initialize にリクエストを送ることで、外部リソースのURLを指定する・DBのデータを初期データのみにする
 	scenario.Initialize(context.Background())
-	eMsgs := fails.ErrorsForCheck.GetMsgs()
+	eMsgs = fails.ErrorsForCheck.GetMsgs()
 	if len(eMsgs) > 0 {
 		log.Print("initialize failed")
 
