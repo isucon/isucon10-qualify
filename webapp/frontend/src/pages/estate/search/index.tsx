@@ -39,6 +39,7 @@ const useEstateItemStyles = makeStyles(theme =>
       marginBottom: theme.spacing(2)
     },
     cardActionArea: {
+      height: 270,
       display: 'flex',
       alignItems: 'flex-start',
       justifyContent: 'flex-start'
@@ -48,6 +49,7 @@ const useEstateItemStyles = makeStyles(theme =>
       height: 270
     },
     cardContent: {
+      width: 'fit-content',
       marginLeft: theme.spacing(1)
     }
   })
@@ -111,9 +113,9 @@ const EstateItem: FC<EstateItemProps> = ({ estate }) => {
           <CardMedia image={estate.thumbnail} className={classes.cardMedia} />
           <CardContent className={classes.cardContent}>
             <h2>{estate.name}</h2>
-            <p>住所: {estate.address}</p>
-            <p>価格: {estate.rent}円</p>
-            <p>詳細: {estate.description}</p>
+            <p><strong>住所:</strong> {estate.address}</p>
+            <p><strong>価格:</strong> {estate.rent}円</p>
+            <p><strong>詳細:</strong> {estate.description}</p>
           </CardContent>
         </CardActionArea>
       </Card>

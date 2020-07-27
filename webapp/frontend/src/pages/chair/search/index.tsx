@@ -54,6 +54,7 @@ const useChairSearchStyles = makeStyles(theme =>
       marginBottom: theme.spacing(2)
     },
     cardActionArea: {
+      height: 270,
       display: 'flex',
       alignItems: 'flex-start',
       justifyContent: 'flex-start'
@@ -63,6 +64,7 @@ const useChairSearchStyles = makeStyles(theme =>
       height: 270
     },
     cardContent: {
+      width: 'fit-content',
       marginLeft: theme.spacing(1)
     }
   })
@@ -250,8 +252,8 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
                             <CardMedia image={chair.thumbnail} className={classes.cardMedia} />
                             <CardContent className={classes.cardContent}>
                               <h2>{chair.name}</h2>
-                              <p>価格: {chair.price}円</p>
-                              <p>詳細: {chair.description}</p>
+                              <p><strong>価格:</strong> {chair.price}円</p>
+                              <p><strong>詳細:</strong> {chair.description}</p>
                             </CardContent>
                           </CardActionArea>
                         </Card>
