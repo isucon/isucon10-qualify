@@ -14,15 +14,14 @@ import (
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/conversion"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
-	"github.com/isucon10-qualify/isucon10-qualify/bench/passes"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/scenario"
 )
 
 type Output struct {
 	Pass     bool     `json:"pass"`
 	Score    int      `json:"score"`
-	CV       int      `json:"cv"`
 	Messages []string `json:"messages"`
 }
 
@@ -123,26 +122,11 @@ func main() {
 		return
 	}
 
-	score := 0
-	score += 1 * passes.GetCount(passes.LabelOfGetChairDetailFromID)
-	score += 1 * passes.GetCount(passes.LabelOfGetEstateDetailFromID)
-	score += 1 * passes.GetCount(passes.LabelOfSearchChairsWithQuery)
-	score += 1 * passes.GetCount(passes.LabelOfSearchEstatesWithQuery)
-	score += 1 * passes.GetCount(passes.LabelOfSearchEstatesNazotte)
-	score += 1 * passes.GetCount(passes.LabelOfGetRecommendedChair)
-	score += 1 * passes.GetCount(passes.LabelOfGetRecommendedEstate)
-	score += 1 * passes.GetCount(passes.LabelOfGetRecommendedEstatesFromChair)
-	score += 1 * passes.GetCount(passes.LabelOfBuyChair)
-	score += 1 * passes.GetCount(passes.LabelOfRequestEstateDocument)
-	score += 1 * passes.GetCount(passes.LabelOfStaticFiles)
-
-	cv := 0
-	cv += passes.GetCount(passes.LabelOfBuyChair)
-	cv += passes.GetCount(passes.LabelOfRequestEstateDocument)
+	score := int(conversion.GetCount())
 
 	// application errorは1回で10点減点
 	penalty := 10 * aCnt
-	log.Print(score, penalty, cv)
+	log.Print(score, penalty)
 
 	score -= penalty
 	// 0点以下なら失格
@@ -160,7 +144,6 @@ func main() {
 	output := Output{
 		Pass:     true,
 		Score:    score,
-		CV:       cv,
 		Messages: uniqMsgs(eMsgs),
 	}
 	json.NewEncoder(os.Stdout).Encode(output)

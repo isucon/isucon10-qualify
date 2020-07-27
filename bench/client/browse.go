@@ -12,7 +12,6 @@ import (
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
-	"github.com/isucon10-qualify/isucon10-qualify/bench/passes"
 	"github.com/morikuni/failure"
 )
 
@@ -44,7 +43,6 @@ func (c *Client) fetch(ctx context.Context, resource string, dst io.Writer) erro
 		io.Copy(ioutil.Discard, res.Body)
 	}
 
-	passes.IncrementCount(passes.LabelOfStaticFiles)
 	return nil
 }
 
