@@ -20,6 +20,67 @@ type point struct {
 	Longitude float64
 }
 
+var famousPlaces []point = []point{
+	{Latitude: 34.81667, Longitude: 137.4},
+	{Latitude: 34.4833, Longitude: 136.84186},
+	{Latitude: 36.65, Longitude: 138.31667},
+	{Latitude: 34.9, Longitude: 137.5},
+	{Latitude: 35.06667, Longitude: 135.21667},
+	{Latitude: 36, Longitude: 139.55722},
+	{Latitude: 36.53333, Longitude: 136.61667},
+	{Latitude: 36.75965, Longitude: 137.36215},
+	{Latitude: 35, Longitude: 136.51667},
+	{Latitude: 33.4425, Longitude: 129.96972},
+	{Latitude: 35.30889, Longitude: 139.55028},
+	{Latitude: 34.25, Longitude: 135.31667},
+	{Latitude: 35.82756, Longitude: 137.95378},
+	{Latitude: 33.3213, Longitude: 130.94098},
+	{Latitude: 36.24624, Longitude: 139.07204},
+	{Latitude: 36.33011, Longitude: 138.89585},
+	{Latitude: 35.815, Longitude: 139.6853},
+	{Latitude: 39.46667, Longitude: 141.95},
+	{Latitude: 37.56667, Longitude: 140.11667},
+	{Latitude: 43.82634, Longitude: 144.09638},
+	{Latitude: 44.35056, Longitude: 142.45778},
+	{Latitude: 41.77583, Longitude: 140.73667},
+	{Latitude: 35.48199, Longitude: 137.02166},
+}
+
+const (
+	rangeDiffLatitude  = 3
+	rangeDiffLongitude = 3
+	rangeMaxWidth      = 1.0
+	rangeMinWidth      = 0.1
+	rangeMaxHeight     = 1.0
+	rangeMinHeight     = 0.1
+	numOfMaxPoints     = 20
+	numOfMinPoints     = 10
+)
+
+func createRandomConvexhull() []point {
+	famousPlace := famousPlaces[rand.Intn(len(famousPlaces))]
+
+	width := rand.Float64()*(rangeMaxWidth-rangeMinWidth) + rangeMinWidth
+	height := rand.Float64()*(rangeMaxHeight-rangeMinHeight) + rangeMinHeight
+	center := point{
+		Latitude:  famousPlace.Latitude + (rand.Float64()-0.5)*rangeDiffLatitude,
+		Longitude: famousPlace.Longitude + (rand.Float64()-0.5)*rangeDiffLongitude,
+	}
+
+	pointCounts := rand.Intn(numOfMaxPoints-numOfMinPoints) + numOfMinPoints
+
+	points := []point{}
+
+	for i := 0; i < pointCounts; i++ {
+		points = append(points, point{
+			Latitude:  center.Latitude + (rand.Float64()-0.5)*width,
+			Longitude: center.Longitude + (rand.Float64()-0.5)*height,
+		})
+	}
+
+	return convexHull(points)
+}
+
 func convexHull(p []point) []point {
 	sort.Slice(p, func(i, j int) bool {
 		if p[i].Latitude == p[j].Latitude {
@@ -142,33 +203,8 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 
 	// Nazotte Search
 	// create nazotte data randomly
-	polygon := &client.Coordinates{}
-	// corners 3 <= N <= 8
-	polygonCorners := rand.Intn(6) + 3
-
-	estateIDs := asset.GetEstateIDs()
-	estateNeighborsPoint := make([]point, 0, 4*polygonCorners)
-	choosedEstateIDs := make([]int64, polygonCorners)
-
-	if len(estateIDs) > polygonCorners {
-		for i := 0; i < polygonCorners; i++ {
-			r := rand.Intn(len(estateIDs))
-			target := estateIDs[r]
-			e, _ := asset.GetEstateFromID(target)
-			if !contains(choosedEstateIDs, e.ID) {
-				p := point{Latitude: e.Latitude, Longitude: e.Longitude}
-				estateNeighborsPoint = append(estateNeighborsPoint, getPointNeighbors(p)...)
-				choosedEstateIDs[i] = e.ID
-			} else {
-				i--
-			}
-		}
-	} else {
-		choosedEstateIDs = append(choosedEstateIDs, estateIDs...)
-	}
-
-	convexHulled := convexHull(estateNeighborsPoint)
-	polygon = ToCoordinates(convexHulled)
+	convexHulled := createRandomConvexhull()
+	polygon := ToCoordinates(convexHulled)
 	boundingBox := getBoundingBox(convexHulled)
 
 	t = time.Now()
@@ -192,6 +228,10 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/nazotte: 検索結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
+	}
+
+	if len(er.Estates) == 0 {
+		return nil
 	}
 
 	randomPosition := rand.Intn(len(er.Estates))
