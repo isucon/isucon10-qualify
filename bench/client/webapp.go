@@ -26,7 +26,7 @@ type Coordinate struct {
 }
 
 func (c *Client) Initialize(ctx context.Context) error {
-	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/initialize")
+	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/initialize", nil)
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker)
 	}
@@ -36,7 +36,7 @@ func (c *Client) Initialize(ctx context.Context) error {
 
 	res, err := c.Do(req)
 	if err != nil {
-		return failure.Wrap(err, failure.Message("GET /initialize: リクエストに失敗しました"))
+		return failure.Wrap(err, failure.Message("POST /initialize: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
@@ -44,7 +44,7 @@ func (c *Client) Initialize(ctx context.Context) error {
 	// MEMO: /initializeの成功ステータスによって第二引数が変わる可能性がある
 	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
-		return failure.Wrap(err, failure.Message("GET /initialize: レスポンスコードが不正です"))
+		return failure.Wrap(err, failure.Message("POST /initialize: レスポンスコードが不正です"))
 	}
 
 	return nil

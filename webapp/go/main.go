@@ -328,7 +328,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// Initialize
-	e.GET("/initialize", initialize)
+	e.POST("/initialize", initialize)
 
 	// Chair Handler
 	e.GET("/api/chair/:id", getChairDetail)

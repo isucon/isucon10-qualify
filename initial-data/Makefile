@@ -19,7 +19,7 @@ verification_data: ./make_verification_data
 	docker-compose -f ../webapp/docker-compose.yaml down -v
 	docker-compose -f ../webapp/docker-compose.yaml up -d mysql api-server
 	wayt http -u "http://localhost:1323/api/estate/range"
-	curl "localhost:1323/initialize"
+	curl -X POST "localhost:1323/initialize"
 	go build -o ./make_verification_data/main ./make_verification_data/*.go
 	./make_verification_data/main -dest-dir ./result/verification_data -target-url http://localhost:1323
 	docker-compose -f ../webapp/docker-compose.yaml down -v
