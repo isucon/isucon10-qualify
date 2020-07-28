@@ -25,10 +25,14 @@ type Coordinate struct {
 	Longitude float64 `json:"longitude"`
 }
 
-func (c *Client) Initialize(ctx context.Context) error {
+type InitializeResponse struct {
+	Language string `json:"language"`
+}
+
+func (c *Client) Initialize(ctx context.Context) (*InitializeResponse, error) {
 	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/initialize", nil)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker)
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
 
 	// T/O付きのコンテキストが入る
@@ -36,7 +40,7 @@ func (c *Client) Initialize(ctx context.Context) error {
 
 	res, err := c.Do(req)
 	if err != nil {
-		return failure.Wrap(err, failure.Message("POST /initialize: リクエストに失敗しました"))
+		return nil, failure.Wrap(err, failure.Message("POST /initialize: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
@@ -44,10 +48,20 @@ func (c *Client) Initialize(ctx context.Context) error {
 	// MEMO: /initializeの成功ステータスによって第二引数が変わる可能性がある
 	err = checkStatusCode(res, []int{http.StatusOK})
 	if err != nil {
-		return failure.Wrap(err, failure.Message("POST /initialize: レスポンスコードが不正です"))
+		return nil, failure.Wrap(err, failure.Message("POST /initialize: レスポンスコードが不正です"))
 	}
 
-	return nil
+	var initRes InitializeResponse
+
+	err = json.NewDecoder(res.Body).Decode(&initRes)
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+		return nil, failure.Wrap(err, failure.Message("POST /initialize: JSONデコードに失敗しました"))
+	}
+
+	return &initRes, nil
 }
 
 type ChairsResponse struct {

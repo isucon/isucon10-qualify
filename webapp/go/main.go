@@ -193,6 +193,10 @@ var ChairDepthRanges = []*Range{
 	},
 }
 
+type InitializeResponse struct {
+	Language string `json:"language"`
+}
+
 type Chair struct {
 	ID          int64  `db:"id" json:"id"`
 	Name        string `db:"name" json:"name"`
@@ -385,7 +389,9 @@ func initialize(c echo.Context) error {
 		}
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.JSON(http.StatusOK, InitializeResponse{
+		Language: "go",
+	})
 }
 
 func getChairDetail(c echo.Context) error {
