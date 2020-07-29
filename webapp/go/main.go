@@ -552,7 +552,7 @@ func searchChairs(c echo.Context) error {
 	sqlstr := "SELECT * FROM chair WHERE "
 	searchCondition := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := fmt.Sprintf(" ORDER BY view_count DESC LIMIT $%v::int OFFSET $%v::int", len(queryParams)+1, len(queryParams)+2)
+	limitOffset := fmt.Sprintf(" ORDER BY view_count DESC, id ASC LIMIT $%v::int OFFSET $%v::int", len(queryParams)+1, len(queryParams)+2)
 
 	countsql := "SELECT COUNT(*) FROM chair WHERE "
 	err = db.Get(&chairs.Count, countsql+searchCondition, queryParams...)
@@ -646,7 +646,7 @@ func responseChairRange(c echo.Context) error {
 func searchRecommendChair(c echo.Context) error {
 	var recommendChairs []Chair
 
-	sqlstr := `SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC LIMIT $1::int`
+	sqlstr := `SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC, id ASC LIMIT $1::int`
 
 	err := db.Select(&recommendChairs, sqlstr, LIMIT)
 	if err != nil {
@@ -816,7 +816,7 @@ func searchEstates(c echo.Context) error {
 	sqlstr := "SELECT * FROM estate WHERE "
 	searchQuery := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := fmt.Sprintf(" ORDER BY view_count DESC LIMIT $%v::int OFFSET $%v::int", len(searchQueryParameter)+1, len(searchQueryParameter)+2)
+	limitOffset := fmt.Sprintf(" ORDER BY view_count DESC, id ASC LIMIT $%v::int OFFSET $%v::int", len(searchQueryParameter)+1, len(searchQueryParameter)+2)
 
 	countsql := "SELECT COUNT(*) FROM estate WHERE "
 	err = db.Get(&estates.Count, countsql+searchQuery, searchQueryParameter...)
@@ -846,7 +846,7 @@ func searchEstates(c echo.Context) error {
 func searchRecommendEstate(c echo.Context) error {
 	recommendEstates := make([]Estate, 0, LIMIT)
 
-	sqlstr := `SELECT * FROM estate ORDER BY view_count DESC LIMIT $1::int`
+	sqlstr := `SELECT * FROM estate ORDER BY view_count DESC, id ASC LIMIT $1::int`
 
 	err := db.Select(&recommendEstates, sqlstr, LIMIT)
 	if err != nil {
@@ -890,7 +890,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	w := chair.Width
 	h := chair.Height
 	d := chair.Depth
-	sqlstr = `SELECT * FROM estate where (door_width >= $1::int AND door_height>= $2::int) OR (door_width >= $3::int AND door_height>= $4::int) OR (door_width >= $5::int AND door_height>= $6::int) OR (door_width >= $7::int AND door_height>= $8::int) OR (door_width >= $9::int AND door_height>= $10::int) OR (door_width >= $11::int AND door_height>=$12::int) ORDER BY view_count DESC LIMIT $13::int`
+	sqlstr = `SELECT * FROM estate where (door_width >= $1::int AND door_height>= $2::int) OR (door_width >= $3::int AND door_height>= $4::int) OR (door_width >= $5::int AND door_height>= $6::int) OR (door_width >= $7::int AND door_height>= $8::int) OR (door_width >= $9::int AND door_height>= $10::int) OR (door_width >= $11::int AND door_height>=$12::int) ORDER BY view_count DESC, id ASC LIMIT $13::int`
 	err = db.Select(&recommendEstates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, LIMIT)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -924,7 +924,7 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []Estate{}
 
-	sqlstr := `SELECT * FROM estate WHERE latitude <= $1::double precision AND latitude >= $2::double precision AND longitude <= $3::double precision AND longitude >= $4::double precision ORDER BY view_count`
+	sqlstr := `SELECT * FROM estate WHERE latitude <= $1::double precision AND latitude >= $2::double precision AND longitude <= $3::double precision AND longitude >= $4::double precision ORDER BY view_count DESC, id ASC`
 
 	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {
