@@ -10,11 +10,11 @@ import (
 	"strconv"
 	"strings"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
+	_ "github.com/lib/pq"
 )
 
 const LIMIT = 20
@@ -297,9 +297,9 @@ func NewMySQLConnectionEnv() *MySQLConnectionEnv {
 	return &MySQLConnectionEnv{
 		Host:     getEnv("MYSQL_HOST", "127.0.0.1"),
 		Port:     getEnv("MYSQL_PORT", "3306"),
-		User:     getEnv("MYSQL_USER", "isucon"),
+		User:     getEnv("MYSQL_USER", "root"),
 		DBName:   getEnv("MYSQL_DBNAME", "isuumo"),
-		Password: getEnv("MYSQL_PASS", "isucon"),
+		Password: getEnv("MYSQL_PASS", "root"),
 	}
 }
 
@@ -313,8 +313,8 @@ func getEnv(key, defaultValue string) string {
 
 //ConnectDB isuumoデータベースに接続する
 func (mc *MySQLConnectionEnv) ConnectDB() (*sqlx.DB, error) {
-	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", mc.User, mc.Password, mc.Host, mc.Port, mc.DBName)
-	return sqlx.Open("mysql", dsn)
+	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v sslmode=disable", mc.Host, mc.User, mc.Password, mc.DBName)
+	return sqlx.Open("postgres", dsn)
 }
 
 func main() {
@@ -372,10 +372,9 @@ func initialize(c echo.Context) error {
 
 	for _, p := range paths {
 		sqlFile, _ := filepath.Abs(p)
-		cmdstr := fmt.Sprintf("mysql -h %v -u %v -p%v %v < %v",
+		cmdstr := fmt.Sprintf("psql -h %v -U %v -d %v -f %v",
 			MySQLConnectionData.Host,
 			MySQLConnectionData.User,
-			MySQLConnectionData.Password,
 			MySQLConnectionData.DBName,
 			sqlFile,
 		)
@@ -396,7 +395,7 @@ func getChairDetail(c echo.Context) error {
 	}
 
 	chair := Chair{}
-	sqlstr := "SELECT * FROM chair WHERE id = ?"
+	sqlstr := "SELECT * FROM chair WHERE id = $1::int"
 	err = db.Get(&chair, sqlstr, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -417,7 +416,7 @@ func getChairDetail(c echo.Context) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("UPDATE chair SET view_count = ? WHERE id = ?", chair.ViewCount+1, id)
+	_, err = tx.Exec("UPDATE chair SET view_count = $1::int WHERE id = $2::int", chair.ViewCount+1, id)
 	if err != nil {
 		c.Echo().Logger.Errorf("view_count of chair update failed : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -450,11 +449,11 @@ func searchChairs(c echo.Context) error {
 		searchOption = true
 
 		if chairPrice.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "price >= ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("price >= $%v::int ", len(queryParams)+1))
 			queryParams = append(queryParams, chairPrice.Min)
 		}
 		if chairPrice.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "price < ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("price < $%v::int ", len(queryParams)+1))
 			queryParams = append(queryParams, chairPrice.Max)
 		}
 	}
@@ -467,11 +466,11 @@ func searchChairs(c echo.Context) error {
 		}
 
 		if chairHeight.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "height >= ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("height >= $%v::int ", len(queryParams)+1))
 			queryParams = append(queryParams, chairHeight.Min)
 		}
 		if chairHeight.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "height < ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("height < $%v::int ", len(queryParams)+1))
 			queryParams = append(queryParams, chairHeight.Max)
 		}
 
@@ -486,11 +485,11 @@ func searchChairs(c echo.Context) error {
 		}
 
 		if chairWidth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "width >= ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("width >= $%v::int ", len(queryParams)+1))
 			queryParams = append(queryParams, chairWidth.Min)
 		}
 		if chairWidth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "width < ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("width < $%v::int ", len(queryParams)+1))
 			queryParams = append(queryParams, chairWidth.Max)
 		}
 
@@ -505,11 +504,11 @@ func searchChairs(c echo.Context) error {
 		}
 
 		if chairDepth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "depth >= ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("depth >= $%v::int ", len(queryParams)+1))
 			queryParams = append(queryParams, chairDepth.Min)
 		}
 		if chairDepth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "depth < ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("depth < $%v::int ", len(queryParams)+1))
 			queryParams = append(queryParams, chairDepth.Max)
 		}
 
@@ -517,13 +516,13 @@ func searchChairs(c echo.Context) error {
 	}
 
 	if c.QueryParam("color") != "" {
-		searchQueryArray = append(searchQueryArray, "color = ?")
+		searchQueryArray = append(searchQueryArray, fmt.Sprintf("color = $%v::varchar ", len(queryParams)+1))
 		queryParams = append(queryParams, c.QueryParam("color"))
 	}
 
 	if c.QueryParam("features") != "" {
 		for _, f := range strings.Split(c.QueryParam("features"), ",") {
-			searchQueryArray = append(searchQueryArray, "features LIKE CONCAT('%', ?, '%')")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("features LIKE CONCAT('%%', $%v::varchar, '%%')", len(queryParams)+1))
 			queryParams = append(queryParams, f)
 		}
 		searchOption = true
@@ -553,7 +552,7 @@ func searchChairs(c echo.Context) error {
 	sqlstr := "SELECT * FROM chair WHERE "
 	searchCondition := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " ORDER BY view_count DESC LIMIT ? OFFSET ?"
+	limitOffset := fmt.Sprintf(" ORDER BY view_count DESC LIMIT $%v::int OFFSET $%v::int", len(queryParams)+1, len(queryParams)+2)
 
 	countsql := "SELECT COUNT(*) FROM chair WHERE "
 	err = db.Get(&chairs.Count, countsql+searchCondition, queryParams...)
@@ -588,7 +587,7 @@ func buyChair(c echo.Context) error {
 	}
 
 	var chair Chair
-	err = db.Get(&chair, "SELECT * FROM chair WHERE id = ? AND stock > 0", id)
+	err = db.Get(&chair, "SELECT * FROM chair WHERE id = $1::int AND stock > 0", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Echo().Logger.Infof("buyChair chair id \"%v\" not found", id)
@@ -605,7 +604,7 @@ func buyChair(c echo.Context) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("UPDATE chair SET stock = ? WHERE id = ?", chair.Stock-1, id)
+	_, err = tx.Exec("UPDATE chair SET stock = $1::int WHERE id = $2::int", chair.Stock-1, id)
 	if err != nil {
 		c.Echo().Logger.Errorf("view_count update failed : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -647,7 +646,7 @@ func responseChairRange(c echo.Context) error {
 func searchRecommendChair(c echo.Context) error {
 	var recommendChairs []Chair
 
-	sqlstr := `SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC LIMIT ?`
+	sqlstr := `SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC LIMIT $1::int`
 
 	err := db.Select(&recommendChairs, sqlstr, LIMIT)
 	if err != nil {
@@ -676,7 +675,7 @@ func getEstateDetail(c echo.Context) error {
 	}
 
 	var estate Estate
-	err = db.Get(&estate, "SELECT * FROM estate WHERE id = ?", id)
+	err = db.Get(&estate, "SELECT * FROM estate WHERE id = $1::int", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Echo().Logger.Infof("getEstateDetail estate id %v not found", id)
@@ -692,7 +691,7 @@ func getEstateDetail(c echo.Context) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("UPDATE estate SET view_count = ? WHERE id = ?", estate.ViewCount+1, id)
+	_, err = tx.Exec("UPDATE estate SET view_count = $1::int WHERE id = $2::int", estate.ViewCount+1, id)
 	if err != nil {
 		c.Echo().Logger.Errorf("view_count update failed : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -738,11 +737,11 @@ func searchEstates(c echo.Context) error {
 		}
 
 		if doorHeight.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "door_height >= ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_height >= $%v::int ", len(searchQueryParameter)+1))
 			searchQueryParameter = append(searchQueryParameter, doorHeight.Min)
 		}
 		if doorHeight.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "door_height < ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_height < $%v::int ", len(searchQueryParameter)+1))
 			searchQueryParameter = append(searchQueryParameter, doorHeight.Max)
 		}
 
@@ -757,11 +756,11 @@ func searchEstates(c echo.Context) error {
 		}
 
 		if doorWidth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "door_width >= ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_width >= $%v::int ", len(searchQueryParameter)+1))
 			searchQueryParameter = append(searchQueryParameter, doorWidth.Min)
 		}
 		if doorWidth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "door_width < ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("door_width < $%v::int ", len(searchQueryParameter)+1))
 			searchQueryParameter = append(searchQueryParameter, doorWidth.Max)
 		}
 
@@ -777,11 +776,11 @@ func searchEstates(c echo.Context) error {
 		searchOption = true
 
 		if estateRent.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "rent >= ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("rent >= $%v::int ", len(searchQueryParameter)+1))
 			searchQueryParameter = append(searchQueryParameter, estateRent.Min)
 		}
 		if estateRent.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "rent < ? ")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("rent < $%v::int ", len(searchQueryParameter)+1))
 			searchQueryParameter = append(searchQueryParameter, estateRent.Max)
 		}
 
@@ -789,7 +788,7 @@ func searchEstates(c echo.Context) error {
 
 	if c.QueryParam("features") != "" {
 		for _, f := range strings.Split(c.QueryParam("features"), ",") {
-			searchQueryArray = append(searchQueryArray, "features like concat('%', ?, '%')")
+			searchQueryArray = append(searchQueryArray, fmt.Sprintf("features like concat('%%', $%v::varchar, '%%')", len(searchQueryParameter)+1))
 			searchQueryParameter = append(searchQueryParameter, f)
 		}
 		searchOption = true
@@ -817,7 +816,7 @@ func searchEstates(c echo.Context) error {
 	sqlstr := "SELECT * FROM estate WHERE "
 	searchQuery := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " ORDER BY view_count DESC LIMIT ? OFFSET ?"
+	limitOffset := fmt.Sprintf(" ORDER BY view_count DESC LIMIT $%v::int OFFSET $%v::int", len(searchQueryParameter)+1, len(searchQueryParameter)+2)
 
 	countsql := "SELECT COUNT(*) FROM estate WHERE "
 	err = db.Get(&estates.Count, countsql+searchQuery, searchQueryParameter...)
@@ -847,7 +846,7 @@ func searchEstates(c echo.Context) error {
 func searchRecommendEstate(c echo.Context) error {
 	recommendEstates := make([]Estate, 0, LIMIT)
 
-	sqlstr := `SELECT * FROM estate ORDER BY view_count DESC LIMIT ?`
+	sqlstr := `SELECT * FROM estate ORDER BY view_count DESC LIMIT $1::int`
 
 	err := db.Select(&recommendEstates, sqlstr, LIMIT)
 	if err != nil {
@@ -875,7 +874,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	}
 
 	chair := Chair{}
-	sqlstr := `SELECT * FROM chair WHERE id = ?`
+	sqlstr := `SELECT * FROM chair WHERE id = $1::int`
 
 	err = db.Get(&chair, sqlstr, id)
 	if err != nil {
@@ -891,7 +890,7 @@ func searchRecommendEstateWithChair(c echo.Context) error {
 	w := chair.Width
 	h := chair.Height
 	d := chair.Depth
-	sqlstr = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY view_count DESC LIMIT ?`
+	sqlstr = `SELECT * FROM estate where (door_width >= $1::int AND door_height>= $2::int) OR (door_width >= $3::int AND door_height>= $4::int) OR (door_width >= $5::int AND door_height>= $6::int) OR (door_width >= $7::int AND door_height>= $8::int) OR (door_width >= $9::int AND door_height>= $10::int) OR (door_width >= $11::int AND door_height>=$12::int) ORDER BY view_count DESC LIMIT $13::int`
 	err = db.Select(&recommendEstates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, LIMIT)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -925,7 +924,7 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []Estate{}
 
-	sqlstr := `SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY view_count DESC`
+	sqlstr := `SELECT * FROM estate WHERE latitude <= $1::double precision AND latitude >= $2::double precision AND longitude <= $3::double precision AND longitude >= $4::double precision ORDER BY view_count`
 
 	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {
@@ -940,8 +939,8 @@ func searchEstateNazotte(c echo.Context) error {
 	for _, estate := range estatesInBoundingBox {
 		validatedEstate := Estate{}
 
-		point := fmt.Sprintf("'POINT(%f %f)'", estate.Latitude, estate.Longitude)
-		sqlstr := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))`
+		point := fmt.Sprintf("point '(%f, %f)'", estate.Latitude, estate.Longitude)
+		sqlstr := `SELECT * FROM estate WHERE id = $1::int AND %s @> %s`
 		sqlstr = fmt.Sprintf(sqlstr, coordinates.coordinatesToText(), point)
 
 		err = db.Get(&validatedEstate, sqlstr, estate.ID)
@@ -1033,7 +1032,7 @@ func (cs Coordinates) getBoundingBox() BoundingBox {
 func (cs Coordinates) coordinatesToText() string {
 	PolygonArray := make([]string, 0, len(cs.Coordinates))
 	for _, c := range cs.Coordinates {
-		PolygonArray = append(PolygonArray, fmt.Sprintf("%f %f", c.Latitude, c.Longitude))
+		PolygonArray = append(PolygonArray, fmt.Sprintf("(%f, %f)", c.Latitude, c.Longitude))
 	}
-	return fmt.Sprintf("'POLYGON((%s))'", strings.Join(PolygonArray, ","))
+	return fmt.Sprintf("polygon '(%s)'", strings.Join(PolygonArray, ", "))
 }
