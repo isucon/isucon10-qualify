@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -94,7 +95,8 @@ func verifyChairSearch(ctx context.Context, c *client.Client, filePath string) e
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
 			diff := cmp.Diff(*expected, *actual, ignoreChairUnexported)
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: イスの検索結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
+			log.Printf("%s\n%s\n", filePath, diff)
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: イスの検索結果が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
@@ -133,7 +135,8 @@ func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) 
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			diff := cmp.Diff(*expected, *actual, ignoreEstateUnexported)
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 物件の検索結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
+			log.Printf("%s\n%s\n", filePath, diff)
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 物件の検索結果が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
@@ -167,7 +170,8 @@ func verifyRecommendedChair(ctx context.Context, c *client.Client, filePath stri
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
 			diff := cmp.Diff(*expected, *actual, ignoreChairUnexported)
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスのおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
+			log.Printf("%s\n%s\n", filePath, diff)
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスのおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
@@ -201,7 +205,8 @@ func verifyRecommendedEstate(ctx context.Context, c *client.Client, filePath str
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			diff := cmp.Diff(*expected, *actual, ignoreEstateUnexported)
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
+			log.Printf("%s\n%s\n", filePath, diff)
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
@@ -243,7 +248,8 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 		}
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			diff := cmp.Diff(*expected, *actual, ignoreEstateUnexported)
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate:id: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
+			log.Printf("%s\n%s\n", filePath, diff)
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate:id: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
@@ -283,7 +289,8 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			diff := cmp.Diff(*expected, *actual, ignoreEstateUnexported)
-			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 物件の検索結果が不正です"), failure.Messagef("snapshot: %s", filePath), failure.Message(diff))
+			log.Printf("%s\n%s\n", filePath, diff)
+			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 物件の検索結果が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
