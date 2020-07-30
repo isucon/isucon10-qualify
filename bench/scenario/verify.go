@@ -58,7 +58,7 @@ func verifyChairViewCount(ctx context.Context, c *client.Client) error {
 	}
 
 	q := url.Values{}
-	q.Add("features", "フットレスト")
+	q.Add("features", "フットレスト付き")
 	q.Add("page", "0")
 	q.Add("perPage", "2")
 

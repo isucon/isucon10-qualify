@@ -19,23 +19,13 @@ import (
 var estateFeatureList = []string{
 	"2階以上",
 	"駐車場あり",
-	"室内洗浄機置き場",
-	"エアコン付き",
-	"オートロック",
-	"洗面所独立",
 	"ロフトあり",
-	"ガスコンロ対応",
-	"インターネット無料",
-	"ユニバーサルデザイン",
-	"DIY可",
-	"即入居可",
-	"楽器相談可",
-	"保証人不要",
-	"角部屋",
-	"床下収納",
 	"バストイレ別",
-	"駅から徒歩5分",
+	"DIY可能",
 	"ペット飼育可能",
+	"インターネット無料",
+	"オートロック",
+	"駅から徒歩5分",
 }
 
 func generateRandomQueryForSearchEstates() url.Values {
@@ -53,7 +43,7 @@ func generateRandomQueryForSearchEstates() url.Values {
 	features := make([]string, len(estateFeatureList))
 	copy(features, estateFeatureList)
 	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
-	featureLength := rand.Intn(10) + 3
+	featureLength := rand.Intn(6) + 1
 	q.Set("features", strings.Join(features[:featureLength], ","))
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfEstateSearch))
 	q.Set("page", "0")

@@ -15,7 +15,7 @@ OUTPUT_SQL_FILE = "./result/2_DummyChairData.sql"
 OUTPUT_TXT_FILE = "./result/chair_json.txt"
 CHAIR_IMAGE_ORIGIN_DIR = "./origin/chair"
 CHAIR_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/chair"
-CHAIR_DUMMY_IMAGE_NUM = 1000
+CHAIR_DUMMY_IMAGE_NUM = 1
 RECORD_COUNT = 10 ** 4
 BULK_INSERT_COUNT = 500
 CHAIR_MIN_CENTIMETER = 30
@@ -85,28 +85,18 @@ CHAIR_NAME_LIST = [
 ]
 
 CHAIR_FEATURE_LIST = [
-    "ユニバーサルデザイン",
-    "通気性抜群",
-    "革張り",
-    "骨盤矯正",
-    "分解可能",
     "ヘッドレスト付き",
-    "丸洗い可能",
-    "クッション付き",
-    "サスペンション",
-    "座奥調節可能",
-    "メタルフレーム",
-    "低反発",
-    "ロッキング機構",
+    "肘掛け付き",
+    "キャスター付き",
     "アーム高さ調節可能",
-    "折りたたみ可",
-    "肘掛け",
-    "キャスター",
-    "リクライニング",
-    "高さ調節可"
+    "リクライニング可能",
+    "高さ調節可能",
+    "通気性抜群",
+    "メタルフレーム",
+    "低反発"
 ]
 
-CHAIR_FEATURE_FOR_VERIFY = "フットレスト"
+CHAIR_FEATURE_FOR_VERIFY = "フットレスト付き"
 
 CHAIR_KIND_LIST = [
     "ゲーミングチェア",

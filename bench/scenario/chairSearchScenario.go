@@ -39,25 +39,15 @@ var chairColorList = []string{
 }
 
 var chairFeatureList = []string{
-	"ユニバーサルデザイン",
-	"通気性抜群",
-	"革張り",
-	"骨盤矯正",
-	"分解可能",
 	"ヘッドレスト付き",
-	"丸洗い可能",
-	"クッション付き",
-	"サスペンション",
-	"座奥調節可能",
+	"肘掛け付き",
+	"キャスター付き",
+	"アーム高さ調節可能",
+	"リクライニング可能",
+	"高さ調節可能",
+	"通気性抜群",
 	"メタルフレーム",
 	"低反発",
-	"ロッキング機構",
-	"アーム高さ調節可能",
-	"折りたたみ可",
-	"肘掛け",
-	"キャスター",
-	"リクライニング",
-	"高さ調節可",
 }
 
 func generateRandomQueryForSearchChairs() url.Values {
@@ -85,7 +75,7 @@ func generateRandomQueryForSearchChairs() url.Values {
 	features := make([]string, len(chairFeatureList))
 	copy(features, chairFeatureList)
 	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
-	featureLength := rand.Intn(10) + 3
+	featureLength := rand.Intn(6) + 1
 	q.Set("features", strings.Join(features[:featureLength], ","))
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfChairSearch))
 	q.Set("page", "0")
