@@ -30,20 +30,20 @@ var estateFeatureList = []string{
 
 func generateRandomQueryForSearchEstates() url.Values {
 	q := url.Values{}
-	if (rand.Intn(100) % 5) == 0 {
+	if (rand.Intn(100) % 10) == 0 {
 		q.Set("rentRangeId", strconv.Itoa(rand.Intn(4)))
 	}
-	if (rand.Intn(100) % 5) == 0 {
+	if (rand.Intn(100) % 10) == 0 {
 		q.Set("doorHeightRangeId", strconv.Itoa(rand.Intn(4)))
 	}
-	if (rand.Intn(100) % 5) == 0 {
+	if (rand.Intn(100) % 10) == 0 {
 		q.Set("doorWidthRangeId", strconv.Itoa(rand.Intn(4)))
 	}
 
 	features := make([]string, len(estateFeatureList))
 	copy(features, estateFeatureList)
 	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
-	featureLength := rand.Intn(6) + 1
+	featureLength := rand.Intn(5) + 1
 	q.Set("features", strings.Join(features[:featureLength], ","))
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfEstateSearch))
 	q.Set("page", "0")

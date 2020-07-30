@@ -52,30 +52,30 @@ var chairFeatureList = []string{
 
 func generateRandomQueryForSearchChairs() url.Values {
 	q := url.Values{}
-	if (rand.Intn(100) % 5) == 0 {
+	if (rand.Intn(100) % 10) == 0 {
 		q.Set("priceRangeId", strconv.Itoa(rand.Intn(6)))
 	}
-	if (rand.Intn(100) % 5) == 0 {
+	if (rand.Intn(100) % 10) == 0 {
 		q.Set("heightRangeId", strconv.Itoa(rand.Intn(4)))
 	}
-	if (rand.Intn(100) % 5) == 0 {
+	if (rand.Intn(100) % 10) == 0 {
 		q.Set("widthRangeId", strconv.Itoa(rand.Intn(4)))
 	}
-	if (rand.Intn(100) % 5) == 0 {
+	if (rand.Intn(100) % 10) == 0 {
 		q.Set("depthRangeId", strconv.Itoa(rand.Intn(4)))
 	}
 
-	if (rand.Intn(100) % 20) == 0 {
+	if (rand.Intn(100) % 25) == 0 {
 		q.Set("kind", chairKindList[rand.Intn(len(chairKindList))])
 	}
-	if (rand.Intn(100) % 20) == 0 {
+	if (rand.Intn(100) % 25) == 0 {
 		q.Set("color", chairColorList[rand.Intn(len(chairColorList))])
 	}
 
 	features := make([]string, len(chairFeatureList))
 	copy(features, chairFeatureList)
 	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
-	featureLength := rand.Intn(6) + 1
+	featureLength := rand.Intn(5) + 1
 	q.Set("features", strings.Join(features[:featureLength], ","))
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfChairSearch))
 	q.Set("page", "0")
