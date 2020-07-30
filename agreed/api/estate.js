@@ -56,10 +56,10 @@ module.exports = [
     }
   },
 
-  // `GET: /api/estate/range`
+  // `GET: /api/estate/search/condition`
   {
     request: {
-      path: `${PATH}/range`,
+      path: `${PATH}/search/condition`,
       method: 'GET',
       query: {},
       values: {}

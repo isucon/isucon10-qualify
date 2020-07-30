@@ -18,7 +18,7 @@ import { RangeForm } from '../../../components/RangeForm'
 import { CheckboxForm } from '../../../components/CheckboxForm'
 
 import type { FC } from 'react'
-import type { Estate, EstateRangeMap, EstateSearchCondition, EstateSearchResponse } from '@types'
+import type { Estate, EstateSearchCondition, EstateSearchParams, EstateSearchResponse } from '@types'
 
 const ESTATE_COUNTS_PER_PAGE = 20
 
@@ -27,7 +27,7 @@ interface EstateItemProps {
 }
 
 interface EstateSearchProps {
-  estateRangeMap: EstateRangeMap
+  estateSearchCondition: EstateSearchCondition
 }
 
 const useEstateItemStyles = makeStyles(theme =>
@@ -96,12 +96,16 @@ const useEstateSearchStyles = makeStyles(theme =>
   })
 )
 
-const FEATURE_LIST = [
-  'バストイレ別',
-  '駅から徒歩5分',
-  'ペット飼育可能',
-  'デザイナーズ物件'
-]
+const searchEstate = async (params: EstateSearchParams) => {
+  const urlSearchParams = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    urlSearchParams.append(key, value.toString())
+  }
+
+  const response = await fetch(`/api/estate/search?${urlSearchParams.toString()}`, { mode: 'cors' })
+  const json = await response.json()
+  return json as EstateSearchResponse
+}
 
 const EstateItem: FC<EstateItemProps> = ({ estate }) => {
   const classes = useEstateItemStyles()
@@ -123,20 +127,20 @@ const EstateItem: FC<EstateItemProps> = ({ estate }) => {
   )
 }
 
-const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
+const EstateSearch: FC<EstateSearchProps> = ({ estateSearchCondition }) => {
   const classes = useEstateSearchStyles()
 
   const [doorWidthRangeId, setDoorWidthRangeId] = useState('')
   const [doorHeightRangeId, setDoorHeightRangeId] = useState('')
   const [rentRangeId, setRentRangeId] = useState('')
-  const [features, setFeatures] = useState<boolean[]>(new Array(FEATURE_LIST.length).fill(false))
-  const [estateSearchCondition, setEstateSearchCondition] = useState<EstateSearchCondition | null>(null)
+  const [features, setFeatures] = useState<boolean[]>(new Array(estateSearchCondition.feature.list.length).fill(false))
+  const [estateSearchParams, setEstateSearchParams] = useState<EstateSearchParams | null>(null)
   const [searchResult, setSearchResult] = useState<EstateSearchResponse | null>(null)
   const [page, setPage] = useState<number>(0)
 
   const onSearch = () => {
-    const selectedFeatures = FEATURE_LIST.filter((_, i) => features[i])
-    const condition: EstateSearchCondition = {
+    const selectedFeatures = estateSearchCondition.feature.list.filter((_, i) => features[i])
+    const params: EstateSearchParams = {
       doorWidthRangeId,
       doorHeightRangeId,
       rentRangeId,
@@ -144,16 +148,11 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
       page: 0,
       perPage: ESTATE_COUNTS_PER_PAGE
     }
-    setEstateSearchCondition(condition)
-
-    const params = new URLSearchParams()
-    for (const [key, value] of Object.entries(condition)) {
-      params.append(key, value.toString())
-    }
-    fetch(`/api/estate/search?${params.toString()}`, { mode: 'cors' })
-      .then(async response => await response.json())
+    setEstateSearchParams(params)
+    setSearchResult(null)
+    searchEstate(params)
       .then(result => {
-        setSearchResult(result as EstateSearchResponse)
+        setSearchResult(result)
         setPage(0)
       })
       .catch(console.error)
@@ -167,28 +166,28 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
             <RangeForm
               name='ドアの横幅'
               value={doorWidthRangeId}
-              rangeList={estateRangeMap.doorWidth}
+              rangeCondition={estateSearchCondition.doorWidth}
               onChange={(_, value) => { setDoorWidthRangeId(value) }}
             />
 
             <RangeForm
               name='ドアの高さ'
               value={doorHeightRangeId}
-              rangeList={estateRangeMap.doorHeight}
-              onChange={(event, value) => { setDoorHeightRangeId(event.target.value) }}
+              rangeCondition={estateSearchCondition.doorHeight}
+              onChange={(_, value) => { setDoorHeightRangeId(value) }}
             />
 
             <RangeForm
               name='賃料'
               value={rentRangeId}
-              rangeList={estateRangeMap.rent}
+              rangeCondition={estateSearchCondition.rent}
               onChange={(_, value) => { setRentRangeId(value) }}
             />
 
             <CheckboxForm
               name='特徴'
               checkList={features}
-              selectList={FEATURE_LIST}
+              selectList={estateSearchCondition.feature.list}
               onChange={(_, checked, key) => {
                 setFeatures(
                   features.map((feature, i) => key === i ? checked : feature)
@@ -211,7 +210,7 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
         </Container>
       </Paper>
 
-      {estateSearchCondition ? (
+      {estateSearchParams ? (
         <Paper className={classes.page}>
           <Container maxWidth='md'>
             <Box width={1} className={classes.search} alignItems='center'>
@@ -221,19 +220,14 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
                     count={Math.ceil(searchResult.count / ESTATE_COUNTS_PER_PAGE)}
                     page={page + 1}
                     onChange={(_, page) => {
-                      setPage(page - 1)
-                      if (!estateSearchCondition) return
-                      const condition = { ...estateSearchCondition, page: page - 1 }
-                      setEstateSearchCondition(condition)
+                      if (!estateSearchParams) return
+                      const params = { ...estateSearchParams, page: page - 1 }
+                      setEstateSearchParams(params)
                       setSearchResult(null)
-                      const params = new URLSearchParams()
-                      for (const [key, value] of Object.entries(condition)) {
-                        params.append(key, value.toString())
-                      }
-                      fetch(`/api/estate/search?${params.toString()}`, { mode: 'cors' })
-                        .then(async response => await response.json())
+                      searchEstate(params)
                         .then(result => {
-                          setSearchResult(result as EstateSearchResponse)
+                          setSearchResult(result)
+                          setPage(page - 1)
                         })
                         .catch(console.error)
                     }}
@@ -256,17 +250,17 @@ const EstateSearch: FC<EstateSearchProps> = ({ estateRangeMap }) => {
 }
 
 const EstateSearchPage = () => {
-  const [estateRangeMap, setEstateRangeMap] = useState<EstateRangeMap | null>(null)
+  const [estateSearchCondition, setEstateSearchCondition] = useState<EstateSearchCondition | null>(null)
 
   useEffect(() => {
-    fetch('/api/estate/range', { mode: 'cors' })
+    fetch('/api/estate/search/condition', { mode: 'cors' })
       .then(async response => await response.json())
-      .then(estate => setEstateRangeMap(estate as EstateRangeMap))
+      .then(estate => setEstateSearchCondition(estate as EstateSearchCondition))
       .catch(console.error)
   }, [])
 
-  return estateRangeMap ? (
-    <EstateSearch estateRangeMap={estateRangeMap} />
+  return estateSearchCondition ? (
+    <EstateSearch estateSearchCondition={estateSearchCondition} />
   ) : (
     <Loading />
   )

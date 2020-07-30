@@ -19,12 +19,12 @@ import { RadioButtonForm } from '../../../components/RadioButtonForm'
 import { CheckboxForm } from '../../../components/CheckboxForm'
 
 import type { FC } from 'react'
-import type { ChairRangeMap, ChairSearchCondition, ChairSearchResponse } from '@types'
+import type { ChairSearchCondition, ChairSearchParams, ChairSearchResponse } from '@types'
 
 const ESTATE_COUNTS_PER_PAGE = 20
 
 interface ChairSearchProps {
-  chairRangeMap: ChairRangeMap
+  chairSearchCondition: ChairSearchCondition
 }
 
 const useChairSearchStyles = makeStyles(theme =>
@@ -70,38 +70,17 @@ const useChairSearchStyles = makeStyles(theme =>
   })
 )
 
-const COLOR_LIST = [
-  '黒',
-  '白',
-  '赤',
-  '青',
-  '緑',
-  '黄',
-  '紫',
-  'ピンク',
-  'オレンジ',
-  '水色',
-  'ネイビー',
-  'ベージュ'
-]
+const searchChair = async (params: ChairSearchParams) => {
+  const urlSearchParams = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    urlSearchParams.append(key, value.toString())
+  }
+  const response = await fetch(`/api/chair/search?${urlSearchParams.toString()}`, { mode: 'cors' })
+  const json = await response.json()
+  return json as ChairSearchResponse
+}
 
-const FEATURE_LIST = [
-  '折りたたみ可',
-  '肘掛け',
-  'キャスター',
-  'リクライニング',
-  '高さ調節可',
-  'フットレスト'
-]
-
-const KIND_LIST = [
-  'ゲーミングチェア',
-  '座椅子',
-  'エルゴノミクス',
-  'ハンモック'
-]
-
-const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
+const ChairSearch: FC<ChairSearchProps> = ({ chairSearchCondition }) => {
   const classes = useChairSearchStyles()
 
   const [priceRangeId, setPriceRangeId] = useState('')
@@ -110,14 +89,14 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
   const [depthRangeId, setDepthRangeId] = useState('')
   const [color, setColor] = useState('')
   const [kind, setKind] = useState('')
-  const [features, setFeatures] = useState<boolean[]>(new Array(FEATURE_LIST.length).fill(false))
-  const [chairSearchCondition, setChairSearchCondition] = useState<ChairSearchCondition | null>(null)
+  const [features, setFeatures] = useState<boolean[]>(new Array(chairSearchCondition.feature.list.length).fill(false))
+  const [chairSearchParams, setChairSearchParams] = useState<ChairSearchParams | null>(null)
   const [searchResult, setSearchResult] = useState<ChairSearchResponse | null>(null)
   const [page, setPage] = useState<number>(0)
 
   const onSearch = () => {
-    const selectedFeatures = FEATURE_LIST.filter((_, i) => features[i])
-    const condition: ChairSearchCondition = {
+    const selectedFeatures = chairSearchCondition.feature.list.filter((_, i) => features[i])
+    const params: ChairSearchParams = {
       priceRangeId,
       heightRangeId,
       widthRangeId,
@@ -128,16 +107,12 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
       page: 0,
       perPage: ESTATE_COUNTS_PER_PAGE
     }
-    setChairSearchCondition(condition)
+    setChairSearchParams(params)
+    setSearchResult(null)
 
-    const params = new URLSearchParams()
-    for (const [key, value] of Object.entries(condition)) {
-      params.append(key, value.toString())
-    }
-    fetch(`/api/chair/search?${params.toString()}`, { mode: 'cors' })
-      .then(async response => await response.json())
+    searchChair(params)
       .then(result => {
-        setSearchResult(result as ChairSearchResponse)
+        setSearchResult(result)
         setPage(0)
       })
       .catch(console.error)
@@ -151,49 +126,49 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
             <RangeForm
               name='イスの高さ'
               value={heightRangeId}
-              rangeList={chairRangeMap.height}
+              rangeCondition={chairSearchCondition.height}
               onChange={(_, value) => { setHeightRangeId(value) }}
             />
 
             <RangeForm
               name='イスの横幅'
               value={widthRangeId}
-              rangeList={chairRangeMap.width}
+              rangeCondition={chairSearchCondition.width}
               onChange={(_, value) => { setWidthRangeId(value) }}
             />
 
             <RangeForm
               name='イスの奥行き'
               value={depthRangeId}
-              rangeList={chairRangeMap.depth}
+              rangeCondition={chairSearchCondition.depth}
               onChange={(_, value) => { setDepthRangeId(value) }}
             />
 
             <RangeForm
               name='価格'
               value={priceRangeId}
-              rangeList={chairRangeMap.price}
+              rangeCondition={chairSearchCondition.price}
               onChange={(_, value) => { setPriceRangeId(value) }}
             />
 
             <RadioButtonForm
               name='色'
               value={color}
-              items={COLOR_LIST}
+              items={chairSearchCondition.color.list}
               onChange={(_, value) => { setColor(value) }}
             />
 
             <RadioButtonForm
               name='種類'
               value={kind}
-              items={KIND_LIST}
+              items={chairSearchCondition.kind.list}
               onChange={(_, value) => { setKind(value) }}
             />
 
             <CheckboxForm
               name='特徴'
               checkList={features}
-              selectList={FEATURE_LIST}
+              selectList={chairSearchCondition.feature.list}
               onChange={(_, checked, key) => {
                 setFeatures(features.map((feature, i) => key === i ? checked : feature))
               }}
@@ -217,7 +192,7 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
         </Container>
       </Paper>
 
-      {chairSearchCondition ? (
+      {chairSearchParams ? (
         <Paper className={classes.page}>
           <Container maxWidth='md'>
             <Box width={1} className={classes.search} alignItems='center'>
@@ -227,19 +202,18 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
                     count={Math.ceil(searchResult.count / ESTATE_COUNTS_PER_PAGE)}
                     page={page + 1}
                     onChange={(_, page) => {
-                      setPage(page - 1)
-                      if (!chairSearchCondition) return
-                      const condition = { ...chairSearchCondition, page: page - 1 }
-                      setChairSearchCondition(condition)
+                      if (!chairSearchParams) return
+                      const params = { ...chairSearchParams, page: page - 1 }
+                      setChairSearchParams(params)
                       setSearchResult(null)
-                      const params = new URLSearchParams()
-                      for (const [key, value] of Object.entries(condition)) {
-                        params.append(key, value.toString())
+                      const urlSearchParams = new URLSearchParams()
+                      for (const [key, value] of Object.entries(params)) {
+                        urlSearchParams.append(key, value.toString())
                       }
-                      fetch(`/api/chair/search?${params.toString()}`, { mode: 'cors' })
-                        .then(async response => await response.json())
+                      searchChair(params)
                         .then(result => {
-                          setSearchResult(result as ChairSearchResponse)
+                          setSearchResult(result)
+                          setPage(page - 1)
                         })
                         .catch(console.error)
                     }}
@@ -273,17 +247,17 @@ const ChairSearch: FC<ChairSearchProps> = ({ chairRangeMap }) => {
 }
 
 const ChairSearchPage = () => {
-  const [chairRangeMap, setChairRangeMap] = useState<ChairRangeMap | null>(null)
+  const [chairSearchCondition, setChairSearchCondition] = useState<ChairSearchCondition | null>(null)
 
   useEffect(() => {
-    fetch('/api/chair/range', { mode: 'cors' })
+    fetch('/api/chair/search/condition', { mode: 'cors' })
       .then(async response => await response.json())
-      .then(chair => setChairRangeMap(chair as ChairRangeMap))
+      .then(chair => setChairSearchCondition(chair as ChairSearchCondition))
       .catch(console.error)
   }, [])
 
-  return chairRangeMap ? (
-    <ChairSearch chairRangeMap={chairRangeMap} />
+  return chairSearchCondition ? (
+    <ChairSearch chairSearchCondition={chairSearchCondition} />
   ) : (
     <Loading />
   )

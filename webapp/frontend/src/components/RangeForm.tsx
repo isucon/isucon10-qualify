@@ -7,16 +7,16 @@ import {
 } from '@material-ui/core'
 
 import type { FC, ChangeEvent } from 'react'
-import type { RangeList } from '@types'
+import type { RangeCondition } from '@types'
 
 interface Props {
   name: string
   value: string
-  rangeList: RangeList
+  rangeCondition: RangeCondition
   onChange: (event: ChangeEvent<HTMLInputElement>, value: string) => void
 }
 
-export const RangeForm: FC<Props> = ({ name, value, rangeList, onChange }) => (
+export const RangeForm: FC<Props> = ({ name, value, rangeCondition: { prefix, suffix, ranges }, onChange }) => (
   <FormControl component='fieldset'>
     <FormLabel component='legend'>{name}</FormLabel>
     <RadioGroup
@@ -27,9 +27,9 @@ export const RangeForm: FC<Props> = ({ name, value, rangeList, onChange }) => (
       row
     >
       {
-        rangeList.ranges.map(({ id, min, max }) => {
-          const minLabel = min !== -1 ? `${rangeList.prefix}${min}${rangeList.suffix} ` : ''
-          const maxLabel = max !== -1 ? ` ${rangeList.prefix}${max}${rangeList.suffix}` : ''
+        ranges.map(({ id, min, max }) => {
+          const minLabel = min !== -1 ? `${prefix}${min}${suffix} ` : ''
+          const maxLabel = max !== -1 ? ` ${prefix}${max}${suffix}` : ''
           return <FormControlLabel key={id} value={id.toString()} control={<Radio />} label={`${minLabel}〜${maxLabel}`} />
         })
       }

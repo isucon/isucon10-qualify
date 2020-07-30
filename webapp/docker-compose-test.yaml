@@ -43,7 +43,7 @@ services:
         - -timeout
         - 60s
         - -wait
-        - http://api-server:1323/api/estate/range
+        - http://api-server:1323/api/estate/search/condition
       environment:
         MYSQL_DATABASE: isuumo
         MYSQL_USER: isucon

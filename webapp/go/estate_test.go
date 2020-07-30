@@ -70,8 +70,8 @@ func TestBuyEstate(t *testing.T) {
 
 func TestResponseEstateRange(t *testing.T) {
 	client := new(http.Client)
-	t.Run("[GET] /api/estate/range, to get estate range", func(t *testing.T) {
-		path := "/api/estate/range"
+	t.Run("[GET] /api/estate/search/condition, to get estate range", func(t *testing.T) {
+		path := "/api/estate/search/condition"
 		url := getURL()
 		req, _ := http.NewRequest("GET", url+path, nil)
 

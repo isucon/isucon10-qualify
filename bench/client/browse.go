@@ -115,7 +115,7 @@ func (c *Client) AccessEstateDetailPage(ctx context.Context, id int64) (*asset.E
 }
 
 func (c *Client) AccessChairSearchPage(ctx context.Context) error {
-	err := c.fetch(ctx, "/api/chair/range", nil)
+	err := c.fetch(ctx, "/api/chair/search/condition", nil)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (c *Client) AccessChairSearchPage(ctx context.Context) error {
 }
 
 func (c *Client) AccessEstateSearchPage(ctx context.Context) error {
-	err := c.fetch(ctx, "/api/estate/range", nil)
+	err := c.fetch(ctx, "/api/estate/search/condition", nil)
 	if err != nil {
 		return err
 	}

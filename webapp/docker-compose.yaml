@@ -27,6 +27,7 @@ services:
       - tcp://mysql:3306
     volumes:
       - ./mysql/db:/go/src/mysql/db
+      - ./fixture:/go/src/fixture
     environment:
       MYSQL_DATABASE: isuumo
       MYSQL_USER: isucon
@@ -58,7 +59,7 @@ services:
       - -timeout
       - 60s
       - -wait
-      - http://api-server:1323/api/estate/range
+      - http://api-server:1323/api/estate/search/condition
     environment:
       API_SERVER: api-server
     depends_on:
