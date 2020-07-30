@@ -22,7 +22,6 @@ DOOR_MIN_CENTIMETER = 30
 DOOR_MAX_CENTIMETER = 200
 MIN_VIEW_COUNT = 3000
 MAX_VIEW_COUNT = 1000000
-sqlCommands = "use isuumo;\n"
 
 BUILDING_NAME_LIST = [
     "{name}ISUビルディング",
@@ -102,7 +101,6 @@ if __name__ == '__main__':
         desc_lines = description_lines.readlines()
 
     with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
-        sqlfile.write(sqlCommands)
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
                 RECORD_COUNT, BULK_INSERT_COUNT))
@@ -122,7 +120,7 @@ if __name__ == '__main__':
             })
         ]
 
-        sqlCommand = f"""INSERT INTO estate (id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features) VALUES {', '.join(map(lambda estate: f"('{estate['id']}', '{estate['thumbnail']}', '{estate['name']}', '{estate['latitude']}' , '{estate['longitude']}', '{estate['address']}', '{estate['rent']}', '{estate['door_height']}', '{estate['door_width']}', '{estate['view_count']}', '{estate['description']}', '{estate['features']}')", ESTATES_FOR_VERIFY))};"""
+        sqlCommand = f"""INSERT INTO isuumo.estate (id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features) VALUES {', '.join(map(lambda estate: f"('{estate['id']}', '{estate['thumbnail']}', '{estate['name']}', '{estate['latitude']}' , '{estate['longitude']}', '{estate['address']}', '{estate['rent']}', '{estate['door_height']}', '{estate['door_width']}', '{estate['view_count']}', '{estate['description']}', '{estate['features']}')", ESTATES_FOR_VERIFY))};"""
         sqlfile.write(sqlCommand)
         txtfile.write("\n".join([dump_estate_to_json_str(estate)
                                  for estate in ESTATES_FOR_VERIFY]) + "\n")
@@ -133,7 +131,7 @@ if __name__ == '__main__':
             bulk_list = [generate_estate_dummy_data(
                 estate_id + i) for i in range(BULK_INSERT_COUNT)]
             estate_id += BULK_INSERT_COUNT
-            sqlCommand = f"""INSERT INTO estate (id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features) VALUES {', '.join(map(lambda estate: f"('{estate['id']}', '{estate['thumbnail']}', '{estate['name']}', '{estate['latitude']}' , '{estate['longitude']}', '{estate['address']}', '{estate['rent']}', '{estate['door_height']}', '{estate['door_width']}', '{estate['view_count']}', '{estate['description']}', '{estate['features']}')", bulk_list))};"""
+            sqlCommand = f"""INSERT INTO isuumo.estate (id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, view_count, description, features) VALUES {', '.join(map(lambda estate: f"('{estate['id']}', '{estate['thumbnail']}', '{estate['name']}', '{estate['latitude']}' , '{estate['longitude']}', '{estate['address']}', '{estate['rent']}', '{estate['door_height']}', '{estate['door_width']}', '{estate['view_count']}', '{estate['description']}', '{estate['features']}')", bulk_list))};"""
             sqlfile.write(sqlCommand)
             txtfile.write("\n".join([dump_estate_to_json_str(estate)
                                      for estate in bulk_list]) + "\n")
