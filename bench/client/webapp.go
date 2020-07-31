@@ -26,6 +26,39 @@ type Coordinate struct {
 	Longitude float64 `json:"longitude"`
 }
 
+type Range struct {
+	ID  int64 `json:"id"`
+	Min int64 `json:"min"`
+	Max int64 `json:"max"`
+}
+
+type RangeCondition struct {
+	Prefix string   `json:"prefix"`
+	Suffix string   `json:"suffix"`
+	Ranges []*Range `json:"ranges"`
+}
+
+type ListCondition struct {
+	List []string `json:"list"`
+}
+
+type EstateSearchCondition struct {
+	DoorWidth  RangeCondition `json:"doorWidth"`
+	DoorHeight RangeCondition `json:"doorHeight"`
+	Rent       RangeCondition `json:"rent"`
+	Feature    ListCondition  `json:"feature"`
+}
+
+type ChairSearchCondition struct {
+	Width   RangeCondition `json:"width"`
+	Height  RangeCondition `json:"height"`
+	Depth   RangeCondition `json:"depth"`
+	Price   RangeCondition `json:"price"`
+	Color   ListCondition  `json:"color"`
+	Feature ListCondition  `json:"feature"`
+	Kind    ListCondition  `json:"kind"`
+}
+
 func (c *Client) Initialize(ctx context.Context) error {
 	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/initialize", nil)
 	if err != nil {
@@ -113,6 +146,42 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	return &chair, nil
 }
 
+func (c *Client) GetChairSearchCondition(ctx context.Context) (*ChairSearchCondition, error) {
+	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/chair/search/condition")
+	if err != nil {
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	req = req.WithContext(ctx)
+	res, err := c.Do(req)
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search/condition: リクエストに失敗しました"))
+	}
+
+	err = checkStatusCode(res, []int{http.StatusOK})
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search/condition: レスポンスコードが不正です"))
+	}
+
+	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
+
+	var condition ChairSearchCondition
+
+	err = json.NewDecoder(res.Body).Decode(&condition)
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search/condition: JSONデコードに失敗しました"))
+	}
+
+	return &condition, nil
+}
+
 func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*ChairsResponse, error) {
 	req, err := c.newGetRequestWithQuery(ShareTargetURLs.AppURL, "/api/chair/search", q)
 	if err != nil {
@@ -153,6 +222,42 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 	}
 
 	return &chairs, nil
+}
+
+func (c *Client) GetEstateSearchCondition(ctx context.Context) (*EstateSearchCondition, error) {
+	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/estate/search/condition")
+	if err != nil {
+		return nil, failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	req = req.WithContext(ctx)
+	res, err := c.Do(req)
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search/condition: リクエストに失敗しました"))
+	}
+
+	err = checkStatusCode(res, []int{http.StatusOK})
+	if err != nil {
+		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search/condition: レスポンスコードが不正です"))
+	}
+
+	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
+
+	var condition EstateSearchCondition
+
+	err = json.NewDecoder(res.Body).Decode(&condition)
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
+		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search/condition: JSONデコードに失敗しました"))
+	}
+
+	return &condition, nil
 }
 
 func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*EstatesResponse, error) {

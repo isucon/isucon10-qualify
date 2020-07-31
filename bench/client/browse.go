@@ -2,49 +2,12 @@ package client
 
 import (
 	"context"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
 	"strconv"
 
 	"golang.org/x/sync/errgroup"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
-	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
-	"github.com/morikuni/failure"
 )
-
-func (c *Client) fetch(ctx context.Context, resource string, dst io.Writer) error {
-	req, err := c.newGetRequest(ShareTargetURLs.AppURL, resource)
-	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker)
-	}
-
-	req = req.WithContext(ctx)
-	res, err := c.Do(req)
-	if err != nil {
-		if ctxErr := ctx.Err(); ctxErr != nil {
-			return ctxErr
-		}
-		return failure.Wrap(err, failure.Messagef("GET %v: リクエストに失敗しました", resource))
-	}
-
-	if res.StatusCode != http.StatusOK {
-		err := fmt.Errorf("GET %v: status code of response is %v", resource, res.StatusCode)
-		return failure.Wrap(err, failure.Messagef("GET %v: リクエストに失敗しました", resource))
-	}
-
-	defer res.Body.Close()
-
-	if dst != nil {
-		io.Copy(dst, res.Body)
-	} else {
-		io.Copy(ioutil.Discard, res.Body)
-	}
-
-	return nil
-}
 
 func (c *Client) AccessTopPage(ctx context.Context) error {
 	eg, childCtx := errgroup.WithContext(ctx)
@@ -114,22 +77,22 @@ func (c *Client) AccessEstateDetailPage(ctx context.Context, id int64) (*asset.E
 	return estate, nil
 }
 
-func (c *Client) AccessChairSearchPage(ctx context.Context) error {
-	err := c.fetch(ctx, "/api/chair/search/condition", nil)
+func (c *Client) AccessChairSearchPage(ctx context.Context) (*ChairSearchCondition, error) {
+	condition, err := c.GetChairSearchCondition(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return condition, nil
 }
 
-func (c *Client) AccessEstateSearchPage(ctx context.Context) error {
-	err := c.fetch(ctx, "/api/estate/search/condition", nil)
+func (c *Client) AccessEstateSearchPage(ctx context.Context) (*EstateSearchCondition, error) {
+	condition, err := c.GetEstateSearchCondition(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return condition, nil
 }
 
 func (c *Client) AccessEstateNazottePage(ctx context.Context) error {
