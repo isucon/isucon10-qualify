@@ -41,8 +41,10 @@ func main() {
 
 	var TargetServer string
 	var DestDirectoryPath string
+	var FixtureDirectoryPath string
 
 	flags.StringVar(&TargetServer, "target-url", "http://127.0.0.1:1323", "target url")
+	flags.StringVar(&FixtureDirectoryPath, "fixture-dir", "../../webapp/fixture", "fixture directory")
 	flags.StringVar(&DestDirectoryPath, "dest-dir", "./result/verification_data", "destination directory")
 
 	err := flags.Parse(os.Args[1:])
@@ -51,6 +53,31 @@ func main() {
 	}
 
 	wg := sync.WaitGroup{}
+
+	var chairSearchCondition ChairSearchCondition
+	var estateSearchCondition EstateSearchCondition
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		jsonText, err := ioutil.ReadFile(filepath.Join(FixtureDirectoryPath, "chair_condition.json"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		json.Unmarshal(jsonText, &chairSearchCondition)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		jsonText, err := ioutil.ReadFile(filepath.Join(FixtureDirectoryPath, "estate_condition.json"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		json.Unmarshal(jsonText, &estateSearchCondition)
+	}()
+
+	wg.Wait()
 
 	MkdirIfNotExists(DestDirectoryPath)
 
@@ -62,7 +89,7 @@ func main() {
 			req := Request{
 				Method:   "GET",
 				Resource: "/api/chair/search",
-				Query:    createRandomChairSearchQuery().Encode(),
+				Query:    createRandomChairSearchQuery(chairSearchCondition).Encode(),
 				Body:     "",
 			}
 
@@ -84,7 +111,7 @@ func main() {
 			req := Request{
 				Method:   "GET",
 				Resource: "/api/estate/search",
-				Query:    createRandomEstateSearchQuery().Encode(),
+				Query:    createRandomEstateSearchQuery(estateSearchCondition).Encode(),
 				Body:     "",
 			}
 

@@ -21,5 +21,5 @@ verification_data: ./make_verification_data
 	wayt http -u "http://localhost:1323/api/estate/search/condition"
 	curl -X POST "localhost:1323/initialize"
 	go build -o ./make_verification_data/main ./make_verification_data/*.go
-	./make_verification_data/main -dest-dir ./result/verification_data -target-url http://localhost:1323
+	./make_verification_data/main -fixture-dir ../webapp/fixture -dest-dir ./result/verification_data -target-url http://localhost:1323
 	docker-compose -f ../webapp/docker-compose.yaml down -v
