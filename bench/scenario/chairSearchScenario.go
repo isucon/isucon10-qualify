@@ -41,8 +41,8 @@ func createRandomChairSearchQuery(condition *client.ChairSearchCondition) url.Va
 	if (rand.Intn(100) % 10) == 0 {
 		q.Set("color", condition.Color.List[rand.Intn(len(condition.Color.List))])
 	}
-	features := make([]string, len(condition.Feature.List))
-	copy(features, condition.Feature.List)
+	features := make([]string, len(condition.Feature.List)-1)
+	copy(features, condition.Feature.List[:len(condition.Feature.List)-1])
 	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
 	featureLength := rand.Intn(len(features)-1) + 1
 	q.Set("features", strings.Join(features[:featureLength], ","))
