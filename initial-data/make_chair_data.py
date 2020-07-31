@@ -22,7 +22,6 @@ CHAIR_MIN_CENTIMETER = 30
 CHAIR_MAX_CENTIMETER = 200
 MIN_VIEW_COUNT = 3000
 MAX_VIEW_COUNT = 1000000
-sqlCommands = "use isuumo;\n"
 
 CHAIR_COLOR_LIST = [
     "黒",
@@ -167,7 +166,6 @@ if __name__ == "__main__":
         desc_lines = description_lines.readlines()
 
     with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
-        sqlfile.write(sqlCommands)
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
                 RECORD_COUNT, BULK_INSERT_COUNT))
@@ -193,7 +191,7 @@ if __name__ == "__main__":
             })
         ]
 
-        sqlCommand = f"""INSERT INTO chair (id, thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['id']}', '{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['view_count']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", CHAIRS_FOR_VERIFY))};"""
+        sqlCommand = f"""INSERT INTO isuumo.chair (id, thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['id']}', '{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['view_count']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", CHAIRS_FOR_VERIFY))};"""
         sqlfile.write(sqlCommand)
         txtfile.write(
             "\n".join([dump_chair_to_json_str(chair) for chair in CHAIRS_FOR_VERIFY]) + "\n")
@@ -204,7 +202,7 @@ if __name__ == "__main__":
             bulk_list = [generate_chair_dummy_data(
                 chair_id + i) for i in range(BULK_INSERT_COUNT)]
             chair_id += BULK_INSERT_COUNT
-            sqlCommand = f"""INSERT INTO chair (id, thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['id']}', '{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['view_count']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", bulk_list))};"""
+            sqlCommand = f"""INSERT INTO isuumo.chair (id, thumbnail, name, price, height, width, depth, view_count, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['id']}', '{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['view_count']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", bulk_list))};"""
             sqlfile.write(sqlCommand)
 
             txtfile.write(
