@@ -61,6 +61,10 @@ func (c *Client) Initialize(ctx context.Context) (*InitializeResponse, error) {
 		return nil, failure.Wrap(err, failure.Message("POST /initialize: JSONデコードに失敗しました"))
 	}
 
+	if initRes.Language == "" {
+		return nil, failure.New(fails.ErrApplication, failure.Message("POST /initialize: 実装言語が設定されていません"))
+	}
+
 	return &initRes, nil
 }
 
