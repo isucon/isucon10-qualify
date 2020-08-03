@@ -41,7 +41,7 @@ func createRandomEstateSearchQuery(condition *client.EstateSearchCondition) url.
 	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
 	featureLength := rand.Intn(len(features)-1) + 1
 	q.Set("features", strings.Join(features[:featureLength], ","))
-	q.Set("perPage", strconv.Itoa(rand.Intn(30)+20))
+	q.Set("perPage", strconv.Itoa(paramater.PerPageOfEstateSearch))
 	q.Set("page", "0")
 
 	return q

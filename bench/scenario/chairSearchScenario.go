@@ -47,7 +47,7 @@ func createRandomChairSearchQuery(condition *client.ChairSearchCondition) url.Va
 	featureLength := rand.Intn(len(features)-1) + 1
 	q.Set("features", strings.Join(features[:featureLength], ","))
 
-	q.Set("perPage", strconv.Itoa(rand.Intn(30)+20))
+	q.Set("perPage", strconv.Itoa(paramater.PerPageOfChairSearch))
 	q.Set("page", "0")
 
 	return q
