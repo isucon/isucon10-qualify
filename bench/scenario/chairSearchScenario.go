@@ -175,9 +175,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	if chair == nil {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: イス情報が不正です"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
+		return nil
 	}
 
 	if !isChairEqualToAsset(chair) {
