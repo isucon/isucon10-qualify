@@ -64,7 +64,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		json.Unmarshal(jsonText, &chairSearchCondition)
+
+		err = json.Unmarshal(jsonText, &chairSearchCondition)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}()
 
 	wg.Add(1)
@@ -74,7 +78,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		json.Unmarshal(jsonText, &estateSearchCondition)
+
+		err = json.Unmarshal(jsonText, &estateSearchCondition)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}()
 
 	wg.Wait()
