@@ -41,6 +41,7 @@ func createRandomChairSearchQuery(condition *client.ChairSearchCondition) url.Va
 	if (rand.Intn(100) % 10) == 0 {
 		q.Set("color", condition.Color.List[rand.Intn(len(condition.Color.List))])
 	}
+	// condition.Featureの最後の1つはVerify用で該当件数が少ないため、Validationのシナリオ内では使用しない
 	features := make([]string, len(condition.Feature.List)-1)
 	copy(features, condition.Feature.List[:len(condition.Feature.List)-1])
 	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })

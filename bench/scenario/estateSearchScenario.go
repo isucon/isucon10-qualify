@@ -36,6 +36,7 @@ func createRandomEstateSearchQuery(condition *client.EstateSearchCondition) url.
 		doorWidthRangeID := condition.DoorWidth.Ranges[rand.Intn(len(condition.DoorWidth.Ranges))].ID
 		q.Set("doorWidthRangeId", strconv.FormatInt(doorWidthRangeID, 10))
 	}
+	// condition.Featureの最後の1つはVerify用で該当件数が少ないため、Validationのシナリオ内では使用しない
 	features := make([]string, len(condition.Feature.List)-1)
 	copy(features, condition.Feature.List[:len(condition.Feature.List)-1])
 	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
