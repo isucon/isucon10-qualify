@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -101,6 +102,9 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
+		if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
+			err = failure.Translate(nerr, fails.ErrTimeout)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/:id: JSONデコードに失敗しました"))
 	}
 
@@ -142,6 +146,9 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
+		if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
+			err = failure.Translate(nerr, fails.ErrTimeout)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search: JSONデコードに失敗しました"))
 	}
 
@@ -180,6 +187,9 @@ func (c *Client) SearchEstatesWithQuery(ctx context.Context, q url.Values) (*Est
 	if err != nil {
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
+		}
+		if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
+			err = failure.Translate(nerr, fails.ErrTimeout)
 		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search: JSONデコードに失敗しました"))
 	}
@@ -225,6 +235,9 @@ func (c *Client) SearchEstatesNazotte(ctx context.Context, polygon *Coordinates)
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
+		if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
+			err = failure.Translate(nerr, fails.ErrTimeout)
+		}
 		return nil, failure.Wrap(err, failure.Message("POST /api/estate/nazotte: JSONデコードに失敗しました"))
 	}
 
@@ -263,6 +276,9 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 	if err != nil {
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
+		}
+		if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
+			err = failure.Translate(nerr, fails.ErrTimeout)
 		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/:id: JSONデコードに失敗しました"))
 	}
@@ -305,6 +321,9 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
+		if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
+			err = failure.Translate(nerr, fails.ErrTimeout)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: JSONデコードに失敗しました"))
 	}
 
@@ -344,6 +363,9 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
+		if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
+			err = failure.Translate(nerr, fails.ErrTimeout)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: JSONデコードに失敗しました"))
 	}
 
@@ -382,6 +404,9 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 	if err != nil {
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
+		}
+		if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
+			err = failure.Translate(nerr, fails.ErrTimeout)
 		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate/:id: JSONデコードに失敗しました"))
 	}
