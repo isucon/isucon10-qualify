@@ -170,7 +170,7 @@ func verifyEstateSearchCondition(ctx context.Context, c *client.Client, filePath
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search/condition: 物件sの検索条件が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search/condition: 物件の検索条件が不正です"))
 		}
 	}
 
