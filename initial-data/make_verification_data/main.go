@@ -89,6 +89,24 @@ func main() {
 
 	MkdirIfNotExists(DestDirectoryPath)
 
+	// chair search condition
+	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "chair_search_condition"))
+	wg.Add(1)
+	go func() {
+		req := Request{
+			Method:   "GET",
+			Resource: "/api/chair/search/condition",
+			Query:    "",
+			Body:     "",
+		}
+
+		snapshot := getSnapshotFromRequest(TargetServer, req)
+		writeSnapshotDataToFile(filepath.Join(DestDirectoryPath, "chair_search_condition", "0.json"), snapshot)
+		wg.Done()
+	}()
+	wg.Wait()
+	log.Println("Done generating verification data of /api/chair/search/condition")
+
 	// chair search
 	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "chair_search"))
 	for i := 0; i < NumOfChairSearchData; i++ {
@@ -110,6 +128,24 @@ func main() {
 	}
 	wg.Wait()
 	log.Println("Done generating verification data of /api/chair/search")
+
+	// estate search condition
+	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "estate_search_condition"))
+	wg.Add(1)
+	go func() {
+		req := Request{
+			Method:   "GET",
+			Resource: "/api/estate/search/condition",
+			Query:    "",
+			Body:     "",
+		}
+
+		snapshot := getSnapshotFromRequest(TargetServer, req)
+		writeSnapshotDataToFile(filepath.Join(DestDirectoryPath, "estate_search_condition", "0.json"), snapshot)
+		wg.Done()
+	}()
+	wg.Wait()
+	log.Println("Done generating verification data of /api/estate/search/condition")
 
 	// estate search
 	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "estate_search"))
