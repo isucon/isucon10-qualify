@@ -176,6 +176,9 @@ func (c *Client) GetChairSearchCondition(ctx context.Context) (*ChairSearchCondi
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
+		if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
+			err = failure.Translate(nerr, fails.ErrTimeout)
+		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/search/condition: JSONデコードに失敗しました"))
 	}
 
@@ -253,6 +256,9 @@ func (c *Client) GetEstateSearchCondition(ctx context.Context) (*EstateSearchCon
 	if err != nil {
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
+		}
+		if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
+			err = failure.Translate(nerr, fails.ErrTimeout)
 		}
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/search/condition: JSONデコードに失敗しました"))
 	}
