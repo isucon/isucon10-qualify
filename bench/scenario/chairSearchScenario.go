@@ -16,7 +16,12 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 )
 
-func createRandomChairSearchQuery(condition *client.ChairSearchCondition) url.Values {
+func createRandomChairSearchQuery() (url.Values, error) {
+	condition, err := asset.GetChairSearchCondition()
+	if err != nil {
+		return nil, err
+	}
+
 	q := url.Values{}
 	priceRangeID := condition.Price.Ranges[rand.Intn(len(condition.Price.Ranges))].ID
 	if (rand.Intn(100) % 10) == 0 {
@@ -41,9 +46,8 @@ func createRandomChairSearchQuery(condition *client.ChairSearchCondition) url.Va
 	if (rand.Intn(100) % 10) == 0 {
 		q.Set("color", condition.Color.List[rand.Intn(len(condition.Color.List))])
 	}
-	// condition.Featureの最後の1つはVerify用で該当件数が少ないため、Validationのシナリオ内では使用しない
-	features := make([]string, len(condition.Feature.List)-1)
-	copy(features, condition.Feature.List[:len(condition.Feature.List)-1])
+	features := make([]string, len(condition.Feature.List))
+	copy(features, condition.Feature.List)
 	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
 	featureLength := rand.Intn(len(features)-1) + 1
 	q.Set("features", strings.Join(features[:featureLength], ","))
@@ -51,7 +55,7 @@ func createRandomChairSearchQuery(condition *client.ChairSearchCondition) url.Va
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfChairSearch))
 	q.Set("page", "0")
 
-	return q
+	return q, nil
 }
 
 func chairSearchScenario(ctx context.Context, c *client.Client) error {
@@ -66,7 +70,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	t = time.Now()
-	condition, err := c.AccessChairSearchPage(ctx)
+	err = c.AccessChairSearchPage(ctx)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
@@ -76,7 +80,11 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	// Search Chairs with Query
-	q := createRandomChairSearchQuery(condition)
+	q, err := createRandomChairSearchQuery()
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
 
 	t = time.Now()
 	cr, err := c.SearchChairsWithQuery(ctx, q)

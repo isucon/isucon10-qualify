@@ -64,7 +64,7 @@ func main() {
 	}
 
 	// 初期データの準備
-	asset.Initialize(context.Background(), dataDir)
+	asset.Initialize(context.Background(), dataDir, fixtureDir)
 	eMsgs := fails.ErrorsForCheck.GetMsgs()
 	if len(eMsgs) > 0 {
 		log.Print("asset initialize failed")

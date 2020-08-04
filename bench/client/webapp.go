@@ -26,39 +26,6 @@ type Coordinate struct {
 	Longitude float64 `json:"longitude"`
 }
 
-type Range struct {
-	ID  int64 `json:"id"`
-	Min int64 `json:"min"`
-	Max int64 `json:"max"`
-}
-
-type RangeCondition struct {
-	Prefix string   `json:"prefix"`
-	Suffix string   `json:"suffix"`
-	Ranges []*Range `json:"ranges"`
-}
-
-type ListCondition struct {
-	List []string `json:"list"`
-}
-
-type EstateSearchCondition struct {
-	DoorWidth  RangeCondition `json:"doorWidth"`
-	DoorHeight RangeCondition `json:"doorHeight"`
-	Rent       RangeCondition `json:"rent"`
-	Feature    ListCondition  `json:"feature"`
-}
-
-type ChairSearchCondition struct {
-	Width   RangeCondition `json:"width"`
-	Height  RangeCondition `json:"height"`
-	Depth   RangeCondition `json:"depth"`
-	Price   RangeCondition `json:"price"`
-	Color   ListCondition  `json:"color"`
-	Feature ListCondition  `json:"feature"`
-	Kind    ListCondition  `json:"kind"`
-}
-
 func (c *Client) Initialize(ctx context.Context) error {
 	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/initialize", nil)
 	if err != nil {
@@ -146,7 +113,7 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	return &chair, nil
 }
 
-func (c *Client) GetChairSearchCondition(ctx context.Context) (*ChairSearchCondition, error) {
+func (c *Client) GetChairSearchCondition(ctx context.Context) (*asset.ChairSearchCondition, error) {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/chair/search/condition")
 	if err != nil {
 		return nil, failure.Translate(err, fails.ErrBenchmarker)
@@ -169,7 +136,7 @@ func (c *Client) GetChairSearchCondition(ctx context.Context) (*ChairSearchCondi
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
 
-	var condition ChairSearchCondition
+	var condition asset.ChairSearchCondition
 
 	err = json.NewDecoder(res.Body).Decode(&condition)
 	if err != nil {
@@ -227,7 +194,7 @@ func (c *Client) SearchChairsWithQuery(ctx context.Context, q url.Values) (*Chai
 	return &chairs, nil
 }
 
-func (c *Client) GetEstateSearchCondition(ctx context.Context) (*EstateSearchCondition, error) {
+func (c *Client) GetEstateSearchCondition(ctx context.Context) (*asset.EstateSearchCondition, error) {
 	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/estate/search/condition")
 	if err != nil {
 		return nil, failure.Translate(err, fails.ErrBenchmarker)
@@ -250,7 +217,7 @@ func (c *Client) GetEstateSearchCondition(ctx context.Context) (*EstateSearchCon
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
 
-	var condition EstateSearchCondition
+	var condition asset.EstateSearchCondition
 
 	err = json.NewDecoder(res.Body).Decode(&condition)
 	if err != nil {

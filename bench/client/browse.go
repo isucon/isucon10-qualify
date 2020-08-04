@@ -77,22 +77,22 @@ func (c *Client) AccessEstateDetailPage(ctx context.Context, id int64) (*asset.E
 	return estate, nil
 }
 
-func (c *Client) AccessChairSearchPage(ctx context.Context) (*ChairSearchCondition, error) {
-	condition, err := c.GetChairSearchCondition(ctx)
+func (c *Client) AccessChairSearchPage(ctx context.Context) error {
+	_, err := c.GetChairSearchCondition(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return condition, nil
+	return nil
 }
 
-func (c *Client) AccessEstateSearchPage(ctx context.Context) (*EstateSearchCondition, error) {
-	condition, err := c.GetEstateSearchCondition(ctx)
+func (c *Client) AccessEstateSearchPage(ctx context.Context) error {
+	_, err := c.GetEstateSearchCondition(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return condition, nil
+	return nil
 }
 
 func (c *Client) AccessEstateNazottePage(ctx context.Context) error {

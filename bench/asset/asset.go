@@ -22,7 +22,7 @@ var (
 
 // メモリ上にデータを展開する
 // このデータを使用してAPIからのレスポンスを確認する
-func Initialize(ctx context.Context, dataDir string) {
+func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 	eg, childCtx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
@@ -79,6 +79,22 @@ func Initialize(ctx context.Context, dataDir string) {
 			estateIDs = append(estateIDs, estate.ID)
 		}
 
+		return nil
+	})
+
+	eg.Go(func() error {
+		err := loadChairSearchCondition(fixtureDir)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	eg.Go(func() error {
+		err := loadEstateSearchCondition(fixtureDir)
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 

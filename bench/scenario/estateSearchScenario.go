@@ -22,7 +22,12 @@ var estateFeatureList = []string{
 	"ペット飼育可能",
 }
 
-func createRandomEstateSearchQuery(condition *client.EstateSearchCondition) url.Values {
+func createRandomEstateSearchQuery() (url.Values, error) {
+	condition, err := asset.GetEstateSearchCondition()
+	if err != nil {
+		return nil, err
+	}
+
 	q := url.Values{}
 	if (rand.Intn(100) % 10) == 0 {
 		rentRangeID := condition.Rent.Ranges[rand.Intn(len(condition.Rent.Ranges))].ID
@@ -36,16 +41,15 @@ func createRandomEstateSearchQuery(condition *client.EstateSearchCondition) url.
 		doorWidthRangeID := condition.DoorWidth.Ranges[rand.Intn(len(condition.DoorWidth.Ranges))].ID
 		q.Set("doorWidthRangeId", strconv.FormatInt(doorWidthRangeID, 10))
 	}
-	// condition.Featureの最後の1つはVerify用で該当件数が少ないため、Validationのシナリオ内では使用しない
-	features := make([]string, len(condition.Feature.List)-1)
-	copy(features, condition.Feature.List[:len(condition.Feature.List)-1])
+	features := make([]string, len(condition.Feature.List))
+	copy(features, condition.Feature.List)
 	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
 	featureLength := rand.Intn(len(features)-1) + 1
 	q.Set("features", strings.Join(features[:featureLength], ","))
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfEstateSearch))
 	q.Set("page", "0")
 
-	return q
+	return q, nil
 }
 
 func estateSearchScenario(ctx context.Context, c *client.Client) error {
@@ -61,7 +65,7 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	t = time.Now()
-	condition, err := c.AccessEstateSearchPage(ctx)
+	err = c.AccessEstateSearchPage(ctx)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 		return failure.New(fails.ErrApplication)
@@ -71,7 +75,11 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	// Search Estates with Query
-	q := createRandomEstateSearchQuery(condition)
+	q, err := createRandomEstateSearchQuery()
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
 
 	t = time.Now()
 	er, err := c.SearchEstatesWithQuery(ctx, q)

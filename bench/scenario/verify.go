@@ -2,17 +2,13 @@ package scenario
 
 import (
 	"context"
-	"encoding/json"
-	"io/ioutil"
-	"log"
 	"net/url"
-	"path/filepath"
 	"sync"
 
+	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/morikuni/failure"
-	"golang.org/x/sync/errgroup"
 )
 
 // Verify Initialize後のアプリケーションサーバーに対して、副作用のない検証を実行する
@@ -113,44 +109,21 @@ func verifyEstateViewCount(ctx context.Context, c *client.Client, estateFeatureF
 }
 
 func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir string) {
-	eg, _ := errgroup.WithContext(ctx)
-
-	var chairFeatureForVerify string
-	var estateFeatureForVerify string
-
-	eg.Go(func() error {
-		jsonText, err := ioutil.ReadFile(filepath.Join(fixtureDir, "chair_condition.json"))
-		if err != nil {
-			return err
-		}
-
-		var condition *client.ChairSearchCondition
-		json.Unmarshal(jsonText, &condition)
-		chairFeatureForVerify = condition.Feature.List[len(condition.Feature.List)-1]
-		return nil
-	})
-
-	eg.Go(func() error {
-		jsonText, err := ioutil.ReadFile(filepath.Join(fixtureDir, "estate_condition.json"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		var condition *client.EstateSearchCondition
-		json.Unmarshal(jsonText, &condition)
-		estateFeatureForVerify = condition.Feature.List[len(condition.Feature.List)-1]
-		return nil
-	})
-
-	if err := eg.Wait(); err != nil {
+	chairFeatureForVerify, err := asset.GetChairFeatureForVerify()
+	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
-		return
+	}
+
+	estateFeatureForVerify, err := asset.GetEstateFeatureForVerify()
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 	}
 
 	wg := sync.WaitGroup{}
 
 	wg.Add(1)
 	go func() {
-		err := verifyChairStock(ctx, c, chairFeatureForVerify)
+		err := verifyChairStock(ctx, c, *chairFeatureForVerify)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 		}
@@ -159,7 +132,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir string
 
 	wg.Add(1)
 	go func() {
-		err := verifyChairViewCount(ctx, c, chairFeatureForVerify)
+		err := verifyChairViewCount(ctx, c, *chairFeatureForVerify)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 		}
@@ -168,7 +141,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir string
 
 	wg.Add(1)
 	go func() {
-		err := verifyEstateViewCount(ctx, c, estateFeatureForVerify)
+		err := verifyEstateViewCount(ctx, c, *estateFeatureForVerify)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 		}

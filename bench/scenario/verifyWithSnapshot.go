@@ -84,7 +84,7 @@ func verifyChairSearchCondition(ctx context.Context, c *client.Client, filePath 
 			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/search/condition: イスの検索条件が不正です"))
 		}
 
-		var expected *client.ChairSearchCondition
+		var expected *asset.ChairSearchCondition
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search/condition: Response BodyのUnmarshalでエラーが発生しました"))
@@ -157,7 +157,7 @@ func verifyEstateSearchCondition(ctx context.Context, c *client.Client, filePath
 			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/search/condition: 物件の検索条件が不正です"))
 		}
 
-		var expected *client.EstateSearchCondition
+		var expected *asset.EstateSearchCondition
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search/condition: Response BodyのUnmarshalでエラーが発生しました"))

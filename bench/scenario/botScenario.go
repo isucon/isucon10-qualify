@@ -16,12 +16,10 @@ func botScenario(ctx context.Context, c *client.Client) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		condition, err := c.GetChairSearchCondition(ctx)
+		q, err := createRandomChairSearchQuery()
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfBotScenario)
-			return
 		}
-		q := createRandomChairSearchQuery(condition)
 		q.Set("perPage", "10")
 		chairs, err := c.SearchChairsWithQuery(ctx, q)
 		if err != nil {
@@ -48,13 +46,12 @@ func botScenario(ctx context.Context, c *client.Client) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		condition, err := c.GetEstateSearchCondition(ctx)
+		q, err := createRandomEstateSearchQuery()
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfBotScenario)
-			return
 		}
-		q := createRandomEstateSearchQuery(condition)
 		q.Set("perPage", "10")
+
 		estates, err := c.SearchEstatesWithQuery(ctx, q)
 		if err != nil {
 			code, _ := failure.CodeOf(err)
