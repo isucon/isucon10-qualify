@@ -2,6 +2,7 @@
   become: yes
   become_user: isucon
   command: curl -X POST http://localhost/initialize
+
 - name : Snapshot isucon10
   become: yes
   become_user: isucon
@@ -30,3 +31,14 @@
     systemctl disable isucon-go && \
     systemctl disable mysql && \
     systemctl disable nginx
+
+- name: Download netdata install script
+  become: yes
+  get_url:
+    url: https://my-netdata.io/kickstart.sh
+    dest: /tmp/kickstart.sh
+    mode: '0775'
+
+- name: Install netdata
+  become: yes
+  shell: /tmp/kickstart.sh --dont-wait
