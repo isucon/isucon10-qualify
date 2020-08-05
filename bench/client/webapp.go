@@ -536,7 +536,7 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 	}
 
 	intid, _ := strconv.ParseInt(id, 10, 64)
-	asset.DecrementChairStock(intid)
+	asset.DecrementChairStock(ctx, intid)
 	if !c.isBot {
 		conversion.IncrementCount()
 	}

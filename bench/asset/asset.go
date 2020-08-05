@@ -7,8 +7,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 	"github.com/morikuni/failure"
 	"golang.org/x/sync/errgroup"
 )
@@ -129,9 +131,15 @@ func IncrementChairViewCount(id int64) {
 	}
 }
 
-func DecrementChairStock(id int64) {
+func DecrementChairStock(ctx context.Context, id int64) {
 	if ExistsChairInMap(id) {
-		chairMap[id].DecrementStock()
+		timer := time.NewTimer(paramater.SleepTimeOnUserAway)
+		select {
+		case <-timer.C:
+			chairMap[id].DecrementStock()
+		case <-ctx.Done():
+			return
+		}
 	}
 }
 
