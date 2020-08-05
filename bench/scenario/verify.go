@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"sync"
 
+	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/morikuni/failure"
@@ -13,13 +14,13 @@ import (
 // Verify Initialize後のアプリケーションサーバーに対して、副作用のない検証を実行する
 // 早い段階でベンチマークをFailさせて早期リターンさせるのが目的
 // ex) recommended API や Search API を叩いて初期状態を確認する
-func Verify(ctx context.Context, snapshotsParentsDirPath string) {
+func Verify(ctx context.Context, snapshotsParentsDirPath, fixtureDir string) {
 	c := client.NewClientForVerify()
 	verifyWithSnapshot(ctx, c, snapshotsParentsDirPath)
-	verifyWithScenario(ctx, c)
+	verifyWithScenario(ctx, c, fixtureDir)
 }
 
-func verifyChairStock(ctx context.Context, c *client.Client) error {
+func verifyChairStock(ctx context.Context, c *client.Client, chairFeatureForVerify string) error {
 	err := c.BuyChair(ctx, "1")
 	if err != nil {
 		if ctxErr := ctx.Err(); ctxErr != nil {
@@ -46,7 +47,7 @@ func verifyChairStock(ctx context.Context, c *client.Client) error {
 	return nil
 }
 
-func verifyChairViewCount(ctx context.Context, c *client.Client) error {
+func verifyChairViewCount(ctx context.Context, c *client.Client, chairFeatureForVerify string) error {
 	for i := 0; i < 2; i++ {
 		_, err := c.GetChairDetailFromID(ctx, "2")
 		if err != nil {
@@ -58,7 +59,7 @@ func verifyChairViewCount(ctx context.Context, c *client.Client) error {
 	}
 
 	q := url.Values{}
-	q.Add("features", "フットレスト")
+	q.Add("features", chairFeatureForVerify)
 	q.Add("page", "0")
 	q.Add("perPage", "2")
 
@@ -78,7 +79,7 @@ func verifyChairViewCount(ctx context.Context, c *client.Client) error {
 	return nil
 }
 
-func verifyEstateViewCount(ctx context.Context, c *client.Client) error {
+func verifyEstateViewCount(ctx context.Context, c *client.Client, estateFeatureForVerify string) error {
 	for i := 0; i < 2; i++ {
 		_, err := c.GetEstateDetailFromID(ctx, "1")
 		if err != nil {
@@ -87,7 +88,7 @@ func verifyEstateViewCount(ctx context.Context, c *client.Client) error {
 	}
 
 	q := url.Values{}
-	q.Add("features", "デザイナーズ物件")
+	q.Add("features", estateFeatureForVerify)
 	q.Add("page", "0")
 	q.Add("perPage", "2")
 
@@ -107,12 +108,22 @@ func verifyEstateViewCount(ctx context.Context, c *client.Client) error {
 	return nil
 }
 
-func verifyWithScenario(ctx context.Context, c *client.Client) {
+func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir string) {
+	chairFeatureForVerify, err := asset.GetChairFeatureForVerify()
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+	}
+
+	estateFeatureForVerify, err := asset.GetEstateFeatureForVerify()
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+	}
+
 	wg := sync.WaitGroup{}
 
 	wg.Add(1)
 	go func() {
-		err := verifyChairStock(ctx, c)
+		err := verifyChairStock(ctx, c, *chairFeatureForVerify)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 		}
@@ -121,7 +132,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client) {
 
 	wg.Add(1)
 	go func() {
-		err := verifyChairViewCount(ctx, c)
+		err := verifyChairViewCount(ctx, c, *chairFeatureForVerify)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 		}
@@ -130,7 +141,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client) {
 
 	wg.Add(1)
 	go func() {
-		err := verifyEstateViewCount(ctx, c)
+		err := verifyEstateViewCount(ctx, c, *estateFeatureForVerify)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 		}

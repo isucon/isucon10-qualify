@@ -37,19 +37,24 @@ export interface Range {
   max: number
 }
 
-export interface RangeList {
+export interface RangeCondition {
   prefix: string
   suffix: string
   ranges: Range[]
 }
 
-export interface EstateRangeMap {
-  doorWidth: RangeList
-  doorHeight: RangeList
-  rent: RangeList
+export interface ListCondition {
+  list: string[]
 }
 
 export interface EstateSearchCondition {
+  doorWidth: RangeCondition
+  doorHeight: RangeCondition
+  rent: RangeCondition
+  feature: ListCondition
+}
+
+export interface EstateSearchParams {
   doorWidthRangeId: string
   doorHeightRangeId: string
   rentRangeId: string
@@ -63,14 +68,17 @@ export interface EstateSearchResponse {
   count: number
 }
 
-export interface ChairRangeMap {
-  price: RangeList
-  height: RangeList
-  width: RangeList
-  depth: RangeList
+export interface ChairSearchCondition {
+  price: RangeCondition
+  height: RangeCondition
+  width: RangeCondition
+  depth: RangeCondition
+  color: ListCondition
+  feature: ListCondition
+  kind: ListCondition
 }
 
-export interface ChairSearchCondition {
+export interface ChairSearchParams {
   priceRangeId: string
   heightRangeId: string
   widthRangeId: string

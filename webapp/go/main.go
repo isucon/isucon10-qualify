@@ -2,7 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -22,176 +24,8 @@ const NAZOTTE_LIMIT = 50
 
 var db *sqlx.DB
 var MySQLConnectionData *MySQLConnectionEnv
-
-var estateRentRanges = []*Range{
-	{
-		ID:  0,
-		Min: -1,
-		Max: 50000,
-	},
-	{
-		ID:  1,
-		Min: 50000,
-		Max: 100000,
-	},
-	{
-		ID:  2,
-		Min: 100000,
-		Max: 150000,
-	},
-	{
-		ID:  3,
-		Min: 150000,
-		Max: -1,
-	},
-}
-
-var estateDoorHeightRanges = []*Range{
-	{
-		ID:  0,
-		Min: -1,
-		Max: 80,
-	},
-	{
-		ID:  1,
-		Min: 80,
-		Max: 110,
-	},
-	{
-		ID:  2,
-		Min: 110,
-		Max: 150,
-	},
-	{
-		ID:  3,
-		Min: 150,
-		Max: -1,
-	},
-}
-
-var estateDoorWidthRanges = []*Range{
-	{
-		ID:  0,
-		Min: -1,
-		Max: 80,
-	},
-	{
-		ID:  1,
-		Min: 80,
-		Max: 110,
-	},
-	{
-		ID:  2,
-		Min: 110,
-		Max: 150,
-	},
-	{
-		ID:  3,
-		Min: 150,
-		Max: -1,
-	},
-}
-
-var ChairPriceRanges = []*Range{
-	{
-		ID:  0,
-		Min: -1,
-		Max: 3000,
-	},
-	{
-		ID:  1,
-		Min: 3000,
-		Max: 6000,
-	},
-	{
-		ID:  2,
-		Min: 6000,
-		Max: 9000,
-	},
-	{
-		ID:  3,
-		Min: 9000,
-		Max: 12000,
-	},
-	{
-		ID:  4,
-		Min: 12000,
-		Max: 15000,
-	},
-	{
-		ID:  5,
-		Min: 15000,
-		Max: -1,
-	},
-}
-var ChairHeightRanges = []*Range{
-	{
-		ID:  0,
-		Min: -1,
-		Max: 80,
-	},
-	{
-		ID:  1,
-		Min: 80,
-		Max: 110,
-	},
-	{
-		ID:  2,
-		Min: 110,
-		Max: 150,
-	},
-	{
-		ID:  3,
-		Min: 150,
-		Max: -1,
-	},
-}
-
-var ChairWidthRanges = []*Range{
-	{
-		ID:  0,
-		Min: -1,
-		Max: 80,
-	},
-	{
-		ID:  1,
-		Min: 80,
-		Max: 110,
-	},
-	{
-		ID:  2,
-		Min: 110,
-		Max: 150,
-	},
-	{
-		ID:  3,
-		Min: 150,
-		Max: -1,
-	},
-}
-
-var ChairDepthRanges = []*Range{
-	{
-		ID:  0,
-		Min: -1,
-		Max: 80,
-	},
-	{
-		ID:  1,
-		Min: 80,
-		Max: 110,
-	},
-	{
-		ID:  2,
-		Min: 110,
-		Max: 150,
-	},
-	{
-		ID:  3,
-		Min: 150,
-		Max: -1,
-	},
-}
+var chairSearchCondition ChairSearchCondition
+var estateSearchCondition EstateSearchCondition
 
 type Chair struct {
 	ID          int64  `db:"id" json:"id"`
@@ -259,23 +93,31 @@ type Range struct {
 	Max int64 `json:"max"`
 }
 
-type RangeResponse struct {
+type RangeCondition struct {
 	Prefix string   `json:"prefix"`
 	Suffix string   `json:"suffix"`
 	Ranges []*Range `json:"ranges"`
 }
 
-type RangeResponseEstateMap struct {
-	DoorWidth  RangeResponse `json:"doorWidth"`
-	DoorHeight RangeResponse `json:"doorHeight"`
-	Rent       RangeResponse `json:"rent"`
+type ListCondition struct {
+	List []string `json:"list"`
 }
 
-type RangeResponseChairMap struct {
-	Width  RangeResponse `json:"width"`
-	Height RangeResponse `json:"height"`
-	Depth  RangeResponse `json:"depth"`
-	Price  RangeResponse `json:"price"`
+type EstateSearchCondition struct {
+	DoorWidth  RangeCondition `json:"doorWidth"`
+	DoorHeight RangeCondition `json:"doorHeight"`
+	Rent       RangeCondition `json:"rent"`
+	Feature    ListCondition  `json:"feature"`
+}
+
+type ChairSearchCondition struct {
+	Width   RangeCondition `json:"width"`
+	Height  RangeCondition `json:"height"`
+	Depth   RangeCondition `json:"depth"`
+	Price   RangeCondition `json:"price"`
+	Color   ListCondition  `json:"color"`
+	Feature ListCondition  `json:"feature"`
+	Kind    ListCondition  `json:"kind"`
 }
 
 type BoundingBox struct {
@@ -317,6 +159,22 @@ func (mc *MySQLConnectionEnv) ConnectDB() (*sqlx.DB, error) {
 	return sqlx.Open("mysql", dsn)
 }
 
+func init() {
+	jsonText, err := ioutil.ReadFile("../fixture/chair_condition.json")
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
+	}
+	json.Unmarshal(jsonText, &chairSearchCondition)
+
+	jsonText, err = ioutil.ReadFile("../fixture/estate_condition.json")
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
+	}
+	json.Unmarshal(jsonText, &estateSearchCondition)
+}
+
 func main() {
 	// Echo instance
 	e := echo.New()
@@ -333,15 +191,15 @@ func main() {
 	// Chair Handler
 	e.GET("/api/chair/:id", getChairDetail)
 	e.GET("/api/chair/search", searchChairs)
+	e.GET("/api/chair/search/condition", getChairSearchCondition)
 	e.POST("/api/chair/buy/:id", buyChair)
-	e.GET("/api/chair/range", responseChairRange)
 
 	// Estate Handler
 	e.GET("/api/estate/:id", getEstateDetail)
 	e.GET("/api/estate/search", searchEstates)
 	e.POST("/api/estate/req_doc/:id", postEstateRequestDocument)
 	e.POST("/api/estate/nazotte", searchEstateNazotte)
-	e.GET("/api/estate/range", responseEstateRange)
+	e.GET("/api/estate/search/condition", getEstateSearchCondition)
 
 	// Recommended Handler
 	e.GET("/api/recommended_estate", searchRecommendEstate)
@@ -440,7 +298,7 @@ func searchChairs(c echo.Context) error {
 	queryParams := make([]interface{}, 0)
 
 	if c.QueryParam("priceRangeId") != "" {
-		chairPrice, err = getRange(c.QueryParam("priceRangeId"), ChairPriceRanges)
+		chairPrice, err = getRange(chairSearchCondition.Price, c.QueryParam("priceRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("priceRangeID invalid, %v : %v", c.QueryParam("priceRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
@@ -457,7 +315,7 @@ func searchChairs(c echo.Context) error {
 	}
 
 	if c.QueryParam("heightRangeId") != "" {
-		chairHeight, err = getRange(c.QueryParam("heightRangeId"), ChairHeightRanges)
+		chairHeight, err = getRange(chairSearchCondition.Height, c.QueryParam("heightRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("heightRangeIf invalid, %v : %v", c.QueryParam("heightRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
@@ -474,7 +332,7 @@ func searchChairs(c echo.Context) error {
 	}
 
 	if c.QueryParam("widthRangeId") != "" {
-		chairWidth, err = getRange(c.QueryParam("widthRangeId"), ChairWidthRanges)
+		chairWidth, err = getRange(chairSearchCondition.Width, c.QueryParam("widthRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("widthRangeID invalid, %v : %v", c.QueryParam("widthRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
@@ -491,7 +349,7 @@ func searchChairs(c echo.Context) error {
 	}
 
 	if c.QueryParam("depthRangeId") != "" {
-		chairDepth, err = getRange(c.QueryParam("depthRangeId"), ChairDepthRanges)
+		chairDepth, err = getRange(chairSearchCondition.Depth, c.QueryParam("depthRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("depthRangeId invalid, %v : %v", c.QueryParam("depthRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
@@ -608,30 +466,8 @@ func buyChair(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func responseChairRange(c echo.Context) error {
-	ranges := RangeResponseChairMap{
-		Height: RangeResponse{
-			Prefix: "",
-			Suffix: "cm",
-			Ranges: ChairHeightRanges,
-		},
-		Width: RangeResponse{
-			Prefix: "",
-			Suffix: "cm",
-			Ranges: ChairWidthRanges,
-		},
-		Depth: RangeResponse{
-			Prefix: "",
-			Suffix: "cm",
-			Ranges: ChairDepthRanges,
-		},
-		Price: RangeResponse{
-			Prefix: "",
-			Suffix: "円",
-			Ranges: ChairPriceRanges,
-		},
-	}
-	return c.JSON(http.StatusOK, ranges)
+func getChairSearchCondition(c echo.Context) error {
+	return c.JSON(http.StatusOK, chairSearchCondition)
 }
 
 func searchRecommendChair(c echo.Context) error {
@@ -696,20 +532,17 @@ func getEstateDetail(c echo.Context) error {
 	return c.JSON(http.StatusOK, estate)
 }
 
-func getRange(RangeID string, Ranges []*Range) (*Range, error) {
-	specifyRange := &Range{}
-
-	RangeIndex, err := strconv.Atoi(RangeID)
+func getRange(cond RangeCondition, rangeID string) (*Range, error) {
+	RangeIndex, err := strconv.Atoi(rangeID)
 	if err != nil {
 		return nil, err
 	}
-	if RangeIndex < len(Ranges) && RangeIndex >= 0 {
-		specifyRange = Ranges[RangeIndex]
-	} else {
+
+	if RangeIndex < 0 && len(cond.Ranges) <= RangeIndex {
 		return nil, fmt.Errorf("Unexpected Range ID")
 	}
 
-	return specifyRange, nil
+	return cond.Ranges[RangeIndex], nil
 }
 
 func searchEstates(c echo.Context) error {
@@ -720,7 +553,7 @@ func searchEstates(c echo.Context) error {
 	var searchQueryParameter []interface{}
 
 	if c.QueryParam("doorHeightRangeId") != "" {
-		doorHeight, err = getRange(c.QueryParam("doorHeightRangeId"), estateDoorHeightRanges)
+		doorHeight, err = getRange(estateSearchCondition.DoorHeight, c.QueryParam("doorHeightRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("doorHeightRangeID invalid, %v : %v", c.QueryParam("doorHeightRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
@@ -737,7 +570,7 @@ func searchEstates(c echo.Context) error {
 	}
 
 	if c.QueryParam("doorWidthRangeId") != "" {
-		doorWidth, err = getRange(c.QueryParam("doorWidthRangeId"), estateDoorWidthRanges)
+		doorWidth, err = getRange(estateSearchCondition.DoorWidth, c.QueryParam("doorWidthRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("doorWidthRangeID invalid, %v : %v", c.QueryParam("doorWidthRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
@@ -754,7 +587,7 @@ func searchEstates(c echo.Context) error {
 	}
 
 	if c.QueryParam("rentRangeId") != "" {
-		estateRent, err = getRange(c.QueryParam("rentRangeId"), estateRentRanges)
+		estateRent, err = getRange(estateSearchCondition.Rent, c.QueryParam("rentRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("rentRangeID invalid, %v : %v", c.QueryParam("rentRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
@@ -963,26 +796,8 @@ func postEstateRequestDocument(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func responseEstateRange(c echo.Context) error {
-	ranges := RangeResponseEstateMap{
-		DoorHeight: RangeResponse{
-			Prefix: "",
-			Suffix: "cm",
-			Ranges: estateDoorHeightRanges,
-		},
-		DoorWidth: RangeResponse{
-			Prefix: "",
-			Suffix: "cm",
-			Ranges: estateDoorWidthRanges,
-		},
-		Rent: RangeResponse{
-			Prefix: "",
-			Suffix: "円",
-			Ranges: estateRentRanges,
-		},
-	}
-
-	return c.JSON(http.StatusOK, ranges)
+func getEstateSearchCondition(c echo.Context) error {
+	return c.JSON(http.StatusOK, estateSearchCondition)
 }
 
 func (cs Coordinates) getBoundingBox() BoundingBox {

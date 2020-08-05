@@ -16,68 +16,46 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
 )
 
-var chairKindList = []string{
-	"ゲーミングチェア",
-	"座椅子",
-	"エルゴノミクス",
-	"ハンモック",
-}
+func createRandomChairSearchQuery() (url.Values, error) {
+	condition, err := asset.GetChairSearchCondition()
+	if err != nil {
+		return nil, err
+	}
 
-var chairColorList = []string{
-	"黒",
-	"白",
-	"赤",
-	"青",
-	"緑",
-	"黄",
-	"紫",
-	"ピンク",
-	"オレンジ",
-	"水色",
-	"ネイビー",
-	"ベージュ",
-}
-
-var chairFeatureList = []string{
-	"折りたたみ可",
-	"肘掛け",
-	"キャスター",
-	"リクライニング",
-	"高さ調節可",
-	"フットレスト",
-}
-
-func generateRandomQueryForSearchChairs() url.Values {
 	q := url.Values{}
-	q.Set("priceRangeId", strconv.Itoa(rand.Intn(6)))
-	if (rand.Intn(100) % 5) == 0 {
-		q.Set("heightRangeId", strconv.Itoa(rand.Intn(4)))
+	priceRangeID := condition.Price.Ranges[rand.Intn(len(condition.Price.Ranges))].ID
+	if (rand.Intn(100) % 10) == 0 {
+		q.Set("priceRangeId", strconv.FormatInt(priceRangeID, 10))
 	}
-	if (rand.Intn(100) % 5) == 0 {
-		q.Set("widthRangeId", strconv.Itoa(rand.Intn(4)))
+	if (rand.Intn(100) % 10) == 0 {
+		heightRangeID := condition.Height.Ranges[rand.Intn(len(condition.Height.Ranges))].ID
+		q.Set("heightRangeId", strconv.FormatInt(heightRangeID, 10))
 	}
-	if (rand.Intn(100) % 5) == 0 {
-		q.Set("depthRangeId", strconv.Itoa(rand.Intn(4)))
+	if (rand.Intn(100) % 10) == 0 {
+		widthRangeID := condition.Width.Ranges[rand.Intn(len(condition.Width.Ranges))].ID
+		q.Set("widthRangeId", strconv.FormatInt(widthRangeID, 10))
+	}
+	if (rand.Intn(100) % 10) == 0 {
+		depthRangeID := condition.Depth.Ranges[rand.Intn(len(condition.Depth.Ranges))].ID
+		q.Set("depthRangeId", strconv.FormatInt(depthRangeID, 10))
 	}
 
-	if (rand.Intn(100) % 20) == 0 {
-		q.Set("kind", chairKindList[rand.Intn(len(chairKindList))])
+	if (rand.Intn(100) % 10) == 0 {
+		q.Set("kind", condition.Kind.List[rand.Intn(len(condition.Kind.List))])
 	}
-	if (rand.Intn(100) % 20) == 0 {
-		q.Set("color", chairColorList[rand.Intn(len(chairColorList))])
+	if (rand.Intn(100) % 10) == 0 {
+		q.Set("color", condition.Color.List[rand.Intn(len(condition.Color.List))])
 	}
-	if (rand.Intn(100) % 20) == 0 {
-		features := make([]string, len(chairFeatureList))
-		copy(features, chairFeatureList)
-		rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
-		featureLength := rand.Intn(3) + 1
-		q.Set("features", strings.Join(features[:featureLength], ","))
-	}
+	features := make([]string, len(condition.Feature.List))
+	copy(features, condition.Feature.List)
+	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
+	featureLength := rand.Intn(len(features)-1) + 1
+	q.Set("features", strings.Join(features[:featureLength], ","))
 
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfChairSearch))
 	q.Set("page", "0")
 
-	return q
+	return q, nil
 }
 
 func chairSearchScenario(ctx context.Context, c *client.Client) error {
@@ -102,7 +80,11 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	// Search Chairs with Query
-	q := generateRandomQueryForSearchChairs()
+	q, err := createRandomChairSearchQuery()
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
 
 	t = time.Now()
 	cr, err := c.SearchChairsWithQuery(ctx, q)

@@ -13,6 +13,7 @@ random.seed(19700101)
 DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_SQL_FILE = "./result/1_DummyEstateData.sql"
 OUTPUT_TXT_FILE = "./result/estate_json.txt"
+OUTPUT_FIXTURE_FILE = "./result/estate_condition.json"
 ESTATE_IMAGE_ORIGIN_DIR = "./origin/estate"
 ESTATE_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/estate"
 ESTATE_DUMMY_IMAGE_NUM = 1000
@@ -20,6 +21,9 @@ RECORD_COUNT = 10 ** 4
 BULK_INSERT_COUNT = 500
 DOOR_MIN_CENTIMETER = 30
 DOOR_MAX_CENTIMETER = 200
+DOOR_HEIGHT_RANGE_SEPARATORS = [80, 110, 150]
+DOOR_WIDTH_RANGE_SEPARATORS = [80, 110, 150]
+RENT_RANGE_SEPARATORS = [50000, 100000, 150000]
 MIN_VIEW_COUNT = 3000
 MAX_VIEW_COUNT = 1000000
 
@@ -42,6 +46,21 @@ ESTATE_FEATURE_FOR_VERIFY = "デザイナーズ物件"
 
 ESTATE_IMAGE_HASH_LIST = [fake.sha256(
     raw_output=False) for _ in range(ESTATE_DUMMY_IMAGE_NUM)]
+
+
+def generate_ranges_from_separator(separators):
+    before = -1
+    ranges = []
+
+    for i, separator in enumerate(separators + [-1]):
+        ranges.append({
+            "id": i,
+            "min": before,
+            "max": separator
+        })
+        before = separator
+
+    return ranges
 
 
 def read_src_file_data(file_path):
@@ -135,3 +154,25 @@ if __name__ == '__main__':
             sqlfile.write(sqlCommand)
             txtfile.write("\n".join([dump_estate_to_json_str(estate)
                                      for estate in bulk_list]) + "\n")
+
+    with open(OUTPUT_FIXTURE_FILE, mode='w', encoding='utf-8') as fixture_file:
+        fixture_file.write(json.dumps({
+            "doorWidth": {
+                "prefix": "",
+                "suffix": "cm",
+                "ranges": generate_ranges_from_separator(DOOR_WIDTH_RANGE_SEPARATORS)
+            },
+            "doorHeight": {
+                "prefix": "",
+                "suffix": "cm",
+                "ranges": generate_ranges_from_separator(DOOR_HEIGHT_RANGE_SEPARATORS)
+            },
+            "rent": {
+                "prefix": "",
+                "suffix": "円",
+                "ranges": generate_ranges_from_separator(RENT_RANGE_SEPARATORS)
+            },
+            "feature": {
+                "list": ESTATE_FEATURE_LIST + [ESTATE_FEATURE_FOR_VERIFY]
+            }
+        }, ensure_ascii=False, indent=2))

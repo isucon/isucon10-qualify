@@ -45,6 +45,39 @@ type Estate struct {
 	Features    string  `json:"features"`
 }
 
+type Range struct {
+	ID  int64 `json:"id"`
+	Min int64 `json:"min"`
+	Max int64 `json:"max"`
+}
+
+type RangeCondition struct {
+	Prefix string   `json:"prefix"`
+	Suffix string   `json:"suffix"`
+	Ranges []*Range `json:"ranges"`
+}
+
+type ListCondition struct {
+	List []string `json:"list"`
+}
+
+type EstateSearchCondition struct {
+	DoorWidth  RangeCondition `json:"doorWidth"`
+	DoorHeight RangeCondition `json:"doorHeight"`
+	Rent       RangeCondition `json:"rent"`
+	Feature    ListCondition  `json:"feature"`
+}
+
+type ChairSearchCondition struct {
+	Width   RangeCondition `json:"width"`
+	Height  RangeCondition `json:"height"`
+	Depth   RangeCondition `json:"depth"`
+	Price   RangeCondition `json:"price"`
+	Color   ListCondition  `json:"color"`
+	Feature ListCondition  `json:"feature"`
+	Kind    ListCondition  `json:"kind"`
+}
+
 type Coordinate struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`

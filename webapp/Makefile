@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 
 include ../bench/Makefile
-export URL="http://localhost:1323/api/estate/range"
+export URL="http://localhost:1323/api/estate/search/condition"
 export NOW:=`date '+%Y_%m_%d_%H_%M'`
 export PPROF=cpu.pprof
 export MYSQL=mysql-slow.log

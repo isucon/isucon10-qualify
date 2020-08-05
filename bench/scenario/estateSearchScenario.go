@@ -22,26 +22,34 @@ var estateFeatureList = []string{
 	"ペット飼育可能",
 }
 
-func generateRandomQueryForSearchEstates() url.Values {
+func createRandomEstateSearchQuery() (url.Values, error) {
+	condition, err := asset.GetEstateSearchCondition()
+	if err != nil {
+		return nil, err
+	}
+
 	q := url.Values{}
-	q.Set("rentRangeId", strconv.Itoa(rand.Intn(4)))
-	if (rand.Intn(100) % 20) == 0 {
-		q.Set("doorHeightRangeId", strconv.Itoa(rand.Intn(4)))
+	if (rand.Intn(100) % 10) == 0 {
+		rentRangeID := condition.Rent.Ranges[rand.Intn(len(condition.Rent.Ranges))].ID
+		q.Set("rentRangeId", strconv.FormatInt(rentRangeID, 10))
 	}
-	if (rand.Intn(100) % 20) == 0 {
-		q.Set("doorWidthRangeId", strconv.Itoa(rand.Intn(4)))
+	if (rand.Intn(100) % 10) == 0 {
+		doorHeightRangeID := condition.DoorHeight.Ranges[rand.Intn(len(condition.DoorHeight.Ranges))].ID
+		q.Set("doorHeightRangeId", strconv.FormatInt(doorHeightRangeID, 10))
 	}
-	if (rand.Intn(100) % 20) == 0 {
-		features := make([]string, len(estateFeatureList))
-		copy(features, estateFeatureList)
-		rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
-		featureLength := rand.Intn(3) + 1
-		q.Set("features", strings.Join(features[:featureLength], ","))
+	if (rand.Intn(100) % 10) == 0 {
+		doorWidthRangeID := condition.DoorWidth.Ranges[rand.Intn(len(condition.DoorWidth.Ranges))].ID
+		q.Set("doorWidthRangeId", strconv.FormatInt(doorWidthRangeID, 10))
 	}
+	features := make([]string, len(condition.Feature.List))
+	copy(features, condition.Feature.List)
+	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
+	featureLength := rand.Intn(len(features)-1) + 1
+	q.Set("features", strings.Join(features[:featureLength], ","))
 	q.Set("perPage", strconv.Itoa(paramater.PerPageOfEstateSearch))
 	q.Set("page", "0")
 
-	return q
+	return q, nil
 }
 
 func estateSearchScenario(ctx context.Context, c *client.Client) error {
@@ -67,7 +75,11 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	// Search Estates with Query
-	q := generateRandomQueryForSearchEstates()
+	q, err := createRandomEstateSearchQuery()
+	if err != nil {
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
 
 	t = time.Now()
 	er, err := c.SearchEstatesWithQuery(ctx, q)

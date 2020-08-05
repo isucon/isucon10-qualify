@@ -13,6 +13,7 @@ random.seed(19700101)
 DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_SQL_FILE = "./result/2_DummyChairData.sql"
 OUTPUT_TXT_FILE = "./result/chair_json.txt"
+OUTPUT_FIXTURE_FILE = "./result/chair_condition.json"
 CHAIR_IMAGE_ORIGIN_DIR = "./origin/chair"
 CHAIR_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/chair"
 CHAIR_DUMMY_IMAGE_NUM = 1000
@@ -22,6 +23,10 @@ CHAIR_MIN_CENTIMETER = 30
 CHAIR_MAX_CENTIMETER = 200
 MIN_VIEW_COUNT = 3000
 MAX_VIEW_COUNT = 1000000
+HEIGHT_RANGE_SEPARATORS = [80, 110, 150]
+WIDTH_RANGE_SEPARATORS = [80, 110, 150]
+DEPTH_RANGE_SEPARATORS = [80, 110, 150]
+PRICE_RANGE_SEPARATORS = [3000, 6000, 9000, 12000, 15000]
 
 CHAIR_COLOR_LIST = [
     "黒",
@@ -102,6 +107,21 @@ CHAIR_KIND_LIST = [
 
 CHAIR_IMAGE_HASH_LIST = [fake.sha256(
     raw_output=False) for _ in range(CHAIR_DUMMY_IMAGE_NUM)]
+
+
+def generate_ranges_from_SEPARATORS(SEPARATORSs):
+    before = -1
+    ranges = []
+
+    for i, SEPARATORS in enumerate(SEPARATORSs + [-1]):
+        ranges.append({
+            "id": i,
+            "min": before,
+            "max": SEPARATORS
+        })
+        before = SEPARATORS
+
+    return ranges
 
 
 def read_src_file_data(file_path):
@@ -207,3 +227,36 @@ if __name__ == "__main__":
 
             txtfile.write(
                 "\n".join([dump_chair_to_json_str(chair) for chair in bulk_list]) + "\n")
+
+    with open(OUTPUT_FIXTURE_FILE, mode='w', encoding='utf-8') as fixture_file:
+        fixture_file.write(json.dumps({
+            "height": {
+                "prefix": "",
+                "suffix": "cm",
+                "ranges": generate_ranges_from_SEPARATORS(HEIGHT_RANGE_SEPARATORS)
+            },
+            "width": {
+                "prefix": "",
+                "suffix": "cm",
+                "ranges": generate_ranges_from_SEPARATORS(WIDTH_RANGE_SEPARATORS)
+            },
+            "depth": {
+                "prefix": "",
+                "suffix": "cm",
+                "ranges": generate_ranges_from_SEPARATORS(DEPTH_RANGE_SEPARATORS)
+            },
+            "price": {
+                "prefix": "",
+                "suffix": "円",
+                "ranges": generate_ranges_from_SEPARATORS(PRICE_RANGE_SEPARATORS)
+            },
+            "color": {
+                "list": CHAIR_COLOR_LIST
+            },
+            "feature": {
+                "list": CHAIR_FEATURE_LIST + [CHAIR_FEATURE_FOR_VERIFY]
+            },
+            "kind": {
+                "list": CHAIR_KIND_LIST
+            }
+        }, ensure_ascii=False, indent=2))

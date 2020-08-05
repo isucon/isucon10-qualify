@@ -58,10 +58,10 @@ module.exports = [
     }
   },
 
-  // `GET: /api/chair/range`
+  // `GET: /api/chair/search/condition`
   {
     request: {
-      path: `${PATH}/range`,
+      path: `${PATH}/search/condition`,
       method: 'GET',
       query: {},
       values: {}

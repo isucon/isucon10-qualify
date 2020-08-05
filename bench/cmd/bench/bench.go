@@ -44,9 +44,11 @@ func main() {
 
 	conf := Config{}
 	dataDir := ""
+	fixtureDir := ""
 
 	flags.StringVar(&conf.TargetURLStr, "target-url", "http://127.0.0.1:8000", "target url")
 	flags.StringVar(&dataDir, "data-dir", "initial-data", "data directory")
+	flags.StringVar(&fixtureDir, "fixture-dir", "../webapp/fixture", "fixture directory")
 
 	err := flags.Parse(os.Args[1:])
 	if err != nil {
@@ -62,7 +64,7 @@ func main() {
 	}
 
 	// 初期データの準備
-	asset.Initialize(context.Background(), dataDir)
+	asset.Initialize(context.Background(), dataDir, fixtureDir)
 	eMsgs := fails.ErrorsForCheck.GetMsgs()
 	if len(eMsgs) > 0 {
 		log.Print("asset initialize failed")
@@ -97,7 +99,7 @@ func main() {
 	log.Print("=== verify ===")
 	// 初期チェック：正しく動いているかどうかを確認する
 	// 明らかにおかしいレスポンスを返しているアプリケーションはさっさと停止させることで、運営側のリソースを使い果たさない・他サービスへの攻撃に利用されるを防ぐ
-	scenario.Verify(context.Background(), filepath.Join(dataDir, "result/verification_data"))
+	scenario.Verify(context.Background(), filepath.Join(dataDir, "result/verification_data"), fixtureDir)
 	eMsgs = fails.ErrorsForCheck.GetMsgs()
 	if len(eMsgs) > 0 {
 		log.Print("verify failed")

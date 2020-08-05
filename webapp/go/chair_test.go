@@ -81,8 +81,8 @@ func TestBuyChair(t *testing.T) {
 
 func TestResponseChairRange(t *testing.T) {
 	client := new(http.Client)
-	t.Run("[GET] /api/chair/range, to get chair range", func(t *testing.T) {
-		path := "/api/chair/range"
+	t.Run("[GET] /api/chair/search/condition, to get chair range", func(t *testing.T) {
+		path := "/api/chair/search/condition"
 		url := getURL()
 		req, _ := http.NewRequest("GET", url+path, nil)
 
