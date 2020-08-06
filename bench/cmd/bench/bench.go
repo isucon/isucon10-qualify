@@ -23,6 +23,7 @@ type Output struct {
 	Pass     bool     `json:"pass"`
 	Score    int      `json:"score"`
 	Messages []string `json:"messages"`
+	Language string   `json:"language"`
 }
 
 type Config struct {
@@ -73,6 +74,7 @@ func main() {
 			Pass:     false,
 			Score:    0,
 			Messages: eMsgs,
+			Language: "",
 		}
 		json.NewEncoder(os.Stdout).Encode(output)
 
@@ -81,7 +83,7 @@ func main() {
 
 	log.Print("=== initialize ===")
 	// 初期化：/initialize にリクエストを送ることで、外部リソースのURLを指定する・DBのデータを初期データのみにする
-	scenario.Initialize(context.Background())
+	initRes := scenario.Initialize(context.Background())
 	eMsgs = fails.ErrorsForCheck.GetMsgs()
 	if len(eMsgs) > 0 {
 		log.Print("initialize failed")
@@ -90,6 +92,7 @@ func main() {
 			Pass:     false,
 			Score:    0,
 			Messages: eMsgs,
+			Language: initRes.Language,
 		}
 		json.NewEncoder(os.Stdout).Encode(output)
 
@@ -107,6 +110,7 @@ func main() {
 			Pass:     false,
 			Score:    0,
 			Messages: uniqMsgs(eMsgs),
+			Language: initRes.Language,
 		}
 		json.NewEncoder(os.Stdout).Encode(output)
 
@@ -131,6 +135,7 @@ func main() {
 			Pass:     false,
 			Score:    0,
 			Messages: uniqMsgs(eMsgs),
+			Language: initRes.Language,
 		}
 		json.NewEncoder(os.Stdout).Encode(output)
 
@@ -150,6 +155,7 @@ func main() {
 			Pass:     false,
 			Score:    0,
 			Messages: uniqMsgs(eMsgs),
+			Language: initRes.Language,
 		}
 		json.NewEncoder(os.Stdout).Encode(output)
 
@@ -160,6 +166,7 @@ func main() {
 		Pass:     true,
 		Score:    score,
 		Messages: uniqMsgs(eMsgs),
+		Language: initRes.Language,
 	}
 	json.NewEncoder(os.Stdout).Encode(output)
 }

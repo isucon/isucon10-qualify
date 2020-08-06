@@ -6,11 +6,11 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 )
 
-func initialize(ctx context.Context) error {
+func initialize(ctx context.Context) (*client.InitializeResponse, error) {
 	c := client.NewClientForInitialize()
-	err := c.Initialize(ctx)
+	res, err := c.Initialize(ctx)
 	if err != nil {
-		return err
+		return res, err
 	}
-	return nil
+	return res, nil
 }
