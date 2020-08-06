@@ -9,7 +9,7 @@ import (
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
-	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
 	"github.com/morikuni/failure"
 	"github.com/google/uuid"
 )
@@ -31,12 +31,12 @@ func runEstateSearchWorker(ctx context.Context) {
 		if err != nil {
 			code, _ := failure.CodeOf(err)
 			if code == fails.ErrTimeout {
-				r := rand.Intn(paramater.SleepSwingOnUserAway) - paramater.SleepSwingOnUserAway*0.5
-				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(parameter.SleepSwingOnUserAway) - parameter.SleepSwingOnUserAway*0.5
+				s := parameter.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			} else {
-				r := rand.Intn(paramater.SleepSwingOnFailScenario) - paramater.SleepSwingOnFailScenario*0.5
-				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(parameter.SleepSwingOnFailScenario) - parameter.SleepSwingOnFailScenario*0.5
+				s := parameter.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			}
 			select {
@@ -66,12 +66,12 @@ func runChairSearchWorker(ctx context.Context) {
 		if err != nil {
 			code, _ := failure.CodeOf(err)
 			if code == fails.ErrTimeout {
-				r := rand.Intn(paramater.SleepSwingOnUserAway) - paramater.SleepSwingOnUserAway*0.5
-				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(parameter.SleepSwingOnUserAway) - parameter.SleepSwingOnUserAway*0.5
+				s := parameter.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			} else {
-				r := rand.Intn(paramater.SleepSwingOnFailScenario) - paramater.SleepSwingOnFailScenario*0.5
-				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(parameter.SleepSwingOnFailScenario) - parameter.SleepSwingOnFailScenario*0.5
+				s := parameter.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			}
 			select {
@@ -101,12 +101,12 @@ func runEstateNazotteSearchWorker(ctx context.Context) {
 		if err != nil {
 			code, _ := failure.CodeOf(err)
 			if code == fails.ErrTimeout {
-				r := rand.Intn(paramater.SleepSwingOnUserAway) - paramater.SleepSwingOnUserAway*0.5
-				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(parameter.SleepSwingOnUserAway) - parameter.SleepSwingOnUserAway*0.5
+				s := parameter.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			} else {
-				r := rand.Intn(paramater.SleepSwingOnFailScenario) - paramater.SleepSwingOnFailScenario*0.5
-				s := paramater.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
+				r := rand.Intn(parameter.SleepSwingOnFailScenario) - parameter.SleepSwingOnFailScenario*0.5
+				s := parameter.SleepTimeOnFailScenario + time.Duration(r)*time.Millisecond
 				t = time.NewTimer(s)
 			}
 			select {
@@ -125,8 +125,8 @@ func runBotWorker(ctx context.Context) {
 
 	for {
 		go botScenario(ctx, c)
-		r := rand.Intn(paramater.SleepSwingOnBotInterval) - paramater.SleepSwingOnBotInterval*0.5
-		s := paramater.SleepTimeOnBotInterval + time.Duration(r)*time.Millisecond
+		r := rand.Intn(parameter.SleepSwingOnBotInterval) - parameter.SleepSwingOnBotInterval*0.5
+		s := parameter.SleepTimeOnBotInterval + time.Duration(r)*time.Millisecond
 		t := time.NewTimer(s)
 		select {
 		case <-t.C:
@@ -138,16 +138,16 @@ func runBotWorker(ctx context.Context) {
 }
 
 func checkWorkers(ctx context.Context) {
-	t := time.NewTicker(paramater.IntervalForCheckWorkers)
+	t := time.NewTicker(parameter.IntervalForCheckWorkers)
 	for {
 		select {
 		case <-t.C:
 			cet := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfChairSearchScenario)
 			eet := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateSearchScenario)
 			net := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateNazotteSearchScenario)
-			if time.Since(cet) > paramater.IntervalForCheckWorkers &&
-				time.Since(eet) > paramater.IntervalForCheckWorkers &&
-				time.Since(net) > paramater.IntervalForCheckWorkers {
+			if time.Since(cet) > parameter.IntervalForCheckWorkers &&
+				time.Since(eet) > parameter.IntervalForCheckWorkers &&
+				time.Since(net) > parameter.IntervalForCheckWorkers {
 				log.Println("負荷レベルが上昇しました。")
 				go runChairSearchWorker(ctx)
 				go runEstateSearchWorker(ctx)
@@ -164,22 +164,22 @@ func checkWorkers(ctx context.Context) {
 
 func Load(ctx context.Context) {
 	// 物件検索をして、資料請求をするシナリオ
-	for i := 0; i < paramater.NumOfInitialEstateSearchWorker; i++ {
+	for i := 0; i < parameter.NumOfInitialEstateSearchWorker; i++ {
 		go runEstateSearchWorker(ctx)
 	}
 
 	// イス検索から物件ページに行き、資料請求をするまでのシナリオ
-	for i := 0; i < paramater.NumOfInitialChairSearchWorker; i++ {
+	for i := 0; i < parameter.NumOfInitialChairSearchWorker; i++ {
 		go runChairSearchWorker(ctx)
 	}
 
 	// なぞって検索をするシナリオ
-	for i := 0; i < paramater.NumOfInitialEstateNazotteSearchWorker; i++ {
+	for i := 0; i < parameter.NumOfInitialEstateNazotteSearchWorker; i++ {
 		go runEstateNazotteSearchWorker(ctx)
 	}
 
 	// ボットによる検索シナリオ
-	for i := 0; i < paramater.NumOfInitialBotWorker; i++ {
+	for i := 0; i < parameter.NumOfInitialBotWorker; i++ {
 		go runBotWorker(ctx)
 	}
 

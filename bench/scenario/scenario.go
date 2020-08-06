@@ -5,7 +5,7 @@ import (
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
-	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
 )
 
 func Initialize(ctx context.Context) (*client.InitializeResponse) {
@@ -13,7 +13,7 @@ func Initialize(ctx context.Context) (*client.InitializeResponse) {
 	// レギュレーションにある時間を設定する
 	// timeoutSeconds := 180
 
-	ctx, cancel := context.WithTimeout(ctx, paramater.InitializeTimeout)
+	ctx, cancel := context.WithTimeout(ctx, parameter.InitializeTimeout)
 	defer cancel()
 
 	res, err := initialize(ctx)
@@ -24,7 +24,7 @@ func Initialize(ctx context.Context) (*client.InitializeResponse) {
 }
 
 func Validation(ctx context.Context) {
-	cancelCtx, cancel := context.WithTimeout(ctx, paramater.LoadTimeout)
+	cancelCtx, cancel := context.WithTimeout(ctx, parameter.LoadTimeout)
 	defer cancel()
 	go Load(cancelCtx)
 	<-cancelCtx.Done()
