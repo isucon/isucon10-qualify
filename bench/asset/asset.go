@@ -133,6 +133,9 @@ func IncrementChairViewCount(id int64) {
 
 func DecrementChairStock(ctx context.Context, id int64) {
 	if ExistsChairInMap(id) {
+		// イスが売り切れた時点で走っている検索結果等にそのイスが含まれている可能性がある
+		// 検索結果のcheckが落ちないように、確実に検索結果に含まれないであろう時間まで待ってから在庫を減らす
+		// checkされる結果はすべてparamater.SleepTimeOnUserAway以下の時間で終了している
 		timer := time.NewTimer(paramater.SleepTimeOnUserAway)
 		select {
 		case <-timer.C:
