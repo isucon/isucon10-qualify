@@ -1,6 +1,8 @@
 package scenario
 
 import (
+	"time"
+
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 )
 
@@ -36,7 +38,19 @@ func isChairEqualToAsset(c *asset.Chair) bool {
 	return chair.Equal(c)
 }
 
-func isChairsOrderedByViewCount(c []asset.Chair) bool {
+func isChairSoldOutAt(c *asset.Chair, t time.Time) bool {
+	if c.GetStock() > 0 {
+		return false
+	}
+
+	soldOutTime := c.GetSoldOutTime()
+	if soldOutTime == nil {
+		return false
+	}
+	return t.After(*soldOutTime)
+}
+
+func isChairsOrderedByViewCount(c []asset.Chair, t time.Time) bool {
 	var viewCount int64 = -1
 	for i, chair := range c {
 		_chair, err := asset.GetChairFromID(chair.ID)
@@ -44,7 +58,7 @@ func isChairsOrderedByViewCount(c []asset.Chair) bool {
 			return false
 		}
 
-		if _chair.GetStock() <= 0 {
+		if isChairSoldOutAt(_chair, t) {
 			return false
 		}
 
