@@ -3,6 +3,7 @@ package asset
 import (
 	"encoding/json"
 	"sync/atomic"
+	"time"
 )
 
 type JSONChair struct {
@@ -34,8 +35,9 @@ type Chair struct {
 	Features    string
 	Kind        string
 
-	viewCount int64
-	stock     int64
+	viewCount   int64
+	stock       int64
+	soldOutTime atomic.Value
 }
 
 func (c Chair) MarshalJSON() ([]byte, error) {
@@ -80,6 +82,7 @@ func (c *Chair) UnmarshalJSON(data []byte) error {
 	c.viewCount = jc.ViewCount
 	c.Kind = jc.Kind
 	c.stock = jc.Stock
+	c.soldOutTime = atomic.Value{}
 
 	return nil
 }
@@ -111,5 +114,21 @@ func (c *Chair) IncrementViewCount() {
 }
 
 func (c *Chair) DecrementStock() {
-	atomic.AddInt64(&(c.stock), -1)
+	stock := atomic.AddInt64(&(c.stock), -1)
+	if stock == 0 {
+		c.soldOutTime.Store(time.Now())
+	}
+}
+
+func (c *Chair) GetSoldOutTime() *time.Time {
+	value := c.soldOutTime.Load()
+	if value == nil {
+		return nil
+	}
+
+	t, ok := value.(time.Time)
+	if !ok {
+		return nil
+	}
+	return &t
 }
