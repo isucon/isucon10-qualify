@@ -145,7 +145,7 @@ func main() {
 	score := int(conversion.GetCount())
 
 	// application errorは1回で10点減点
-	penalty := 10 * aCnt
+	penalty := 50 * aCnt
 	log.Print(score, penalty)
 
 	score -= penalty
