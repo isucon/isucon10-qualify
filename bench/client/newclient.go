@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
 )
 
 func NewClient(userAgent string, isBot bool) *Client {
@@ -19,7 +19,7 @@ func NewClient(userAgent string, isBot bool) *Client {
 					ServerName: ShareTargetURLs.TargetHost,
 				},
 			},
-			Timeout: paramater.DefaultAPITimeout,
+			Timeout: parameter.DefaultAPITimeout,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				return fmt.Errorf("redirect attempted")
 			},
@@ -56,7 +56,7 @@ func NewClientForVerify() *Client {
 					ServerName: ShareTargetURLs.TargetHost,
 				},
 			},
-			Timeout: paramater.VerifyTimeout,
+			Timeout: parameter.VerifyTimeout,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				return fmt.Errorf("redirect attempted")
 			},

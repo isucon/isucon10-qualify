@@ -12,7 +12,7 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
-	"github.com/isucon10-qualify/isucon10-qualify/bench/paramater"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
 )
 
 type point struct {
@@ -132,10 +132,10 @@ func ToCoordinates(po []point) *client.Coordinates {
 // 点Pの周りの4点を返す
 func getPointNeighbors(p point) []point {
 	return []point{
-		{Latitude: p.Latitude - paramater.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude + paramater.NeighborhoodRadiusOfNazotte},
-		{Latitude: p.Latitude + paramater.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude + paramater.NeighborhoodRadiusOfNazotte},
-		{Latitude: p.Latitude - paramater.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude - paramater.NeighborhoodRadiusOfNazotte},
-		{Latitude: p.Latitude + paramater.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude - paramater.NeighborhoodRadiusOfNazotte},
+		{Latitude: p.Latitude - parameter.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude + parameter.NeighborhoodRadiusOfNazotte},
+		{Latitude: p.Latitude + parameter.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude + parameter.NeighborhoodRadiusOfNazotte},
+		{Latitude: p.Latitude - parameter.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude - parameter.NeighborhoodRadiusOfNazotte},
+		{Latitude: p.Latitude + parameter.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude - parameter.NeighborhoodRadiusOfNazotte},
 	}
 }
 
@@ -187,7 +187,7 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
-	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 
@@ -197,7 +197,7 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
-	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 
@@ -214,11 +214,11 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 
-	if len(er.Estates) > paramater.MaxLengthOfNazotteResponse {
+	if len(er.Estates) > parameter.MaxLengthOfNazotteResponse {
 		err = failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: 検索結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
@@ -243,7 +243,7 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if time.Since(t) > paramater.ThresholdTimeOfAbandonmentPage {
+	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
 
