@@ -41,14 +41,19 @@ type Job struct {
 	Stderr string `json:"stderr"`
 }
 
+type Survey struct {
+	Language string `json:"language"`
+}
+
 type Result struct {
-	ID       int    `json:"id"`
-	Status   string `json:"status"`
-	Score    int    `json:"score"`
-	IsPassed bool   `json:"is_passed"`
-	Reason   string `json:"reason"`
-	Stdout   string `json:"stdout"`
-	Stderr   string `json:"stderr"`
+	ID     int    `json:"id"`
+	Status string `json:"status"`
+	Score  int    `json:"score"`
+	Passed bool   `json:"passed"`
+	Reason string `json:"reason"`
+	Stdout string `json:"stdout"`
+	Stderr string `json:"stderr"`
+	Survey Survey `json:"survey"`
 }
 
 type BenchmarkResult struct {
@@ -61,6 +66,7 @@ type BenchmarkResultStdout struct {
 	Pass     bool     `json:"pass"`
 	Score    int      `json:"score"`
 	Messages []string `json:"messages"`
+	Language string   `json:"language"`
 }
 
 const (
@@ -163,13 +169,16 @@ func createResult(job *Job, benchmarkResult *BenchmarkResult) *Result {
 	}
 
 	return &Result{
-		ID:       job.ID,
-		Status:   status,
-		Score:    benchmarkResultStdout.Score,
-		IsPassed: benchmarkResultStdout.Pass,
-		Reason:   joinN(benchmarkResultStdout.Messages, maxNumMessage),
-		Stdout:   benchmarkResult.Stdout,
-		Stderr:   benchmarkResult.Stderr,
+		ID:     job.ID,
+		Status: status,
+		Score:  benchmarkResultStdout.Score,
+		Passed: benchmarkResultStdout.Pass,
+		Reason: joinN(benchmarkResultStdout.Messages, maxNumMessage),
+		Stdout: benchmarkResult.Stdout,
+		Stderr: benchmarkResult.Stderr,
+		Survey: Survey{
+			Language: benchmarkResultStdout.Language,
+		},
 	}
 }
 
@@ -262,13 +271,14 @@ func runBenchmarker(benchmarkerPath string, job *Job) (*BenchmarkResult, error) 
 
 func printPrettyResult(result *Result) {
 	tmpResult := &Result{
-		ID:       result.ID,
-		Status:   result.Status,
-		Score:    result.Score,
-		IsPassed: result.IsPassed,
-		Reason:   result.Reason,
-		Stdout:   "see above",
-		Stderr:   "see above",
+		ID:     result.ID,
+		Status: result.Status,
+		Score:  result.Score,
+		Passed: result.Passed,
+		Reason: result.Reason,
+		Stdout: "see above",
+		Stderr: "see above",
+		Survey: result.Survey,
 	}
 	log.Println("============Benchmark stderr start====================")
 	log.Println(result.Stderr)
