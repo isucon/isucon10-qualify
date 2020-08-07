@@ -69,7 +69,7 @@ const (
 	maxStderrLength        = 8 * 1024 * 1024
 	maxNumMessage          = 20
 	maxBenchmarkTime       = 180 * time.Second
-	defaultBenchmarkerPath = "/home/isucon/isuumo/bin/bench"
+	defaultBenchmarkerPath = "../bench/bench"
 )
 
 var (
@@ -90,38 +90,50 @@ func init() {
 }
 
 func dequeue(ep string) (*Job, error) {
-	uri := fmt.Sprintf("%s/internal/job/dequeue/", ep)
-	req, err := http.NewRequest(http.MethodPost, uri, nil)
-	if err != nil {
-		return nil, err
-	}
+	return &Job{
+		ID: 0,
+		Team: &Team{
+			Servers: []*Server{
+				{
+					GlobalIP:      "localhost:1323",
+					IsBenchTarget: true,
+				},
+			},
+		},
+	}, nil
 
-	res, err := apiClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-	defer io.Copy(ioutil.Discard, res.Body)
+	// uri := fmt.Sprintf("%s/internal/job/dequeue/", ep)
+	// req, err := http.NewRequest(http.MethodPost, uri, nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	switch res.StatusCode {
-	case http.StatusOK:
-		job := Job{}
-		if err := json.NewDecoder(res.Body).Decode(&job); err != nil {
-			return nil, err
-		}
-		return &job, nil
+	// res, err := apiClient.Do(req)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer res.Body.Close()
+	// defer io.Copy(ioutil.Discard, res.Body)
 
-	// Job not found
-	case http.StatusNoContent:
-		return nil, errorJobNotFound
+	// switch res.StatusCode {
+	// case http.StatusOK:
+	// 	job := Job{}
+	// 	if err := json.NewDecoder(res.Body).Decode(&job); err != nil {
+	// 		return nil, err
+	// 	}
+	// 	return &job, nil
 
-	// 5XX
-	case http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
-		return nil, errorPortalAPIUnavailable
+	// // Job not found
+	// case http.StatusNoContent:
+	// 	return nil, errorJobNotFound
 
-	default:
-		return nil, errorJobDequeueFail
-	}
+	// // 5XX
+	// case http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+	// 	return nil, errorPortalAPIUnavailable
+
+	// default:
+	// 	return nil, errorJobDequeueFail
+	// }
 }
 
 func joinN(messages []string, n int) string {
@@ -207,8 +219,8 @@ func runBenchmarker(benchmarkerPath string, job *Job) (*BenchmarkResult, error) 
 	cmd := exec.CommandContext(
 		ctx,
 		benchmarkerPath,
-		fmt.Sprintf("-target-url=https://%s", target.GlobalIP),
-		fmt.Sprintf("-data-dir=/home/isucon/isucari/initial-data"),
+		fmt.Sprintf("-target-url=http://%s", target.GlobalIP),
+		fmt.Sprintf("-data-dir=../initial-data"),
 	)
 
 	var (
