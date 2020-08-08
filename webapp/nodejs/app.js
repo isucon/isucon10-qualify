@@ -199,6 +199,29 @@ app.get("/api/chair/:id", async (req, res, next) => {
   }
 });
 
+app.post("/api/chair/buy/:id", async (req, res, next) => {
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    const id = req.params.id;
+    const [chair] = await query("SELECT * FROM chair WHERE id = ? AND stock > 0", [id]);
+    if (chair == null) {
+      res.status(400).send("Not Found");
+      return;
+    }
+    await connection.beginTransaction();
+    await query("UPDATE chair SET stock = ? WHERE id = ?", [chair.stock-1, id]);
+    await connection.commit();
+    res.json({ ok: true });
+  } catch (e) {
+    await connection.rollback();
+    next(e);
+  } finally {
+    await connection.destroy();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Listening ${PORT}`);
 });
