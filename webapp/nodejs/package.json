@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/isucon/isucon10-qualify#readme",
   "dependencies": {
+    "camelcase-keys": "^6.2.2",
     "debug": "^4.1.1",
     "express": "^4.17.1",
     "mysql": "^2.18.1"

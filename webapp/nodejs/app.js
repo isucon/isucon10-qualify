@@ -2,7 +2,9 @@ const express = require("express");
 const mysql = require("mysql");
 const path = require("path");
 const cp = require("child_process");
-const promisify = require("util").promisify;
+const util = require("util");
+const camelcaseKeys = require("camelcase-keys");
+const promisify = util.promisify;
 const exec = promisify(cp.exec);
 const chairSearchCondition = require("../fixture/chair_condition.json");
 const estateSearchCondition = require("../fixture/estate_condition.json");
@@ -222,11 +224,194 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
   }
 });
 
-//e.GET("/api/estate/:id", getEstateDetail)
-//	e.GET("/api/estate/search", searchEstates)
 //	e.POST("/api/estate/req_doc/:id", postEstateRequestDocument)
 //	e.POST("/api/estate/nazotte", searchEstateNazotte)
 //	e.GET("/api/estate/search/condition", getEstateSearchCondition)
+
+app.get("/api/estate/search", async (req, res, next) => {
+  const searchQueries = [];
+  const queryParams = [];
+  const {doorHeightRangeId, doorWidthRangeId, rentRangeId, features, page, perPage, } = req.query;
+
+  if (doorHeightRangeId != null) {
+    const doorHeight = estateSearchCondition["doorHeight"].ranges[doorHeightRangeId];
+    if (doorHeight == null) {
+      res.status(400).send("doorHeightRangeId invalid");
+      return;
+    }
+
+    if (doorHeight.min !== -1) {
+      searchQueries.push("door_height >= ? ");
+      queryParams.push(doorHeight.min);
+    }
+
+    if (doorHeight.max !== -1) {
+      searchQueries.push("door_height < ? ");
+      queryParams.push(doorHeight.max);
+    }
+  }
+
+  if (doorWidthRangeId != null) {
+    const doorWidth = estateSearchCondition["doorWidth"].ranges[doorWidthRangeId];
+    if (doorWidth == null) {
+      res.status(400).send("doorWidthRangeId invalid");
+      return;
+    }
+
+    if (doorWidth.min !== -1) {
+      searchQueries.push("door_width >= ? ");
+      queryParams.push(doorWidth.min);
+    }
+
+    if (doorWidth.max !== -1) {
+      searchQueries.push("door_width < ? ");
+      queryParams.push(doorWidth.max);
+    }
+  }
+
+  if (rentRangeId != null) {
+    const rent = estateSearchCondition["rent"].ranges[rentRangeId];
+    if (rent == null) {
+      res.status(400).send("rentRangeId invalid");
+      return;
+    }
+
+    if (rent.min !== -1) {
+      searchQueries.push("rent >= ? ");
+      queryParams.push(rent.min);
+    }
+
+    if (rent.max !== -1) {
+      searchQueries.push("rent < ? ");
+      queryParams.push(rent.max);
+    }
+  }
+
+  if (features != null) {
+    const featureConditions = features.split(",");
+    for (const featureCondition of featureConditions) {
+      searchQueries.push("features LIKE CONCAT('%', ?, '%')");
+      queryParams.push(featureCondition);
+    }
+  }
+
+  if (searchQueries.length === 0) {
+    res.status(400).send("Search condition not found");
+    return;
+  }
+
+	if (!page || page != +page) {
+    res.status(400).send(`page condition invalid ${page}`);
+    return;
+	}
+
+	if (!perPage || perPage != +perPage) {
+    res.status(400).send("perPage condition invalid");
+    return;
+  }
+
+  const pageNum = parseInt(page, 10);
+  const perPageNum = parseInt(perPage, 10);
+  
+  const sqlprefix = "SELECT * FROM estate WHERE ";
+  const searchCondition = searchQueries.join(" AND ");
+  const limitOffset = " ORDER BY view_count DESC, id ASC LIMIT ? OFFSET ?";
+  const countprefix = "SELECT COUNT(*) as count FROM estate WHERE ";
+
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    const [{count}] = await query(`${countprefix}${searchCondition}`, queryParams);
+    queryParams.push(perPageNum, perPageNum * pageNum);
+    const estates = await query(`${sqlprefix}${searchCondition}${limitOffset}`, queryParams);
+    res.json({
+      count,
+      estates
+    });
+  } catch (e) {
+    next(e);
+  } finally {
+    await connection.destroy();
+  }
+});
+
+app.get("/api/estate/search/condition", (req, res, next) => {
+  res.json(estateSearchCondition);
+});
+
+app.post("/api/estate/req_doc/:id", async (req, res, next) => {
+  const id = req.params.id;
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    const id = req.params.id;
+    const [estate] = await query("SELECT * FROM estate WHERE id = ?", [id]);
+    if (estate == null) {
+      res.status(404).send("Not Found");
+      return;
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  } finally {
+    await connection.destroy();
+  }
+});
+
+app.post("/api/estate/nazotte", async (req, res, next) => {
+  const coordinates = req.body.coordinates;
+  const longitudes = coordinates.map((c) => c.longitude);
+  const latitudes = coordinates.map((c) => c.latitude);
+  const boundingbox = {
+    topleft: {
+      longitude: Math.min(...longitudes),
+      latitude: Math.min(...latitudes),
+    },
+    bottomright: {
+      longitude: Math.max(...longitudes),
+      latitude: Math.max(...latitudes),
+    },
+  };
+
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    const estates = await query("SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY view_count DESC, id ASC", [
+      boundingbox.bottomright.latitude, boundingbox.topleft.latitude, boundingbox.bottomright.longitude, boundingbox.topleft.longitude,
+    ]);
+
+    const estatesInPolygon = [];
+    for (const estate of estates) {
+      const point = util.format("'POINT(%f %f)'", estate.latitude, estate.longitude);
+      const sql = "SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))";
+      const coordinatesToText = util.format("'POLYGON((%s))'", coordinates.map((coordinate) => util.format("%f %f", coordinate.latitude, coordinate.longitude)).join(","));
+      const sqlstr = util.format(sql, coordinatesToText, point)
+      const [e] = await query(sqlstr, [estate.id]);
+      estatesInPolygon.push(e);
+    }
+
+    const results = {
+      estates: [],
+    };
+    let i = 0;
+    for (const estate of estatesInPolygon) {
+      if (i >= NAZOTTE_LIMIT) {
+        break;
+      }
+      results.estates.push(camelcaseKeys(estate));
+      i++;
+    }
+    results.count = results.estates.length;
+    res.json(results);
+  } catch (e) {
+    next(e);
+  } finally {
+    await connection.destroy();
+  }
+});
 
 app.get("/api/estate/:id", async (req, res, next) => {
   const getConnection = promisify(db.getConnection.bind(db));
