@@ -222,6 +222,35 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
   }
 });
 
+//e.GET("/api/estate/:id", getEstateDetail)
+//	e.GET("/api/estate/search", searchEstates)
+//	e.POST("/api/estate/req_doc/:id", postEstateRequestDocument)
+//	e.POST("/api/estate/nazotte", searchEstateNazotte)
+//	e.GET("/api/estate/search/condition", getEstateSearchCondition)
+
+app.get("/api/estate/:id", async (req, res, next) => {
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    const id = req.params.id;
+    const [estate] = await query("SELECT * FROM estate WHERE id = ?", [id]);
+    if (estate == null) {
+      res.status(404).send("Not Found");
+      return;
+    }
+    await connection.beginTransaction();
+    await query("UPDATE estate SET view_count = ? WHERE id = ?", [estate.view_count+1, id]);
+    await connection.commit();
+    res.json(estate);
+  } catch (e) {
+    await connection.rollback();
+    next(e);
+  } finally {
+    await connection.destroy();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Listening ${PORT}`);
 });
