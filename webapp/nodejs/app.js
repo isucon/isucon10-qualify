@@ -436,6 +436,63 @@ app.get("/api/estate/:id", async (req, res, next) => {
   }
 });
 
+// Recommended Handler
+// e.GET("/api/recommended_estate", searchRecommendEstate)
+// e.GET("/api/recommended_estate/:id", searchRecommendEstateWithChair)
+// e.GET("/api/recommended_chair", searchRecommendChair)
+
+app.get("/api/recommended_estate", async (req, res, next) => {
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    const es = await query("SELECT * FROM estate ORDER BY view_count DESC, id ASC LIMIT ?", [LIMIT]);
+    const estates = es.map((estate) => camelcaseKeys(estate)); 
+    res.json({estates});
+  } catch (e) {
+    next(e);
+  } finally {
+    await connection.destroy();
+  } 
+});
+
+app.get("/api/recommended_estate/:id", async (req, res, next) => {
+  const id = req.params.id;
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    const [chair] = await query("SELECT * FROM chair WHERE id = ?", [id]);
+    const w = chair.width;
+    const h = chair.height;
+    const d = chair.depth;
+    const es = await query("SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY view_count DESC, id ASC LIMIT ?", [
+      w, h, w, d, h, w, h, d, d, w, d, h, LIMIT
+    ]);
+    const estates = es.map((estate) => camelcaseKeys(estate)); 
+    res.json({ estates });
+  } catch (e) {
+    next(e);
+  } finally {
+    await connection.destroy();
+  } 
+});
+
+app.get("/api/recommended_chair", async (req, res, next) => {
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    const cs = await query("SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC, id ASC LIMIT ?", [LIMIT]);
+    const chairs = cs.map((chair) => camelcaseKeys(chair)); 
+    res.json({ chairs });
+  } catch (e) {
+    next(e);
+  } finally {
+    await connection.destroy();
+  } 
+});
+
 app.listen(PORT, () => {
   console.log(`Listening ${PORT}`);
 });
