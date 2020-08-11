@@ -26,3 +26,9 @@
     - webapp/go/main_test.go
     - webapp/go/recommend_test.go
     - webapp/mysql/.gitignore
+    - Makefile
+    - cloudbuild.yaml
+    - webapp/kataribe.toml
+    - webapp/logs
+    - webapp/nginx
+    - webapp/frontend
