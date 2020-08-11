@@ -21,9 +21,8 @@ const dbinfo = {
 };
 
 const app = express();
-const connection = mysql.createConnection(dbinfo);
-const query = promisify(connection.query.bind(connection));
-const end = promisify(connection.end.bind(connection));
+const db = mysql.createPool(dbinfo);
+app.set("db", db);
 
 app.use(express.json());
 app.post("/initialize", async (req, res, next) => {
@@ -157,7 +156,9 @@ app.get("/api/chair/search", async (req, res, next) => {
   const limitOffset = " ORDER BY view_count DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM chair WHERE ";
 
-
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
   try {
     const [{count}] = await query(`${countprefix}${searchCondition}`, queryParams);
     queryParams.push(perPageNum, perPageNum * pageNum);
@@ -168,6 +169,8 @@ app.get("/api/chair/search", async (req, res, next) => {
     });
   } catch (e) {
     next(e);
+  } finally {
+    await connection.release();
   }
 });
 
@@ -176,7 +179,9 @@ app.get("/api/chair/search/condition", (req, res, next) => {
 });
 
 app.get("/api/chair/:id", async (req, res, next) => {
-
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
     const [chair] = await query("SELECT * FROM chair WHERE id = ?", [id]);
@@ -191,11 +196,15 @@ app.get("/api/chair/:id", async (req, res, next) => {
   } catch (e) {
     await connection.rollback();
     next(e);
+  } finally {
+    await connection.release();
   }
 });
 
 app.post("/api/chair/buy/:id", async (req, res, next) => {
-
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
     const [chair] = await query("SELECT * FROM chair WHERE id = ? AND stock > 0", [id]);
@@ -210,6 +219,8 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
   } catch (e) {
     await connection.rollback();
     next(e);
+  } finally {
+    await connection.release();
   }
 });
 
@@ -303,7 +314,9 @@ app.get("/api/estate/search", async (req, res, next) => {
   const limitOffset = " ORDER BY view_count DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM estate WHERE ";
 
-
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
   try {
     const [{count}] = await query(`${countprefix}${searchCondition}`, queryParams);
     queryParams.push(perPageNum, perPageNum * pageNum);
@@ -314,6 +327,8 @@ app.get("/api/estate/search", async (req, res, next) => {
     });
   } catch (e) {
     next(e);
+  } finally {
+    await connection.release();
   }
 });
 
@@ -323,7 +338,9 @@ app.get("/api/estate/search/condition", (req, res, next) => {
 
 app.post("/api/estate/req_doc/:id", async (req, res, next) => {
   const id = req.params.id;
-
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
     const [estate] = await query("SELECT * FROM estate WHERE id = ?", [id]);
@@ -334,6 +351,8 @@ app.post("/api/estate/req_doc/:id", async (req, res, next) => {
     res.json({ ok: true });
   } catch (e) {
     next(e);
+  } finally {
+    await connection.release();
   }
 });
 
@@ -352,7 +371,9 @@ app.post("/api/estate/nazotte", async (req, res, next) => {
     },
   };
 
-
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
   try {
     const estates = await query("SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY view_count DESC, id ASC", [
       boundingbox.bottomright.latitude, boundingbox.topleft.latitude, boundingbox.bottomright.longitude, boundingbox.topleft.longitude,
@@ -385,11 +406,15 @@ app.post("/api/estate/nazotte", async (req, res, next) => {
     res.json(results);
   } catch (e) {
     next(e);
+  } finally {
+    await connection.release();
   }
 });
 
 app.get("/api/estate/:id", async (req, res, next) => {
-
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
     const [estate] = await query("SELECT * FROM estate WHERE id = ?", [id]);
@@ -405,23 +430,31 @@ app.get("/api/estate/:id", async (req, res, next) => {
   } catch (e) {
     await connection.rollback();
     next(e);
+  } finally {
+    await connection.release();
   }
 });
 
 app.get("/api/recommended_estate", async (req, res, next) => {
-
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
   try {
     const es = await query("SELECT * FROM estate ORDER BY view_count DESC, id ASC LIMIT ?", [LIMIT]);
     const estates = es.map((estate) => camelcaseKeys(estate)); 
     res.json({estates});
   } catch (e) {
     next(e);
-  }
+  } finally {
+    await connection.release();
+  } 
 });
 
 app.get("/api/recommended_estate/:id", async (req, res, next) => {
   const id = req.params.id;
-
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
   try {
     const [chair] = await query("SELECT * FROM chair WHERE id = ?", [id]);
     const w = chair.width;
@@ -434,24 +467,26 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
     res.json({ estates });
   } catch (e) {
     next(e);
-  }
+  } finally {
+    await connection.release();
+  } 
 });
 
 app.get("/api/recommended_chair", async (req, res, next) => {
-
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
   try {
     const cs = await query("SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC, id ASC LIMIT ?", [LIMIT]);
     const chairs = cs.map((chair) => camelcaseKeys(chair)); 
     res.json({ chairs });
   } catch (e) {
     next(e);
-  }
+  } finally {
+    await connection.release();
+  } 
 });
 
-const server = app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Listening ${PORT}`);
 });
-
-server.on('close', async () => {
-  await end()
-})
