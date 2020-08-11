@@ -165,12 +165,12 @@ app.get("/api/chair/search", async (req, res, next) => {
     const chairs = await query(`${sqlprefix}${searchCondition}${limitOffset}`, queryParams);
     res.json({
       count,
-      chairs
+      chairs: camelizeKeys(chairs),
     });
   } catch (e) {
     next(e);
   } finally {
-    await connection.destroy();
+    await connection.release();
   }
 });
 
@@ -192,12 +192,12 @@ app.get("/api/chair/:id", async (req, res, next) => {
     await connection.beginTransaction();
     await query("UPDATE chair SET view_count = ? WHERE id = ?", [chair.view_count+1, id]);
     await connection.commit();
-    res.json(chair);
+    res.json(camelizeKeys(chair));
   } catch (e) {
     await connection.rollback();
     next(e);
   } finally {
-    await connection.destroy();
+    await connection.release();
   }
 });
 
@@ -209,7 +209,7 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
     const id = req.params.id;
     const [chair] = await query("SELECT * FROM chair WHERE id = ? AND stock > 0", [id]);
     if (chair == null) {
-      res.status(400).send("Not Found");
+      res.status(404).send("Not Found");
       return;
     }
     await connection.beginTransaction();
@@ -220,13 +220,9 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
     await connection.rollback();
     next(e);
   } finally {
-    await connection.destroy();
+    await connection.release();
   }
 });
-
-//	e.POST("/api/estate/req_doc/:id", postEstateRequestDocument)
-//	e.POST("/api/estate/nazotte", searchEstateNazotte)
-//	e.GET("/api/estate/search/condition", getEstateSearchCondition)
 
 app.get("/api/estate/search", async (req, res, next) => {
   const searchQueries = [];
@@ -327,12 +323,12 @@ app.get("/api/estate/search", async (req, res, next) => {
     const estates = await query(`${sqlprefix}${searchCondition}${limitOffset}`, queryParams);
     res.json({
       count,
-      estates
+      estates: camelcaseKeys(estates),
     });
   } catch (e) {
     next(e);
   } finally {
-    await connection.destroy();
+    await connection.release();
   }
 });
 
@@ -356,7 +352,7 @@ app.post("/api/estate/req_doc/:id", async (req, res, next) => {
   } catch (e) {
     next(e);
   } finally {
-    await connection.destroy();
+    await connection.release();
   }
 });
 
@@ -390,7 +386,9 @@ app.post("/api/estate/nazotte", async (req, res, next) => {
       const coordinatesToText = util.format("'POLYGON((%s))'", coordinates.map((coordinate) => util.format("%f %f", coordinate.latitude, coordinate.longitude)).join(","));
       const sqlstr = util.format(sql, coordinatesToText, point)
       const [e] = await query(sqlstr, [estate.id]);
-      estatesInPolygon.push(e);
+      if (e && Object.keys(e).length > 0) {
+        estatesInPolygon.push(e);
+      }
     }
 
     const results = {
@@ -409,7 +407,7 @@ app.post("/api/estate/nazotte", async (req, res, next) => {
   } catch (e) {
     next(e);
   } finally {
-    await connection.destroy();
+    await connection.release();
   }
 });
 
@@ -432,14 +430,9 @@ app.get("/api/estate/:id", async (req, res, next) => {
     await connection.rollback();
     next(e);
   } finally {
-    await connection.destroy();
+    await connection.release();
   }
 });
-
-// Recommended Handler
-// e.GET("/api/recommended_estate", searchRecommendEstate)
-// e.GET("/api/recommended_estate/:id", searchRecommendEstateWithChair)
-// e.GET("/api/recommended_chair", searchRecommendChair)
 
 app.get("/api/recommended_estate", async (req, res, next) => {
   const getConnection = promisify(db.getConnection.bind(db));
@@ -452,7 +445,7 @@ app.get("/api/recommended_estate", async (req, res, next) => {
   } catch (e) {
     next(e);
   } finally {
-    await connection.destroy();
+    await connection.release();
   } 
 });
 
@@ -474,7 +467,7 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
   } catch (e) {
     next(e);
   } finally {
-    await connection.destroy();
+    await connection.release();
   } 
 });
 
@@ -489,7 +482,7 @@ app.get("/api/recommended_chair", async (req, res, next) => {
   } catch (e) {
     next(e);
   } finally {
-    await connection.destroy();
+    await connection.release();
   } 
 });
 
