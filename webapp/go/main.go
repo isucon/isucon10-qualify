@@ -462,7 +462,7 @@ func buyChair(c echo.Context) error {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Echo().Logger.Infof("buyChair chair id \"%v\" not found", id)
-			return c.NoContent(http.StatusBadRequest)
+			return c.NoContent(http.StatusNotFound)
 		}
 		c.Echo().Logger.Errorf("DB Execution Error: on getting a chair by id : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
