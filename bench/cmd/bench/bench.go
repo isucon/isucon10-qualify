@@ -124,6 +124,7 @@ func main() {
 	// checkとloadは区別がつかないようにしないといけない。loadのリクエストはログアウト状態しかなかったので、ログアウト時のキャッシュを強くするだけでスコアがはねる問題が過去にあった
 	// 今回はほぼ全リクエストがログイン前提になっているので、checkとloadの区別はできないはず
 	scenario.Validation(context.Background())
+	log.Printf("最終的な負荷レベル: %d", scenario.GetLoadLevel())
 
 	// context.Canceledのエラーは直後に取れば基本的には入ってこない
 	eMsgs, cCnt, aCnt, _ := fails.ErrorsForCheck.Get()
