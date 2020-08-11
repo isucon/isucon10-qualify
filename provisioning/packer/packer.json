@@ -1,4 +1,7 @@
 {
+  "variables": {
+      "env": ""
+  },
   "builders": [
     {
       "accelerator": "none",
@@ -12,8 +15,8 @@
       "http_directory": "./packer-config",
       "iso_checksum_url": "https://cloud-images.ubuntu.com/bionic/current/SHA256SUMS",
       "iso_checksum_type": "sha256",
-      "iso_url": "./original/bionic-server-cloudimg-amd64.img",
-      "output_directory": "output",
+      "iso_url": "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img",
+      "output_directory": "output-{{user `env`}}" ,
       "qemuargs": [
         [
           "-m",
@@ -38,7 +41,7 @@
       "ssh_username": "ubuntu",
       "type": "qemu",
       "use_default_display": true,
-      "vm_name": "ubuntu"
+      "vm_name": "isucon10-qualify-{{user `env`}}"
     }
   ],
   "provisioners": [
@@ -51,13 +54,7 @@
     },
     {
         "type": "ansible",
-        "playbook_file": "../ansible/web.yaml"
-    },
-    {
-      "inline": [
-        "sudo touch /home/hoge.hoge"
-      ],
-      "type": "shell"
+        "playbook_file": "../ansible/{{user `env`}}.yaml"
     },
     {
       "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'",
@@ -66,7 +63,6 @@
         "mv /etc/sudoers.d/90-cloud-init-users /root/",
         "/usr/bin/truncate --size 0 /etc/machine-id",
         "rm -r /var/lib/cloud /var/lib/dbus/machine-id ",
-        "for i in group gshadow passwd shadow subuid subgid; do mv /etc/$i- /etc/$i; done",
         "/bin/sync",
         "/sbin/fstrim -v /"
       ],

@@ -69,6 +69,16 @@
     group: "root"
     mode: "0644"
 
+- name: Copy my.conf
+  become: yes
+  become_user: root
+  copy:
+    src: "my.cnf"
+    dest: "/etc/mysql/conf.d/my.cnf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
 - name: Install Faker for Initialize Data
   become: yes
   become_user: root
@@ -85,7 +95,15 @@
     chdir: /home/isucon/isucon10-qualify/initial-data
   environment: 
     <<: *env
-  command: make all
+  shell: |
+    make chair_data && make estate_data
+
+- name: Restart "mysql"
+  systemd:
+    daemon_reload: "yes"
+    name: "mysql"
+    state: "restarted"
+    enabled: "yes"
 
 - name: Setup MySQL
   become: yes
@@ -128,6 +146,22 @@
   shell: |
     npm run build
 
+- name: Export frontend application
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isucon10-qualify/webapp/frontend
+  environment:
+    <<: *env
+  shell: |
+    npm run export
+
+
+- name: Deploy static files
+  become: yes
+  become_user: root
+  shell: |
+    mkdir -p /www/data && cp -pR /home/isucon/isucon10-qualify/webapp/frontend/out/* /www/data
 
 - name: Deploy env shellscript
   become: yes
@@ -135,14 +169,6 @@
   copy:
     src: "env.sh"
     dest: /home/isucon
-
-- name: Deploy frontend-env shellscript
-  become: yes
-  become_user: isucon
-  copy:
-    src: "frontend-env.sh"
-    dest: /home/isucon
-
 - name: Copy service file
   copy:
     src: "{{ item }}"
@@ -152,20 +178,12 @@
     mode: "0644"
   with_items:
     - isucon-go.service
-    - isucon-frontend.service
 
 - name: Start "isucon-go.service"
   systemd:
     daemon_reload: "yes"
     name: "isucon-go.service"
-    state: "started"
-    enabled: "yes"
-
-- name: Start "isucon-frontend.service"
-  systemd:
-    daemon_reload: "yes"
-    name: "isucon-frontend.service"
-    state: "started"
+    state: "restarted"
     enabled: "yes"
 
 - name: Start "nginx"
@@ -175,32 +193,8 @@
     state: "reloaded"
     enabled: "yes"
 
-- name: Remove provisioning file
+- name: Initialize isucon10
   become: yes
-  become_user: root
-  file:
-    path: "/home/isucon/isucon10-qualify/{{ item }}"
-    state: absent
-  with_items:
-    - agreed
-    - bench
-    - provisioning
-    - initial-data
-    - .git
-    - .github
-    - .gitignore
-    - LICENSE
-    - webapp/docker-compose-test.yaml
-    - webapp/docker-compose.yaml
-    - webapp/Makefile
-    - webapp/.gitignore
-    - webapp/frontend/Dockerfile
-    - webapp/frontend/.dockerignore
-    - webapp/frontend/.gitignore
-    - webapp/go/Dockerfile
-    - webapp/go/chair_test.go
-    - webapp/go/estate_test.go
-    - webapp/go/main_test.go
-    - webapp/go/recommend_test.go
-    - webapp/mysql/.gitignore
+  become_user: isucon
+  command: curl -X POST http://localhost/initialize
 
