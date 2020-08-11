@@ -185,7 +185,7 @@ app.get("/api/chair/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
     const [chair] = await query("SELECT * FROM chair WHERE id = ?", [id]);
-    if (chair == null) {
+    if (chair == null || chair.stock <= 0) {
       res.status(404).send("Not Found");
       return;
     }
