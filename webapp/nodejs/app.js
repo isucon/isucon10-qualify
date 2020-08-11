@@ -18,6 +18,7 @@ const dbinfo = {
   user: process.env.MYSQL_USER ?? "isucon",
   password: process.env.MYSQL_PASS ?? "isucon",
   database: process.env.MYSQL_DBNAME ?? "isuumo",
+  connectionLimit: 10,
 };
 
 const app = express();
