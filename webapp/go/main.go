@@ -434,7 +434,7 @@ func searchChairs(c echo.Context) error {
 	return c.JSON(http.StatusOK, chairs)
 }
 
-func sendMail(mail string) {
+func sendEmail(email string) {
 	// Not implemented
 }
 
@@ -486,7 +486,7 @@ func buyChair(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	sendMail(email)
+	sendEmail(email)
 	return c.NoContent(http.StatusOK)
 }
 
@@ -829,7 +829,7 @@ func postEstateRequestDocument(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	sendMail(email)
+	sendEmail(email)
 	return c.NoContent(http.StatusOK)
 }
 
