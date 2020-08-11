@@ -1,3 +1,0 @@
-API_HOST=http://localhost
-API_PORT=1323
-PORT=3000
