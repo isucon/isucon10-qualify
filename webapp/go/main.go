@@ -823,10 +823,22 @@ func postEstateRequestDocument(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	_, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.Echo().Logger.Infof("post request document failed : %v", err)
 		return c.NoContent(http.StatusBadRequest)
+	}
+
+	sqlstr := `SELECT * FROM estate WHERE id = ?`
+
+	estate := Estate{}
+	err = db.Get(&estate, sqlstr, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.NoContent(http.StatusNotFound)
+		}
+		c.Logger().Errorf("postEstateRequestDocument DB execution error : %v", err)
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	sendEmail(email)
