@@ -434,7 +434,23 @@ func searchChairs(c echo.Context) error {
 	return c.JSON(http.StatusOK, chairs)
 }
 
+func sendMail(mail string) {
+	// Not implemented
+}
+
 func buyChair(c echo.Context) error {
+	m := echo.Map{}
+	if err := c.Bind(&m); err != nil {
+		c.Echo().Logger.Infof("post request document failed : %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	email, ok := m["email"].(string)
+	if !ok {
+		c.Echo().Logger.Info("post request document failed : email not found in request body")
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.Echo().Logger.Infof("post request document failed : %v", err)
@@ -469,6 +485,8 @@ func buyChair(c echo.Context) error {
 		c.Echo().Logger.Errorf("transaction commit error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	sendMail(email)
 	return c.NoContent(http.StatusOK)
 }
 
@@ -793,12 +811,25 @@ func searchEstateNazotte(c echo.Context) error {
 }
 
 func postEstateRequestDocument(c echo.Context) error {
+	m := echo.Map{}
+	if err := c.Bind(&m); err != nil {
+		c.Echo().Logger.Infof("post request document failed : %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	email, ok := m["email"].(string)
+	if !ok {
+		c.Echo().Logger.Info("post request document failed : email not found in request body")
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	_, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.Echo().Logger.Infof("post request document failed : %v", err)
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	sendMail(email)
 	return c.NoContent(http.StatusOK)
 }
 
