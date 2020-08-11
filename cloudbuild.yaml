@@ -1,8 +1,0 @@
-steps:
-- name: 'gcr.io/rtc-isucon10-dev/docker-compose'
-  entrypoint: bash
-  args:
-    - -c
-    - |
-      make ci/test
-  timeout: 180s
