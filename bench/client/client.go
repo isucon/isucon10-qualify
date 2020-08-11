@@ -142,9 +142,13 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 
-	if  !c.isBot && res.StatusCode == http.StatusServiceUnavailable {
+	if !c.isBot && res.StatusCode == http.StatusServiceUnavailable {
 		return nil, failure.New(fails.ErrTemporary)
 	}
 
 	return res, nil
+}
+
+func (c *Client) GetEmail() string {
+	return fmt.Sprintf("%s@isucon.com", c.userAgent)
 }

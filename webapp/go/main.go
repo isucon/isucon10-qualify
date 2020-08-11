@@ -434,7 +434,23 @@ func searchChairs(c echo.Context) error {
 	return c.JSON(http.StatusOK, chairs)
 }
 
+func sendEmail(email string) {
+	// Not implemented
+}
+
 func buyChair(c echo.Context) error {
+	m := echo.Map{}
+	if err := c.Bind(&m); err != nil {
+		c.Echo().Logger.Infof("post request document failed : %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	email, ok := m["email"].(string)
+	if !ok {
+		c.Echo().Logger.Info("post request document failed : email not found in request body")
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.Echo().Logger.Infof("post request document failed : %v", err)
@@ -446,7 +462,7 @@ func buyChair(c echo.Context) error {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Echo().Logger.Infof("buyChair chair id \"%v\" not found", id)
-			return c.NoContent(http.StatusBadRequest)
+			return c.NoContent(http.StatusNotFound)
 		}
 		c.Echo().Logger.Errorf("DB Execution Error: on getting a chair by id : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -469,6 +485,8 @@ func buyChair(c echo.Context) error {
 		c.Echo().Logger.Errorf("transaction commit error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	sendEmail(email)
 	return c.NoContent(http.StatusOK)
 }
 
@@ -793,12 +811,37 @@ func searchEstateNazotte(c echo.Context) error {
 }
 
 func postEstateRequestDocument(c echo.Context) error {
-	_, err := strconv.Atoi(c.Param("id"))
+	m := echo.Map{}
+	if err := c.Bind(&m); err != nil {
+		c.Echo().Logger.Infof("post request document failed : %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	email, ok := m["email"].(string)
+	if !ok {
+		c.Echo().Logger.Info("post request document failed : email not found in request body")
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.Echo().Logger.Infof("post request document failed : %v", err)
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	sqlstr := `SELECT * FROM estate WHERE id = ?`
+
+	estate := Estate{}
+	err = db.Get(&estate, sqlstr, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.NoContent(http.StatusNotFound)
+		}
+		c.Logger().Errorf("postEstateRequestDocument DB execution error : %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	sendEmail(email)
 	return c.NoContent(http.StatusOK)
 }
 

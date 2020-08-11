@@ -509,8 +509,17 @@ func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (
 	return &estate, nil
 }
 
+type EmailRequest struct {
+	Email string `json:"email"`
+}
+
 func (c *Client) BuyChair(ctx context.Context, id string) error {
-	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/chair/buy/"+id, nil)
+	jsonStr, err := json.Marshal(EmailRequest{Email: c.GetEmail()})
+	if err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/chair/buy/"+id, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker)
 	}
@@ -545,7 +554,12 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 }
 
 func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
-	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/estate/req_doc/"+id, nil)
+	jsonStr, err := json.Marshal(EmailRequest{Email: c.GetEmail()})
+	if err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/estate/req_doc/"+id, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker)
 	}
