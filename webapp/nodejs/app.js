@@ -165,7 +165,7 @@ app.get("/api/chair/search", async (req, res, next) => {
     const chairs = await query(`${sqlprefix}${searchCondition}${limitOffset}`, queryParams);
     res.json({
       count,
-      chairs: camelizeKeys(chairs),
+      chairs: camelcaseKeys(chairs),
     });
   } catch (e) {
     next(e);
@@ -192,7 +192,7 @@ app.get("/api/chair/:id", async (req, res, next) => {
     await connection.beginTransaction();
     await query("UPDATE chair SET view_count = ? WHERE id = ?", [chair.view_count+1, id]);
     await connection.commit();
-    res.json(camelizeKeys(chair));
+    res.json(camelcaseKeys(chair));
   } catch (e) {
     await connection.rollback();
     next(e);
