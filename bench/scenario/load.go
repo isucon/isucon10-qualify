@@ -5,14 +5,25 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"sync/atomic"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
 	"github.com/morikuni/failure"
-	"github.com/google/uuid"
 )
+
+var loadLevel int64
+
+func GetLoadLevel() int64 {
+	return atomic.LoadInt64(&loadLevel)
+}
+
+func IncrementLoadLevel() {
+	atomic.AddInt64(&loadLevel, 1)
+}
 
 func runEstateSearchWorker(ctx context.Context) {
 	u, _ := uuid.NewRandom()
@@ -152,6 +163,7 @@ func checkWorkers(ctx context.Context) {
 				go runChairSearchWorker(ctx)
 				go runEstateSearchWorker(ctx)
 				go runEstateNazotteSearchWorker(ctx)
+				IncrementLoadLevel()
 			} else {
 				log.Println("シナリオ内でエラーが発生したため負荷レベルを上げられませんでした。")
 			}
