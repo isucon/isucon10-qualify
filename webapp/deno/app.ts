@@ -226,6 +226,51 @@ router.get("/api/chair/search", async (ctx, next) => {
   }
 });
 
+router.get("/api/chair/search/condition", (ctx) => {
+  ctx.response.body = chairSearchCondition;
+});
+
+router.get("/api/chair/:id", async (ctx) => {
+  try {
+    const id = ctx.params.id;
+    const [chair] = await db.query("SELECT * FROM chair WHERE id = ?", [id]);
+    if (chair == null || chair.stock <= 0) {
+      ctx.response.status = 404;
+      ctx.response.body = "Not Found";
+      return;
+    }
+    await db.transaction(async (conn) => {
+      await conn.execute("UPDATE chair SET view_count = ? WHERE id = ?", [chair.view_count+1, id]);
+      await conn.execute("COMMIT");
+    });
+    ctx.response.body = chair;
+  } catch (e) {
+    ctx.response.status = 500;
+    ctx.response.body = e.toString();
+  }
+});
+
+router.post("/api/chair/buy/:id", async (ctx) => {
+  try {
+    const id = ctx.params.id;
+    const [chair] = await db.query("SELECT * FROM chair WHERE id = ? AND stock > 0", [id]);
+    if (chair == null) {
+      ctx.response.status = 404;
+      ctx.response.body = "Not Found";
+      return;
+    }
+
+    await db.transaction(async (conn) => {
+      await conn.execute("UPDATE chair SET stock = ? WHERE id = ?", [chair.stock-1, id]);
+      await conn.execute("COMMIT");
+    });
+    
+    ctx.response.body = { ok: true };
+  } catch (e) {
+    ctx.response.status = 500;
+    ctx.response.body = e.toString(); 
+  }
+});
 const app = new Application();
 app.use(router.routes());
 app.use(router.allowedMethods());
