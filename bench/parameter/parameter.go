@@ -22,7 +22,7 @@ const (
 	IntervalForCheckWorkers               = 5 * time.Second
 	ThresholdTimeOfAbandonmentPage        = 1000 * time.Millisecond
 	DefaultAPITimeout                     = 2000 * time.Millisecond
-	InitializeTimeout                     = 60 * time.Second
+	InitializeTimeout                     = 30 * time.Second
 	VerifyTimeout                         = 10 * time.Second
 	LoadTimeout                           = 60 * time.Second
 )
