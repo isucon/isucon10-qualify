@@ -9,7 +9,7 @@
       "disk_discard": "unmap",
       "disk_image": true,
       "disk_interface": "virtio-scsi",
-      "disk_size": "5000M",
+      "disk_size": "10000M",
       "format": "qcow2",
       "headless": true,
       "http_directory": "./packer-config",
