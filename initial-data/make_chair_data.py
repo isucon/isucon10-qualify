@@ -97,7 +97,47 @@ CHAIR_FEATURE_LIST = [
     "高さ調節可能",
     "通気性抜群",
     "メタルフレーム",
-    "低反発"
+    "低反発",
+    "木製",
+    "背もたれつき",
+    "回転可能",
+    "レザー製",
+    "昇降式",
+    "デザイナーズ",
+    "金属製",
+    "プラスチック製",
+    "法事用",
+    "和風",
+    "中華風",
+    "西洋風",
+    "イタリア製",
+    "国産",
+    "背もたれなし",
+    "ラテン風",
+    "布貼地",
+    "スチール製",
+    "メッシュ貼地",
+    "オフィス用",
+    "料理店用",
+    "自宅用",
+    "キャンプ用",
+    "クッション性抜群",
+    "モーター付き",
+    "ベッド一体型",
+    "ディスプレイ配置可能",
+    "ミニ机付き",
+    "スピーカー付属",
+    "中国製",
+    "アンティーク",
+    "折りたたみ可能",
+    "重さ500g以内",
+    "24回払い無金利",
+    "現代的デザイン",
+    "近代的なデザイン",
+    "ルネサンス的なデザイン",
+    "アームなし",
+    "オーダーメイド可能",
+    "ポリカーボネート製",
 ]
 
 CHAIR_FEATURE_FOR_VERIFY = "フットレスト付き"
@@ -152,7 +192,7 @@ def dump_chair_to_json_str(chair):
 
 
 def generate_chair_dummy_data(chair_id, wrap={}):
-    features_length = random.randint(0, len(CHAIR_FEATURE_LIST) - 1)
+    features_length = random.randint(0, min(3, len(CHAIR_FEATURE_LIST)))
     image_hash = fake.word(ext_word_list=CHAIR_IMAGE_HASH_LIST)
 
     chair = {

@@ -37,15 +37,55 @@ BUILDING_NAME_LIST = [
 ]
 
 ESTATE_FEATURE_LIST = [
-    "2階以上",
+    "最上階",
+    "防犯カメラ",
+    "ウォークインクローゼット",
+    "ワンルーム",
+    "ルーフバルコニー付",
+    "エアコン付き",
+    "駐輪場あり",
+    "プロパンガス",
     "駐車場あり",
-    "ロフトあり",
-    "DIY可能",
-    "インターネット無料",
+    "防音室",
+    "追い焚き風呂",
     "オートロック",
-    "バストイレ別",
-    "駅から徒歩5分",
-    "ペット飼育可能",
+    "即入居可",
+    "IHコンロ",
+    "敷地内駐車場",
+    "トランクルーム",
+    "角部屋",
+    "カスタマイズ可",
+    "DIY可",
+    "ロフト",
+    "シューズボックス",
+    "インターネット無料",
+    "地下室",
+    "敷地内ゴミ置場",
+    "管理人有り",
+    "宅配ボックス",
+    "ルームシェア可",
+    "セキュリティ会社加入済",
+    "メゾネット",
+    "女性限定",
+    "バイク置場あり",
+    "エレベーター",
+    "ペット相談可",
+    "洗面所独立",
+    "都市ガス",
+    "浴室乾燥機",
+    "インターネット接続可",
+    "テレビ・通信",
+    "専用庭",
+    "システムキッチン",
+    "高齢者歓迎",
+    "ケーブルテレビ",
+    "床下収納",
+    "バス・トイレ別",
+    "駐車場2台以上",
+    "楽器相談可",
+    "フローリング",
+    "オール電化",
+    "TVモニタ付きインタホン"
 ]
 
 ESTATE_FEATURE_FOR_VERIFY = "デザイナーズ物件"
@@ -93,7 +133,7 @@ def dump_estate_to_json_str(estate):
 
 def generate_estate_dummy_data(estate_id, wrap={}):
     latlng = fake.local_latlng(country_code='JP', coords_only=True)
-    feature_length = random.randint(0, len(ESTATE_FEATURE_LIST) - 1)
+    feature_length = random.randint(0, min(3, len(ESTATE_FEATURE_LIST)))
     image_hash = fake.word(ext_word_list=ESTATE_IMAGE_HASH_LIST)
 
     estate = {
