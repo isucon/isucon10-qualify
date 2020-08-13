@@ -1,5 +1,8 @@
 import { Application, Router, helpers } from "https://deno.land/x/oak/mod.ts";
 import { Client } from "https://deno.land/x/mysql/mod.ts";
+import { sprintf } from "https://deno.land/std/fmt/printf.ts";
+import { organ } from "https://raw.githubusercontent.com/denjucks/organ/master/mod.ts";
+import { camelCase } from "https://deno.land/x/case/mod.ts";
 
 const currentEnv = Deno.env.toObject();
 const decoder = new TextDecoder();
@@ -14,6 +17,7 @@ const dbinfo = {
   password: currentEnv.MYSQL_PASS ?? "isucon",
   db: currentEnv.MYSQL_DBNAME ?? "isuumo",
   poolSize: 10,
+  debug: true,
 };
 
 const chairSearchConditionJson = await Deno.readFile(
@@ -31,6 +35,10 @@ const estateSearchCondition = JSON.parse(
 );
 
 const db = await new Client().connect(dbinfo);
+
+const camelcaseKeys = (obj: any) =>
+  Object.fromEntries(Object.entries(obj).map(([k, v]) => [camelCase(k), v]));
+
 const router = new Router();
 
 router.post("/initialize", async (ctx) => {
@@ -200,7 +208,6 @@ router.get("/api/chair/search", async (ctx, next) => {
     return;
   }
 
-
   const sqlprefix = "SELECT * FROM chair WHERE ";
   const searchCondition = searchQueries.join(" AND ");
   const limitOffset = " ORDER BY view_count DESC, id ASC LIMIT ? OFFSET ?";
@@ -212,13 +219,14 @@ router.get("/api/chair/search", async (ctx, next) => {
       queryParams,
     );
     queryParams.push(perPageNum, perPageNum * pageNum);
-    const chairs = await db.query(
+    const cs = await db.query(
       `${sqlprefix}${searchCondition}${limitOffset}`,
       queryParams,
     );
+    const chairs = cs.map(camelcaseKeys);
     ctx.response.body = {
       count,
-      chairs: chairs,
+      chairs,
     };
   } catch (e) {
     ctx.response.status = 500;
@@ -240,10 +248,13 @@ router.get("/api/chair/:id", async (ctx) => {
       return;
     }
     await db.transaction(async (conn) => {
-      await conn.execute("UPDATE chair SET view_count = ? WHERE id = ?", [chair.view_count+1, id]);
+      await conn.execute(
+        "UPDATE chair SET view_count = ? WHERE id = ?",
+        [chair.view_count + 1, id],
+      );
       await conn.execute("COMMIT");
     });
-    ctx.response.body = chair;
+    ctx.response.body = camelcaseKeys(chair);
   } catch (e) {
     ctx.response.status = 500;
     ctx.response.body = e.toString();
@@ -253,7 +264,10 @@ router.get("/api/chair/:id", async (ctx) => {
 router.post("/api/chair/buy/:id", async (ctx) => {
   try {
     const id = ctx.params.id;
-    const [chair] = await db.query("SELECT * FROM chair WHERE id = ? AND stock > 0", [id]);
+    const [chair] = await db.query(
+      "SELECT * FROM chair WHERE id = ? AND stock > 0",
+      [id],
+    );
     if (chair == null) {
       ctx.response.status = 404;
       ctx.response.body = "Not Found";
@@ -261,18 +275,326 @@ router.post("/api/chair/buy/:id", async (ctx) => {
     }
 
     await db.transaction(async (conn) => {
-      await conn.execute("UPDATE chair SET stock = ? WHERE id = ?", [chair.stock-1, id]);
+      await conn.execute(
+        "UPDATE chair SET stock = ? WHERE id = ?",
+        [chair.stock - 1, id],
+      );
       await conn.execute("COMMIT");
     });
-    
+
     ctx.response.body = { ok: true };
   } catch (e) {
     ctx.response.status = 500;
-    ctx.response.body = e.toString(); 
+    ctx.response.body = e.toString();
   }
 });
+
+router.get("/api/estate/search", async (ctx) => {
+  const searchQueries = [];
+  const queryParams = [];
+  const {
+    doorHeightRangeId,
+    doorWidthRangeId,
+    rentRangeId,
+    features,
+    page,
+    perPage,
+  } = helpers.getQuery(ctx);
+
+  if (doorHeightRangeId != null) {
+    const doorHeight =
+      estateSearchCondition["doorHeight"].ranges[doorHeightRangeId];
+    if (doorHeight == null) {
+      ctx.response.status = 400;
+      ctx.response.body = "doorHeightRangeId invalid";
+      return;
+    }
+
+    if (doorHeight.min !== -1) {
+      searchQueries.push("door_height >= ? ");
+      queryParams.push(doorHeight.min);
+    }
+
+    if (doorHeight.max !== -1) {
+      searchQueries.push("door_height < ? ");
+      queryParams.push(doorHeight.max);
+    }
+  }
+
+  if (doorWidthRangeId != null) {
+    const doorWidth =
+      estateSearchCondition["doorWidth"].ranges[doorWidthRangeId];
+    if (doorWidth == null) {
+      ctx.response.status = 400;
+      ctx.response.body = "doorWidthRangeId invalid";
+      return;
+    }
+
+    if (doorWidth.min !== -1) {
+      searchQueries.push("door_width >= ? ");
+      queryParams.push(doorWidth.min);
+    }
+
+    if (doorWidth.max !== -1) {
+      searchQueries.push("door_width < ? ");
+      queryParams.push(doorWidth.max);
+    }
+  }
+
+  if (rentRangeId != null) {
+    const rent = estateSearchCondition["rent"].ranges[rentRangeId];
+    if (rent == null) {
+      ctx.response.status = 400;
+      ctx.response.body = "rentRangeId invalid";
+      return;
+    }
+
+    if (rent.min !== -1) {
+      searchQueries.push("rent >= ? ");
+      queryParams.push(rent.min);
+    }
+
+    if (rent.max !== -1) {
+      searchQueries.push("rent < ? ");
+      queryParams.push(rent.max);
+    }
+  }
+
+  if (features != null) {
+    const featureConditions = features.split(",");
+    for (const featureCondition of featureConditions) {
+      searchQueries.push("features LIKE CONCAT('%', ?, '%')");
+      queryParams.push(featureCondition);
+    }
+  }
+
+  if (searchQueries.length === 0) {
+    ctx.response.status = 400;
+    ctx.response.body = "Search condition not found";
+    return;
+  }
+
+  const pageNum = parseInt(page, 10);
+  const perPageNum = parseInt(perPage, 10);
+
+  if (!page || Number.isNaN(pageNum)) {
+    ctx.response.status = 400;
+    ctx.response.body = `page condition invalid ${page}`;
+    return;
+  }
+
+  if (!perPage || Number.isNaN(perPageNum)) {
+    ctx.response.status = 400;
+    ctx.response.body = `perPage condition invalid ${perPage}`;
+    return;
+  }
+
+  const sqlprefix = "SELECT * FROM estate WHERE ";
+  const searchCondition = searchQueries.join(" AND ");
+  const limitOffset = " ORDER BY view_count DESC, id ASC LIMIT ? OFFSET ?";
+  const countprefix = "SELECT COUNT(*) as count FROM estate WHERE ";
+
+  try {
+    const [{ count }] = await db.query(
+      `${countprefix}${searchCondition}`,
+      queryParams,
+    );
+    queryParams.push(perPageNum, perPageNum * pageNum);
+    const estates = await db.query(
+      `${sqlprefix}${searchCondition}${limitOffset}`,
+      queryParams,
+    );
+    ctx.response.body = {
+      count,
+      estates: estates.map(camelcaseKeys),
+    };
+  } catch (e) {
+    ctx.response.status = 500;
+    ctx.response.body = e.toString();
+  }
+});
+
+router.get("/api/estate/search/condition", (ctx) => {
+  ctx.response.body = estateSearchCondition;
+});
+
+router.post("/api/estate/req_doc/:id", async (ctx) => {
+  const id = ctx.params.id;
+  const [estate] = await db.query("SELECT * FROM estate WHERE id = ?", [id]);
+  if (estate == null) {
+    ctx.response.status = 404;
+    ctx.response.body = "Not Found";
+    return;
+  }
+  ctx.response.body = { ok: true };
+});
+
+router.post("/api/estate/nazotte", async (ctx) => {
+  const result = ctx.request.body(); // content type automatically detected
+  let coordinates;
+  if (result.type === "json") {
+    const val = await result.value; // an object of parsed JSON
+    coordinates = val.coordinates;
+  }
+  const longitudes = coordinates.map((c: { longitude: number }) => c.longitude);
+  const latitudes = coordinates.map((c: { latitude: number }) => c.latitude);
+  const boundingbox = {
+    topleft: {
+      longitude: Math.min(...longitudes),
+      latitude: Math.min(...latitudes),
+    },
+    bottomright: {
+      longitude: Math.max(...longitudes),
+      latitude: Math.max(...latitudes),
+    },
+  };
+
+  try {
+    const estates = await db.query(
+      "SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY view_count DESC, id ASC",
+      [
+        boundingbox.bottomright.latitude,
+        boundingbox.topleft.latitude,
+        boundingbox.bottomright.longitude,
+        boundingbox.topleft.longitude,
+      ],
+    );
+
+    const estatesInPolygon = [];
+    for (const estate of estates) {
+      const point = sprintf(
+        "'POINT(%f %f)'",
+        estate.latitude,
+        estate.longitude,
+      );
+      const sql =
+        "SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))";
+      const coordinatesToText = sprintf(
+        "'POLYGON((%s))'",
+        coordinates.map((coordinate: { latitude: number; longitude: number }) =>
+          sprintf("%f %f", coordinate.latitude, coordinate.longitude)
+        ).join(","),
+      );
+      const sqlstr = sprintf(sql, coordinatesToText, point);
+      const [e] = await db.query(sqlstr, [estate.id]);
+      if (e && Object.keys(e).length > 0) {
+        estatesInPolygon.push(e);
+      }
+    }
+
+    const results = {
+      count: 0,
+      estates: [] as Array<any>,
+    };
+    let i = 0;
+    for (const estate of estatesInPolygon) {
+      if (i >= NAZOTTE_LIMIT) {
+        break;
+      }
+      // camelize
+      results.estates.push(camelcaseKeys(estate));
+      i++;
+    }
+    results.count = results.estates.length;
+    ctx.response.body = results;
+  } catch (e) {
+    ctx.response.status = 500;
+    ctx.response.body = e.toString();
+  }
+});
+
+router.get("/api/estate/:id", async (ctx) => {
+  try {
+    const id = ctx.params.id;
+    const [estate] = await db.query("SELECT * FROM estate WHERE id = ?", [id]);
+    if (estate == null) {
+      ctx.response.status = 404;
+      ctx.response.body = "Estate Not Found";
+      return;
+    }
+    await db.transaction(async (conn) => {
+      await conn.execute(
+        "UPDATE chair SET view_count = ? WHERE id = ?",
+        [estate.view_count + 1, id],
+      );
+      await conn.execute("COMMIT");
+    });
+    ctx.response.body = camelcaseKeys(estate);
+  } catch (e) {
+    ctx.response.status = 500;
+    ctx.response.body = e.toString();
+  }
+});
+
+router.post("/api/estate/req_doc/:id", async (ctx) => {
+  const id = ctx.params.id;
+  const [estate] = await db.query("SELECT * FROM estate WHERE id = ?", [id]);
+  if (estate == null) {
+    ctx.response.status = 404;
+    ctx.response.body = "Not Found";
+    return;
+  }
+  ctx.response.body = { ok: true };
+});
+
+router.get("/api/recommended_estate", async (ctx) => {
+  const es = await db.query(
+    "SELECT * FROM estate ORDER BY view_count DESC, id ASC LIMIT ?",
+    [LIMIT],
+  );
+  ctx.response.body = { estates: es.map(camelcaseKeys) };
+});
+
+router.get("/api/recommended_estate/:id", async (ctx) => {
+  try {
+    const id = ctx.params.id;
+    const [chair] = await db.query("SELECT * FROM chair WHERE id = ?", [id]);
+    const w = chair.width;
+    const h = chair.height;
+    const d = chair.depth;
+    const es = await db.query(
+      "SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY view_count DESC, id ASC LIMIT ?",
+      [
+        w,
+        h,
+        w,
+        d,
+        h,
+        w,
+        h,
+        d,
+        d,
+        w,
+        d,
+        h,
+        LIMIT,
+      ],
+    );
+    ctx.response.body = { estates: es.map(camelcaseKeys) };
+  } catch (e) {
+    ctx.response.status = 500;
+    ctx.response.body = e.toString();
+  }
+});
+
+router.get("/api/recommended_chair", async (ctx) => {
+  try {
+    const cs = await db.query(
+      "SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC, id ASC LIMIT ?",
+      [LIMIT],
+    );
+    ctx.response.body = { chairs: cs.map(camelcaseKeys) };
+  } catch (e) {
+    ctx.response.status = 500;
+    ctx.response.body = e.toString();
+  }
+});
+
 const app = new Application();
+app.use(organ());
 app.use(router.routes());
 app.use(router.allowedMethods());
 
+console.log(`Listening ${PORT}`);
 await app.listen({ port: +PORT });
+await db.close();
