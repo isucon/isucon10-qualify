@@ -11,7 +11,7 @@
   environment:
     PATH: "/home/isucon/bin:/home/isucon/.local/bin:/usr/local/node/bin:/usr/local/python/bin:/usr/local/go/bin:/home/isucon/go/bin:/usr/local/bin:/usr/bin:/bin"
   shell: |
-    go build -o ./make_verification_data/main ./make_verification_data/*.go && ./make_verification_data/main -dest-dir ./result/verification_data -target-url http://localhost:1323
+    go build -o ./make_verification_data/main ./make_verification_data/*.go && ./make_verification_data/main -fixture-dir ../webapp/fixture -dest-dir ./result/verification_data -target-url http://localhost:1323
 
 
 - name: Build benchmarker
