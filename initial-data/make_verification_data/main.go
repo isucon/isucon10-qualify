@@ -205,7 +205,7 @@ func main() {
 	log.Println("Done generating verification data of /api/popular_estate")
 
 	// recommended_estate/:id
-	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "popular_estate_with_chair"))
+	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "recommended_estate_with_chair"))
 	for i := 0; i < NumOfRecommendedEstateWithChairData; i++ {
 		wg.Add(1)
 		go func(id int) {
@@ -218,7 +218,7 @@ func main() {
 
 			snapshot := getSnapshotFromRequest(TargetServer, req)
 			fileName := fmt.Sprintf("%d.json", id)
-			writeSnapshotDataToFile(filepath.Join(DestDirectoryPath, "popular_estate_with_chair", fileName), snapshot)
+			writeSnapshotDataToFile(filepath.Join(DestDirectoryPath, "recommended_estate_with_chair", fileName), snapshot)
 			wg.Done()
 		}(i)
 	}

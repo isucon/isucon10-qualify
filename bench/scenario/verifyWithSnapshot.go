@@ -483,7 +483,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 		}
 	}
 
-	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "popular_estate_with_chair")
+	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "recommended_estate_with_chair")
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_estate:id: Snapshotディレクトリがありません"))
