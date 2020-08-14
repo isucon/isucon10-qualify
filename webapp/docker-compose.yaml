@@ -40,6 +40,30 @@ services:
       - mysql
     command: npm start
 
+  deno:
+    build: ./deno
+    entrypoint:
+      - dockerize
+      - -timeout
+      - 60s
+      - -wait
+      - tcp://mysql:3306
+    volumes:
+      - ./mysql/db:/mysql/db
+      - ./fixture:/fixture
+      - ../provisioning/ansible/roles/web/files/my.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      MYSQL_DATABASE: isuumo
+      MYSQL_USER: isucon
+      MYSQL_PASSWORD: isucon
+      MYSQL_HOST: mysql
+      SERVER_PORT: 1323
+    ports:
+      - "1323:1323"
+    depends_on:
+      - mysql
+    command: make run
+
   api-server:
     build: ./go
     entrypoint:
