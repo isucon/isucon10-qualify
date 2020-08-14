@@ -499,7 +499,7 @@ router.get("/api/estate/:id", async (ctx) => {
     }
     await db.transaction(async (conn) => {
       await conn.execute(
-        "UPDATE chair SET view_count = ? WHERE id = ?",
+        "UPDATE estate SET view_count = ? WHERE id = ?",
         [estate.view_count + 1, id],
       );
       await conn.execute("COMMIT");
