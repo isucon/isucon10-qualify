@@ -52,26 +52,11 @@ router.post("/initialize", async (ctx) => {
   for (const execfile of execfiles) {
     const p = Deno.run({
       cmd: [
-        "mysql",
-        "-h",
-        `${dbinfo.hostname}`,
-        "-u",
-        `${dbinfo.username}`,
-        `-p${dbinfo.password}`,
-        "-P",
-        `${dbinfo.port}`,
-        `${dbinfo.db}`,
+        "bash",
+        "-c",
+        `mysql -h ${dbinfo.hostname} -u ${dbinfo.username} -p${dbinfo.password} -P ${dbinfo.port} ${dbinfo.db} < ${execfile}`,
       ],
-      stdin: "piped",
-      stdout: "piped",
     });
-    const content = await Deno.readFile(execfile);
-    let bytes = 0;
-    while (bytes < content.byteLength) {
-      let b = content.slice(bytes);
-      bytes += await p.stdin?.write(b);
-    }
-    p.stdin?.close();
     const status = await p.status();
     if (!status.success) {
       const output = await p.output();
