@@ -478,7 +478,7 @@ func buyChair(c echo.Context) error {
 
 	_, err = tx.Exec("UPDATE chair SET stock = ? WHERE id = ?", chair.Stock-1, id)
 	if err != nil {
-		c.Echo().Logger.Errorf("view_count update failed : %v", err)
+		c.Echo().Logger.Errorf("chair stock update failed : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	err = tx.Commit()
