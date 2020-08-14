@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	NumOfChairSearchData             = 100
-	NumOfEstateSearchData            = 100
-	NumOfPopularEstatesWithChairData = 100
-	NumOfEstatesNazotteData          = 100
+	NumOfChairSearchData                = 100
+	NumOfEstateSearchData               = 100
+	NumOfRecommendedEstateWithChairData = 100
+	NumOfEstatesNazotteData             = 100
 )
 
 func init() {
@@ -206,7 +206,7 @@ func main() {
 
 	// recommended_estate/:id
 	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "popular_estate_with_chair"))
-	for i := 0; i < NumOfPopularEstatesWithChairData; i++ {
+	for i := 0; i < NumOfRecommendedEstateWithChairData; i++ {
 		wg.Add(1)
 		go func(id int) {
 			req := Request{
