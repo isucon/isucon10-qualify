@@ -453,7 +453,7 @@ app.get("/api/popular_estate", async (req, res, next) => {
   } 
 });
 
-app.get("/api/popular_estate/:id", async (req, res, next) => {
+app.get("/api/recommended_estate/:id", async (req, res, next) => {
   const id = req.params.id;
   const getConnection = promisify(db.getConnection.bind(db));
   const connection = await getConnection();

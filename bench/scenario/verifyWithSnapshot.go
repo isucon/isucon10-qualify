@@ -29,7 +29,7 @@ const (
 	NumOfVerifyEstateSearch           = 3
 	NumOfVerifyPopularChair           = 1
 	NumOfVerifyPopularEstate          = 1
-	NumOfVerifyPopularEstateWithChair = 3
+	NumOfVerifyRecommendedEstateWithChair = 3
 	NumOfVerifyEstateNazotte          = 3
 )
 
@@ -284,7 +284,7 @@ func verifyPopularEstate(ctx context.Context, c *client.Client, filePath string)
 	return nil
 }
 
-func verifyPopularEstateWithChair(ctx context.Context, c *client.Client, filePath string) error {
+func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, filePath string) error {
 	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_estate:id: Snapshotの読み込みに失敗しました"))
@@ -299,7 +299,7 @@ func verifyPopularEstateWithChair(ctx context.Context, c *client.Client, filePat
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_estate:id: 不正なSnapshotです"))
 	}
 
-	actual, err := c.GetPopularEstatesFromChair(ctx, id)
+	actual, err := c.GetRecommendedEstatesFromChair(ctx, id)
 
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
@@ -489,11 +489,11 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_estate:id: Snapshotディレクトリがありません"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 	} else {
-		for i := 0; i < NumOfVerifyPopularEstateWithChair; i++ {
+		for i := 0; i < NumOfVerifyRecommendedEstateWithChair; i++ {
 			wg.Add(1)
 			r := rand.Intn(len(snapshots))
 			go func(filePath string) {
-				err := verifyPopularEstateWithChair(ctx, c, filePath)
+				err := verifyRecommendedEstateWithChair(ctx, c, filePath)
 				if err != nil {
 					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 				}

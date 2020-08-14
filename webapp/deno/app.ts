@@ -530,7 +530,7 @@ router.get("/api/popular_estate", async (ctx) => {
   ctx.response.body = { estates: es.map(camelcaseKeys) };
 });
 
-router.get("/api/popular_estate/:id", async (ctx) => {
+router.get("/api/recommended_estate/:id", async (ctx) => {
   try {
     const id = ctx.params.id;
     const [chair] = await db.query("SELECT * FROM chair WHERE id = ?", [id]);

@@ -204,7 +204,7 @@ func main() {
 	wg.Wait()
 	log.Println("Done generating verification data of /api/popular_estate")
 
-	// popular_estate/:id
+	// recommended_estate/:id
 	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "popular_estate_with_chair"))
 	for i := 0; i < NumOfPopularEstatesWithChairData; i++ {
 		wg.Add(1)
@@ -223,7 +223,7 @@ func main() {
 		}(i)
 	}
 	wg.Wait()
-	log.Println("Done generating verification data of /api/popular_estate/:id")
+	log.Println("Done generating verification data of /api/recommended_estate/:id")
 
 	// estate nazotte
 	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "estate_nazotte"))

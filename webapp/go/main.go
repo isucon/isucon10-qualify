@@ -207,7 +207,7 @@ func main() {
 
 	// Popular Handler
 	e.GET("/api/popular_estate", searchPopularEstate)
-	e.GET("/api/popular_estate/:id", searchPopularEstateWithChair)
+	e.GET("/api/recommended_estate/:id", searchRecommendedEstateWithChair)
 	e.GET("/api/popular_chair", searchPopularChair)
 
 	MySQLConnectionData = NewMySQLConnectionEnv()
@@ -708,10 +708,10 @@ func searchPopularEstate(c echo.Context) error {
 	return c.JSON(http.StatusOK, re)
 }
 
-func searchPopularEstateWithChair(c echo.Context) error {
+func searchRecommendedEstateWithChair(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.Logger().Infof("Invalid format searchPopularEstateWithChair id : %v", err)
+		c.Logger().Infof("Invalid format searchRecommendedEstateWithChair id : %v", err)
 		return c.NoContent(http.StatusBadRequest)
 	}
 

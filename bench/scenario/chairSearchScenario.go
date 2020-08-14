@@ -170,7 +170,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	if !isEstatesOrderedByViewCount(er.Estates) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/popular_estate/:id: おすすめ結果が不正です"))
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: おすすめ結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}

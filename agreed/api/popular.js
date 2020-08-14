@@ -133,10 +133,10 @@ module.exports = [
     }
   },
 
-  // POST: /api/popular_estate/:chairId
+  // POST: /api/recommended_estate/:chairId
   {
     request: {
-      path: `${PATH}/popular_estate/:chairId`,
+      path: `${PATH}/recommended_estate/:chairId`,
       method: 'GET',
       body: {},
       values: {

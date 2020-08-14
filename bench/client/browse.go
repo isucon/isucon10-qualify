@@ -51,7 +51,7 @@ func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Ch
 	})
 
 	eg.Go(func() error {
-		estates, err := c.GetPopularEstatesFromChair(childCtx, id)
+		estates, err := c.GetRecommendedEstatesFromChair(childCtx, id)
 		if err != nil {
 			estatesCh <- nil
 			return err
