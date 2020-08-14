@@ -260,9 +260,16 @@ func getChairDetail(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	tx, err := db.Beginx()
+	if err != nil {
+		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	defer tx.Rollback()
+
 	chair := Chair{}
-	sqlstr := "SELECT * FROM chair WHERE id = ?"
-	err = db.Get(&chair, sqlstr, id)
+	sqlstr := "SELECT * FROM chair WHERE id = ? FOR UPDATE"
+	err = tx.QueryRowx(sqlstr, id).StructScan(&chair)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Echo().Logger.Infof("requested id's chair not found : %v", id)
@@ -275,14 +282,7 @@ func getChairDetail(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	tx, err := db.Begin()
-	if err != nil {
-		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	defer tx.Rollback()
-
-	_, err = tx.Exec("UPDATE chair SET view_count = ? WHERE id = ?", chair.ViewCount+1, id)
+	_, err = tx.Exec("UPDATE chair SET view_count = view_count + 1 WHERE id = ?", id)
 	if err != nil {
 		c.Echo().Logger.Errorf("view_count of chair update failed : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -458,8 +458,15 @@ func buyChair(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	tx, err := db.Beginx()
+	if err != nil {
+		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	defer tx.Rollback()
+
 	var chair Chair
-	err = db.Get(&chair, "SELECT * FROM chair WHERE id = ? AND stock > 0", id)
+	err = tx.QueryRowx("SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE", id).StructScan(&chair)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Echo().Logger.Infof("buyChair chair id \"%v\" not found", id)
@@ -469,18 +476,12 @@ func buyChair(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	tx, err := db.Begin()
-	if err != nil {
-		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	defer tx.Rollback()
-
-	_, err = tx.Exec("UPDATE chair SET stock = ? WHERE id = ?", chair.Stock-1, id)
+	_, err = tx.Exec("UPDATE chair SET stock = stock - 1 WHERE id = ?", id)
 	if err != nil {
 		c.Echo().Logger.Errorf("chair stock update failed : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
 	err = tx.Commit()
 	if err != nil {
 		c.Echo().Logger.Errorf("transaction commit error : %v", err)
@@ -526,8 +527,15 @@ func getEstateDetail(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	tx, err := db.Beginx()
+	if err != nil {
+		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	defer tx.Rollback()
+
 	var estate Estate
-	err = db.Get(&estate, "SELECT * FROM estate WHERE id = ?", id)
+	err = tx.QueryRowx("SELECT * FROM estate WHERE id = ? FOR UPDATE", id).StructScan(&estate)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Echo().Logger.Infof("getEstateDetail estate id %v not found", id)
@@ -536,18 +544,13 @@ func getEstateDetail(c echo.Context) error {
 		c.Echo().Logger.Errorf("Database Execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	tx, err := db.Begin()
-	if err != nil {
-		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	defer tx.Rollback()
 
-	_, err = tx.Exec("UPDATE estate SET view_count = ? WHERE id = ?", estate.ViewCount+1, id)
+	_, err = tx.Exec("UPDATE estate SET view_count = view_count + 1 WHERE id = ?", id)
 	if err != nil {
 		c.Echo().Logger.Errorf("view_count update failed : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
 	err = tx.Commit()
 	if err != nil {
 		c.Echo().Logger.Errorf("transaction commit error : %v", err)
