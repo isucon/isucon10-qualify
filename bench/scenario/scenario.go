@@ -8,7 +8,7 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
 )
 
-func Initialize(ctx context.Context) (*client.InitializeResponse) {
+func Initialize(ctx context.Context) *client.InitializeResponse {
 	// Initializeにはタイムアウトを設定
 	// レギュレーションにある時間を設定する
 	// timeoutSeconds := 180

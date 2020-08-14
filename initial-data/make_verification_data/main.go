@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	NumOfChairSearchData                 = 100
-	NumOfEstateSearchData                = 100
+	NumOfChairSearchData             = 100
+	NumOfEstateSearchData            = 100
 	NumOfPopularEstatesWithChairData = 100
-	NumOfEstatesNazotteData              = 100
+	NumOfEstatesNazotteData          = 100
 )
 
 func init() {

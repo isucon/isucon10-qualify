@@ -11,7 +11,7 @@ import (
 func NewClient(userAgent string, isBot bool) *Client {
 	return &Client{
 		userAgent: userAgent,
-		isBot: isBot,
+		isBot:     isBot,
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
@@ -30,7 +30,7 @@ func NewClient(userAgent string, isBot bool) *Client {
 func NewClientForInitialize() *Client {
 	return &Client{
 		userAgent: "isucon-initialize",
-		isBot: false,
+		isBot:     false,
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
@@ -48,7 +48,7 @@ func NewClientForInitialize() *Client {
 func NewClientForVerify() *Client {
 	return &Client{
 		userAgent: "isucon-verify",
-		isBot: false,
+		isBot:     false,
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
