@@ -468,7 +468,7 @@ func (c *Client) GetPopularEstate(ctx context.Context) (*EstatesResponse, error)
 }
 
 func (c *Client) GetRecommendedEstatesFromChair(ctx context.Context, id int64) (*EstatesResponse, error) {
-	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/popular_estate/"+strconv.FormatInt(id, 10))
+	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/recommended_estate/"+strconv.FormatInt(id, 10))
 	if err != nil {
 		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
