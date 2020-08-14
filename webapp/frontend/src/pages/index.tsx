@@ -30,18 +30,18 @@ const useStyles = makeStyles(theme =>
 const TopPage = () => {
   const classes = useStyles()
 
-  const [recommendedEstates, setRecommendedEstates] = useState<Estate[] | null>(null)
-  const [recommendedChairs, setRecommendedChairs] = useState<Chair[] | null>(null)
+  const [popularEstates, setPopularEstates] = useState<Estate[] | null>(null)
+  const [popularChairs, setPopularChairs] = useState<Chair[] | null>(null)
 
   useEffect(() => {
-    fetch('/api/recommended_estate', { mode: 'cors' })
+    fetch('/api/popular_estate', { mode: 'cors' })
       .then(async response => await response.json())
-      .then(json => setRecommendedEstates(json.estates as Estate[]))
+      .then(json => setPopularEstates(json.estates as Estate[]))
       .catch(console.error)
 
-    fetch('/api/recommended_chair', { mode: 'cors' })
+    fetch('/api/popular_chair', { mode: 'cors' })
       .then(async response => await response.json())
-      .then(json => setRecommendedChairs(json.chairs as Chair[]))
+      .then(json => setPopularChairs(json.chairs as Chair[]))
       .catch(console.error)
   }, [])
 
@@ -65,19 +65,19 @@ const TopPage = () => {
           </Button>
         </Link>
       </Paper>
-      {recommendedEstates && (
+      {popularEstates && (
         <Paper className={classes.paper}>
           <h2> オススメの物件 </h2>
           <Box className={classes.cards}>
-            {recommendedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
+            {popularEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
           </Box>
         </Paper>
       )}
-      {recommendedChairs && (
+      {popularChairs && (
         <Paper className={classes.paper}>
           <h2> オススメのイス </h2>
           <Box className={classes.cards}>
-            {recommendedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
+            {popularChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
           </Box>
         </Paper>
       )}

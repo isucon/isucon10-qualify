@@ -1,10 +1,10 @@
 const PATH = '/api'
 
 module.exports = [
-  // GET: /api/recommended_estate
+  // GET: /api/popular_estate
   {
     request: {
-      path: `${PATH}/recommended_estate`,
+      path: `${PATH}/popular_estate`,
       method: 'GET',
       body: {},
       values: {}
@@ -71,10 +71,10 @@ module.exports = [
     }
   },
 
-  // POST: /api/recommended_chair
+  // POST: /api/popular_chair
   {
     request: {
-      path: `${PATH}/recommended_chair`,
+      path: `${PATH}/popular_chair`,
       method: 'GET',
       body: {},
       values: {}
@@ -133,10 +133,10 @@ module.exports = [
     }
   },
 
-  // POST: /api/recommended_estate/:chairId
+  // POST: /api/popular_estate/:chairId
   {
     request: {
-      path: `${PATH}/recommended_estate/:chairId`,
+      path: `${PATH}/popular_estate/:chairId`,
       method: 'GET',
       body: {},
       values: {

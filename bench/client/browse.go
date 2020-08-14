@@ -13,12 +13,12 @@ func (c *Client) AccessTopPage(ctx context.Context) error {
 	eg, childCtx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
-		_, err := c.GetRecommendedChair(childCtx)
+		_, err := c.GetPopularChair(childCtx)
 		return err
 	})
 
 	eg.Go(func() error {
-		_, err := c.GetRecommendedEstate(childCtx)
+		_, err := c.GetPopularEstate(childCtx)
 		return err
 	})
 
@@ -51,7 +51,7 @@ func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Ch
 	})
 
 	eg.Go(func() error {
-		estates, err := c.GetRecommendedEstatesFromChair(childCtx, id)
+		estates, err := c.GetPopularEstatesFromChair(childCtx, id)
 		if err != nil {
 			estatesCh <- nil
 			return err
