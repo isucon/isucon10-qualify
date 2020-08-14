@@ -166,8 +166,8 @@ router.get("/api/chair/search", async (ctx, next) => {
   if (features != null) {
     const featureConditions = features.split(",");
     for (const featureCondition of featureConditions) {
-      searchQueries.push("features LIKE CONCAT('%', ?, '%')");
-      queryParams.push(featureCondition);
+      searchQueries.push("features LIKE ?");
+      queryParams.push(`%${featureCondition}%`);
     }
   }
 
@@ -348,8 +348,8 @@ router.get("/api/estate/search", async (ctx) => {
   if (features != null) {
     const featureConditions = features.split(",");
     for (const featureCondition of featureConditions) {
-      searchQueries.push("features LIKE CONCAT('%', ?, '%')");
-      queryParams.push(featureCondition);
+      searchQueries.push("features LIKE ?");
+      queryParams.push(`%${featureCondition}%`);
     }
   }
 
