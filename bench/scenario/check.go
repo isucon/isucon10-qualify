@@ -22,7 +22,7 @@ func isEstatesOrderedByViewCount(e []asset.Estate) bool {
 			return false
 		}
 		vc := e.GetViewCount()
-		if i > 0 && viewCount-vc < -3 {
+		if i > 0 && viewCount <= vc {
 			return false
 		}
 		viewCount = vc
