@@ -1,7 +1,5 @@
 # coding:utf-8
 import random
-import time
-import string
 import json
 import os
 import glob
@@ -14,6 +12,7 @@ DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_SQL_FILE = "./result/2_DummyChairData.sql"
 OUTPUT_TXT_FILE = "./result/chair_json.txt"
 OUTPUT_FIXTURE_FILE = "./result/chair_condition.json"
+OUTPUT_DRAFT_FILE = "./result/draft_data/chair/{index}.txt"
 CHAIR_IMAGE_ORIGIN_DIR = "./origin/chair"
 CHAIR_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/chair"
 CHAIR_DUMMY_IMAGE_NUM = 1000
@@ -27,6 +26,8 @@ HEIGHT_RANGE_SEPARATORS = [80, 110, 150]
 WIDTH_RANGE_SEPARATORS = [80, 110, 150]
 DEPTH_RANGE_SEPARATORS = [80, 110, 150]
 PRICE_RANGE_SEPARATORS = [3000, 6000, 9000, 12000, 15000]
+DRAFT_COUNT_PER_FILE = 500
+DRAFT_FILE_COUNT = 20
 
 CHAIR_COLOR_LIST = [
     "黒",
@@ -229,12 +230,12 @@ if __name__ == "__main__":
     with open(DESCRIPTION_LINES_FILE, mode='r', encoding='utf-8') as description_lines:
         desc_lines = description_lines.readlines()
 
+    chair_id = 1
+
     with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
                 RECORD_COUNT, BULK_INSERT_COUNT))
-
-        chair_id = 1
 
         CHAIRS_FOR_VERIFY = [
             # 購入された際に在庫が減ることを検証するためのデータ
@@ -271,6 +272,14 @@ if __name__ == "__main__":
 
             txtfile.write(
                 "\n".join([dump_chair_to_json_str(chair) for chair in bulk_list]) + "\n")
+
+    for i in range(DRAFT_FILE_COUNT):
+        with open(OUTPUT_DRAFT_FILE.format(index=i), mode='w', encoding='utf-8') as draft_file:
+            draft_chairs = [generate_chair_dummy_data(
+                chair_id + i) for i in range(DRAFT_COUNT_PER_FILE)]
+            chair_id += DRAFT_COUNT_PER_FILE
+            draft_file.write(
+                "\n".join([dump_chair_to_json_str(chair) for chair in draft_chairs]) + "\n")
 
     with open(OUTPUT_FIXTURE_FILE, mode='w', encoding='utf-8') as fixture_file:
         fixture_file.write(json.dumps({
