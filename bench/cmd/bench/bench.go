@@ -201,6 +201,10 @@ func uniqMsgs(allMsgs []string) []Message {
 			cnt++
 		}
 	}
+	msgs = append(msgs, Message{
+		Text:  preMsg,
+		Count: cnt,
+	})
 
 	return msgs
 }
