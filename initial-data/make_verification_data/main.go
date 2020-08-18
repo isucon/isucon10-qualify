@@ -211,7 +211,7 @@ func main() {
 		go func(id int) {
 			req := Request{
 				Method:   "GET",
-				Resource: fmt.Sprintf("/api/popular_estate/%d", id),
+				Resource: fmt.Sprintf("/api/recommended_estate/%d", id),
 				Query:    "",
 				Body:     "",
 			}
