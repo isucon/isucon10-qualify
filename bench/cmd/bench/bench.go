@@ -19,11 +19,16 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/scenario"
 )
 
+type Message struct {
+	Text  string `json:"text"`
+	Count int    `json:"count"`
+}
+
 type Output struct {
-	Pass     bool     `json:"pass"`
-	Score    int      `json:"score"`
-	Messages []string `json:"messages"`
-	Language string   `json:"language"`
+	Pass     bool      `json:"pass"`
+	Score    int       `json:"score"`
+	Messages []Message `json:"messages"`
+	Language string    `json:"language"`
 }
 
 type Config struct {
@@ -73,7 +78,7 @@ func main() {
 		output := Output{
 			Pass:     false,
 			Score:    0,
-			Messages: eMsgs,
+			Messages: uniqMsgs(eMsgs),
 			Language: "",
 		}
 		json.NewEncoder(os.Stdout).Encode(output)
@@ -91,7 +96,7 @@ func main() {
 		output := Output{
 			Pass:     false,
 			Score:    0,
-			Messages: eMsgs,
+			Messages: uniqMsgs(eMsgs),
 			Language: initRes.Language,
 		}
 		json.NewEncoder(os.Stdout).Encode(output)
@@ -172,19 +177,34 @@ func main() {
 	json.NewEncoder(os.Stdout).Encode(output)
 }
 
-func uniqMsgs(allMsgs []string) []string {
-	sort.Strings(allMsgs)
-	msgs := make([]string, 0, len(allMsgs))
+func uniqMsgs(allMsgs []string) []Message {
+	if len(allMsgs) == 0 {
+		return []Message{}
+	}
 
-	tmp := ""
+	sort.Strings(allMsgs)
+	msgs := make([]Message, 0, len(allMsgs))
+
+	preMsg := allMsgs[0]
+	cnt := 0
 
 	// 適当にuniqする
-	for _, m := range allMsgs {
-		if tmp != m {
-			tmp = m
-			msgs = append(msgs, m)
+	for _, msg := range allMsgs {
+		if preMsg != msg {
+			msgs = append(msgs, Message{
+				Text:  preMsg,
+				Count: cnt,
+			})
+			preMsg = msg
+			cnt = 1
+		} else {
+			cnt++
 		}
 	}
+	msgs = append(msgs, Message{
+		Text:  preMsg,
+		Count: cnt,
+	})
 
 	return msgs
 }
