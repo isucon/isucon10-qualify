@@ -47,7 +47,7 @@ func TestChair_MarshalJSON(t *testing.T) {
 		Features:    "features",
 		Kind:        "kind",
 		stock:       6,
-		popularity:   7,
+		popularity:  7,
 	}
 	b, err := json.Marshal(chair)
 	if err != nil {

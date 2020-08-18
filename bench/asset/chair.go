@@ -17,7 +17,7 @@ type JSONChair struct {
 	Depth       int64  `json:"depth"`
 	Color       string `json:"color"`
 	Features    string `json:"features"`
-	Popularity   int64  `json:"popularity"`
+	Popularity  int64  `json:"popularity"`
 	Kind        string `json:"kind"`
 	Stock       int64  `json:"stock"`
 }
@@ -35,7 +35,7 @@ type Chair struct {
 	Features    string
 	Kind        string
 
-	popularity   int64
+	popularity  int64
 	stock       int64
 	soldOutTime atomic.Value
 }
@@ -53,7 +53,7 @@ func (c Chair) MarshalJSON() ([]byte, error) {
 		Depth:       c.Depth,
 		Color:       c.Color,
 		Features:    c.Features,
-		Popularity:   c.popularity,
+		Popularity:  c.popularity,
 		Kind:        c.Kind,
 		Stock:       c.stock,
 	}
