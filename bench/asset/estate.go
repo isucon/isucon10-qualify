@@ -1,8 +1,11 @@
 package asset
 
 import (
+	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
 type JSONEstate struct {
@@ -100,5 +103,22 @@ func (e *Estate) GetPopularity() int64 {
 }
 
 func (e *Estate) ToCSV() string {
-	return fmt.Sprintf(`%v,"%v","%v","%v","%v",%v,%v,%v,%v,%v,"%v",%v`, e.ID, e.Name, e.Description, e.Thumbnail, e.Address, e.Latitude, e.Longitude, e.Rent, e.DoorHeight, e.DoorWidth, e.Features, e.popularity)
+	var buf bytes.Buffer
+	w := csv.NewWriter(&buf)
+	w.Write([]string{
+		strconv.Itoa(int(e.ID)),
+		e.Name,
+		e.Description,
+		e.Thumbnail,
+		e.Address,
+		strconv.FormatFloat(e.Latitude, 'f', -1, 64),
+		strconv.FormatFloat(e.Longitude, 'f', -1, 64),
+		strconv.Itoa(int(e.Rent)),
+		strconv.Itoa(int(e.DoorHeight)),
+		strconv.Itoa(int(e.DoorWidth)),
+		e.Features,
+		strconv.Itoa(int(e.popularity)),
+	})
+	w.Flush()
+	return buf.String()
 }
