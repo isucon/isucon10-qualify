@@ -522,7 +522,7 @@ router.post("/api/estate/req_doc/:id", async (ctx) => {
   ctx.response.body = { ok: true };
 });
 
-router.get("/api/recommended_estate", async (ctx) => {
+router.get("/api/popular_estate", async (ctx) => {
   const es = await db.query(
     "SELECT * FROM estate ORDER BY view_count DESC, id ASC LIMIT ?",
     [LIMIT],
@@ -562,7 +562,7 @@ router.get("/api/recommended_estate/:id", async (ctx) => {
   }
 });
 
-router.get("/api/recommended_chair", async (ctx) => {
+router.get("/api/popular_chair", async (ctx) => {
   try {
     const cs = await db.query(
       "SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC, id ASC LIMIT ?",

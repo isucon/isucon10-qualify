@@ -383,8 +383,8 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 	return &estate, nil
 }
 
-func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, error) {
-	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/recommended_chair")
+func (c *Client) GetPopularChair(ctx context.Context) (*ChairsResponse, error) {
+	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/popular_chair")
 	if err != nil {
 		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
@@ -396,7 +396,7 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
-		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: リクエストに失敗しました"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/popular_chair: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
@@ -406,7 +406,7 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 		if c.isBot {
 			return nil, failure.Translate(err, fails.ErrBot)
 		}
-		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: レスポンスコードが不正です"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/popular_chair: レスポンスコードが不正です"))
 	}
 
 	var chairs ChairsResponse
@@ -417,16 +417,16 @@ func (c *Client) GetRecommendedChair(ctx context.Context) (*ChairsResponse, erro
 			return nil, ctxErr
 		}
 		if nerr, ok := err.(interface{ Timeout() bool }); ok && nerr.Timeout() {
-			return nil, failure.Translate(err, fails.ErrTimeout, failure.Message("GET /api/recommended_chair: リクエストに失敗しました"))
+			return nil, failure.Translate(err, fails.ErrTimeout, failure.Message("GET /api/popular_chair: リクエストに失敗しました"))
 		}
-		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_chair: JSONデコードに失敗しました"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/popular_chair: JSONデコードに失敗しました"))
 	}
 
 	return &chairs, nil
 }
 
-func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, error) {
-	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/recommended_estate")
+func (c *Client) GetPopularEstate(ctx context.Context) (*EstatesResponse, error) {
+	req, err := c.newGetRequest(ShareTargetURLs.AppURL, "/api/popular_estate")
 	if err != nil {
 		return nil, failure.Translate(err, fails.ErrBenchmarker)
 	}
@@ -438,7 +438,7 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return nil, ctxErr
 		}
-		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: リクエストに失敗しました"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/popular_estate: リクエストに失敗しました"))
 	}
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
@@ -448,7 +448,7 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 		if c.isBot {
 			return nil, failure.Translate(err, fails.ErrBot)
 		}
-		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: レスポンスコードが不正です"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/popular_estate: レスポンスコードが不正です"))
 	}
 
 	var estate EstatesResponse
@@ -459,9 +459,9 @@ func (c *Client) GetRecommendedEstate(ctx context.Context) (*EstatesResponse, er
 			return nil, ctxErr
 		}
 		if nerr, ok := err.(interface{ Timeout() bool }); ok && nerr.Timeout() {
-			return nil, failure.Translate(err, fails.ErrTimeout, failure.Message("GET /api/recommended_estate: リクエストに失敗しました"))
+			return nil, failure.Translate(err, fails.ErrTimeout, failure.Message("GET /api/popular_estate: リクエストに失敗しました"))
 		}
-		return nil, failure.Wrap(err, failure.Message("GET /api/recommended_estate: JSONデコードに失敗しました"))
+		return nil, failure.Wrap(err, failure.Message("GET /api/popular_estate: JSONデコードに失敗しました"))
 	}
 
 	return &estate, nil

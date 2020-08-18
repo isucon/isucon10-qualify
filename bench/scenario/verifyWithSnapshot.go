@@ -27,8 +27,8 @@ const (
 	NumOfVerifyChairSearch                = 3
 	NumOfVerifyEstateSearchCondition      = 3
 	NumOfVerifyEstateSearch               = 3
-	NumOfVerifyRecommendedChair           = 1
-	NumOfVerifyRecommendedEstate          = 1
+	NumOfVerifyPopularChair               = 1
+	NumOfVerifyPopularEstate              = 1
 	NumOfVerifyRecommendedEstateWithChair = 3
 	NumOfVerifyEstateNazotte              = 3
 )
@@ -216,68 +216,68 @@ func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) 
 	return nil
 }
 
-func verifyRecommendedChair(ctx context.Context, c *client.Client, filePath string) error {
+func verifyPopularChair(ctx context.Context, c *client.Client, filePath string) error {
 	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_chair: Snapshotの読み込みに失敗しました"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_chair: Snapshotの読み込みに失敗しました"))
 	}
 
-	actual, err := c.GetRecommendedChair(ctx)
+	actual, err := c.GetPopularChair(ctx)
 
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスのおすすめ結果が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/popular_chair: イスのおすすめ結果が不正です"))
 		}
 
 		var expected *client.ChairsResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_chair: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_chair: Response BodyのUnmarshalでエラーが発生しました"))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreChairUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスのおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/popular_chair: イスのおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_chair: イスのおすすめ結果が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/popular_chair: イスのおすすめ結果が不正です"))
 		}
 	}
 
 	return nil
 }
 
-func verifyRecommendedEstate(ctx context.Context, c *client.Client, filePath string) error {
+func verifyPopularEstate(ctx context.Context, c *client.Client, filePath string) error {
 	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate: Snapshotの読み込みに失敗しました"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_estate: Snapshotの読み込みに失敗しました"))
 	}
 
-	actual, err := c.GetRecommendedEstate(ctx)
+	actual, err := c.GetPopularEstate(ctx)
 
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_estate: 物件のおすすめ結果が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/popular_estate: 物件のおすすめ結果が不正です"))
 		}
 
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_estate: Response BodyのUnmarshalでエラーが発生しました"))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/popular_estate: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate: 物件のおすすめ結果が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/popular_estate: 物件のおすすめ結果が不正です"))
 		}
 	}
 
@@ -287,16 +287,16 @@ func verifyRecommendedEstate(ctx context.Context, c *client.Client, filePath str
 func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, filePath string) error {
 	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate:id: Snapshotの読み込みに失敗しました"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: Snapshotの読み込みに失敗しました"))
 	}
 
 	idx := strings.LastIndex(snapshot.Request.Resource, "/")
 	if idx == -1 || idx == len(snapshot.Request.Resource)-1 {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate:id: 不正なSnapshotです"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"))
 	}
 	id, err := strconv.ParseInt(string([]rune(snapshot.Request.Resource)[idx+1:]), 10, 64)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate:id: 不正なSnapshotです"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"))
 	}
 
 	actual, err := c.GetRecommendedEstatesFromChair(ctx, id)
@@ -304,22 +304,22 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_estate:id: 物件のおすすめ結果が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: 物件のおすすめ結果が不正です"))
 		}
 
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate:id: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: Response BodyのUnmarshalでエラーが発生しました"))
 		}
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate:id: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate:id: 物件のおすすめ結果が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: 物件のおすすめ結果が不正です"))
 		}
 	}
 
@@ -445,17 +445,17 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 		}
 	}
 
-	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "recommended_chair")
+	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "popular_chair")
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
-		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_chair: Snapshotディレクトリがありません"))
+		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_chair: Snapshotディレクトリがありません"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 	} else {
-		for i := 0; i < NumOfVerifyRecommendedChair; i++ {
+		for i := 0; i < NumOfVerifyPopularChair; i++ {
 			wg.Add(1)
 			r := rand.Intn(len(snapshots))
 			go func(filePath string) {
-				err := verifyRecommendedChair(ctx, c, filePath)
+				err := verifyPopularChair(ctx, c, filePath)
 				if err != nil {
 					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 				}
@@ -464,17 +464,17 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 		}
 	}
 
-	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "recommended_estate")
+	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "popular_estate")
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
-		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate: Snapshotディレクトリがありません"))
+		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_estate: Snapshotディレクトリがありません"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 	} else {
-		for i := 0; i < NumOfVerifyRecommendedEstate; i++ {
+		for i := 0; i < NumOfVerifyPopularEstate; i++ {
 			wg.Add(1)
 			r := rand.Intn(len(snapshots))
 			go func(filePath string) {
-				err := verifyRecommendedEstate(ctx, c, filePath)
+				err := verifyPopularEstate(ctx, c, filePath)
 				if err != nil {
 					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 				}
@@ -486,7 +486,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "recommended_estate_with_chair")
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
-		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate:id: Snapshotディレクトリがありません"))
+		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: Snapshotディレクトリがありません"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyRecommendedEstateWithChair; i++ {

@@ -24,7 +24,7 @@
     - webapp/go/chair_test.go
     - webapp/go/estate_test.go
     - webapp/go/main_test.go
-    - webapp/go/recommend_test.go
+    - webapp/go/popular_test.go
     - webapp/mysql/.gitignore
     - Makefile
     - cloudbuild.yaml

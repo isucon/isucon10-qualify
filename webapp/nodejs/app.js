@@ -438,7 +438,7 @@ app.get("/api/estate/:id", async (req, res, next) => {
   }
 });
 
-app.get("/api/recommended_estate", async (req, res, next) => {
+app.get("/api/popular_estate", async (req, res, next) => {
   const getConnection = promisify(db.getConnection.bind(db));
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
@@ -475,7 +475,7 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
   } 
 });
 
-app.get("/api/recommended_chair", async (req, res, next) => {
+app.get("/api/popular_chair", async (req, res, next) => {
   const getConnection = promisify(db.getConnection.bind(db));
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
