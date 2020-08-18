@@ -12,6 +12,7 @@ random.seed(19700101)
 
 DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_SQL_FILE = "./result/1_DummyEstateData.sql"
+OUTPUT_UPDATE_SQL_FILE = "./result/3_InitializeEstateData.sql"
 OUTPUT_TXT_FILE = "./result/estate_json.txt"
 OUTPUT_FIXTURE_FILE = "./result/estate_condition.json"
 ESTATE_IMAGE_ORIGIN_DIR = "./origin/estate"
@@ -165,7 +166,7 @@ if __name__ == '__main__':
     with open(DESCRIPTION_LINES_FILE, mode='r', encoding='utf-8') as description_lines:
         desc_lines = description_lines.readlines()
 
-    with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
+    with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile, open(OUTPUT_UPDATE_SQL_FILE, mode='w', encoding='utf-8') as update_sqlfile:
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
                 RECORD_COUNT, BULK_INSERT_COUNT))
@@ -189,7 +190,10 @@ if __name__ == '__main__':
         sqlfile.write(sqlCommand)
         txtfile.write("\n".join([dump_estate_to_json_str(estate)
                                  for estate in ESTATES_FOR_VERIFY]) + "\n")
-
+        update_sqlfile.write("\n".join([
+            "UPDATE isuumo.estate SET view_count = {} WHERE id = {};".format(estate['view_count'], estate['id'])
+            for estate in ESTATES_FOR_VERIFY
+        ]))
         estate_id += len(ESTATES_FOR_VERIFY)
 
         for _ in range(RECORD_COUNT//BULK_INSERT_COUNT):
@@ -200,6 +204,10 @@ if __name__ == '__main__':
             sqlfile.write(sqlCommand)
             txtfile.write("\n".join([dump_estate_to_json_str(estate)
                                      for estate in bulk_list]) + "\n")
+            update_sqlfile.write("\n".join([
+                "UPDATE isuumo.estate SET view_count = {} WHERE id = {};".format(estate['view_count'], estate['id'])
+                for estate in ESTATES_FOR_VERIFY
+            ]))
 
     with open(OUTPUT_FIXTURE_FILE, mode='w', encoding='utf-8') as fixture_file:
         fixture_file.write(json.dumps({

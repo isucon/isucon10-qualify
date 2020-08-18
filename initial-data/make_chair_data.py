@@ -12,6 +12,7 @@ random.seed(19700101)
 
 DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_SQL_FILE = "./result/2_DummyChairData.sql"
+OUTPUT_UPDATE_SQL_FILE = "./result/4_InitializeChairData.sql"
 OUTPUT_TXT_FILE = "./result/chair_json.txt"
 OUTPUT_FIXTURE_FILE = "./result/chair_condition.json"
 CHAIR_IMAGE_ORIGIN_DIR = "./origin/chair"
@@ -229,7 +230,7 @@ if __name__ == "__main__":
     with open(DESCRIPTION_LINES_FILE, mode='r', encoding='utf-8') as description_lines:
         desc_lines = description_lines.readlines()
 
-    with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
+    with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile, open(OUTPUT_UPDATE_SQL_FILE, mode='w', encoding='utf-8') as update_sqlfile:
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
                 RECORD_COUNT, BULK_INSERT_COUNT))
@@ -259,6 +260,10 @@ if __name__ == "__main__":
         sqlfile.write(sqlCommand)
         txtfile.write(
             "\n".join([dump_chair_to_json_str(chair) for chair in CHAIRS_FOR_VERIFY]) + "\n")
+        update_sqlfile.write("\n".join([
+            "UPDATE isuumo.chair SET stock = {}, view_count = {} WHERE id = {};".format(chair["stock"], chair["view_count"], chair["id"])
+            for chair in CHAIRS_FOR_VERIFY
+        ]) + "\n")
 
         chair_id += len(CHAIRS_FOR_VERIFY)
 
@@ -271,6 +276,11 @@ if __name__ == "__main__":
 
             txtfile.write(
                 "\n".join([dump_chair_to_json_str(chair) for chair in bulk_list]) + "\n")
+
+            update_sqlfile.write("\n".join([
+                "UPDATE isuumo.chair SET stock = {}, view_count = {} WHERE id = {};".format(chair["stock"], chair["view_count"], chair["id"])
+                for chair in bulk_list
+            ]) + "\n")
 
     with open(OUTPUT_FIXTURE_FILE, mode='w', encoding='utf-8') as fixture_file:
         fixture_file.write(json.dumps({
