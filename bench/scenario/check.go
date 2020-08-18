@@ -21,11 +21,11 @@ func isEstatesOrderedByPopularity(e []asset.Estate) bool {
 		if err != nil {
 			return false
 		}
-		vc := e.GetPopularity()
-		if i > 0 && popularity-vc < -3 {
+		p := e.GetPopularity()
+		if i > 0 && popularity >= p {
 			return false
 		}
-		popularity = vc
+		popularity = p
 	}
 	return true
 }
@@ -62,12 +62,12 @@ func isChairsOrderedByPopularity(c []asset.Chair, t time.Time) bool {
 			return false
 		}
 
-		vc := _chair.GetPopularity()
+		p := _chair.GetPopularity()
 
-		if i > 0 && popularity-vc < -3 {
+		if i > 0 && popularity >= p {
 			return false
 		}
-		popularity = vc
+		popularity = p
 	}
 	return true
 }

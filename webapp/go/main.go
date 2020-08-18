@@ -275,25 +275,6 @@ func getChairDetail(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	tx, err := db.Begin()
-	if err != nil {
-		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	defer tx.Rollback()
-
-	_, err = tx.Exec("UPDATE chair SET popularity = ? WHERE id = ?", chair.Popularity+1, id)
-	if err != nil {
-		c.Echo().Logger.Errorf("popularity of chair update failed : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		c.Echo().Logger.Errorf("transaction commit error : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
 	return c.JSON(http.StatusOK, chair)
 }
 
@@ -534,23 +515,6 @@ func getEstateDetail(c echo.Context) error {
 			return c.NoContent(http.StatusNotFound)
 		}
 		c.Echo().Logger.Errorf("Database Execution error : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	tx, err := db.Begin()
-	if err != nil {
-		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	defer tx.Rollback()
-
-	_, err = tx.Exec("UPDATE estate SET popularity = ? WHERE id = ?", estate.Popularity+1, id)
-	if err != nil {
-		c.Echo().Logger.Errorf("popularity update failed : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	err = tx.Commit()
-	if err != nil {
-		c.Echo().Logger.Errorf("transaction commit error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 

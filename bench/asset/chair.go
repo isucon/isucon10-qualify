@@ -102,15 +102,11 @@ func (c1 *Chair) Equal(c2 *Chair) bool {
 }
 
 func (c *Chair) GetPopularity() int64 {
-	return atomic.LoadInt64(&(c.popularity))
+	return c.popularity
 }
 
 func (c *Chair) GetStock() int64 {
 	return atomic.LoadInt64(&(c.stock))
-}
-
-func (c *Chair) IncrementPopularity() {
-	atomic.AddInt64(&(c.popularity), 1)
 }
 
 func (c *Chair) DecrementStock() {

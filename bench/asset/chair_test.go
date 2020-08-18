@@ -33,57 +33,6 @@ func Test_ParallelStockDecrement(t *testing.T) {
 	}
 }
 
-func Test_ParallelPopularityIncrement(t *testing.T) {
-	type Incrementable interface {
-		GetPopularity() int64
-		IncrementPopularity()
-	}
-
-	initialPopularity := int64(100)
-
-	testAsset := []struct {
-		TestName string
-		Asset    Incrementable
-	}{
-		{
-			TestName: "Test Chair",
-			Asset: &Chair{
-				popularity: initialPopularity,
-			},
-		},
-		{
-			TestName: "Test Estate",
-			Asset: &Estate{
-				popularity: initialPopularity,
-			},
-		},
-	}
-
-	for _, tc := range testAsset {
-		t.Run(tc.TestName, func(t *testing.T) {
-			var wg sync.WaitGroup
-			start := make(chan struct{})
-			for i := 0; i < 100; i++ {
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
-					<-start
-					for j := 0; j < 100; j++ {
-						tc.Asset.IncrementPopularity()
-					}
-				}()
-			}
-			close(start)
-			wg.Wait()
-			got := tc.Asset.GetPopularity()
-			expected := initialPopularity + 100*100
-			if got != expected {
-				t.Errorf("unexpected stocks. expected: %v, but got: %v", expected, got)
-			}
-		})
-	}
-}
-
 func TestChair_MarshalJSON(t *testing.T) {
 	chair := Chair{
 		ID:          1,

@@ -192,12 +192,8 @@ app.get("/api/chair/:id", async (req, res, next) => {
       res.status(404).send("Not Found");
       return;
     }
-    await connection.beginTransaction();
-    await query("UPDATE chair SET popularity = ? WHERE id = ?", [chair.popularity+1, id]);
-    await connection.commit();
     res.json(camelcaseKeys(chair));
   } catch (e) {
-    await connection.rollback();
     next(e);
   } finally {
     await connection.release();
@@ -426,12 +422,8 @@ app.get("/api/estate/:id", async (req, res, next) => {
       return;
     }
 
-    await connection.beginTransaction();
-    await query("UPDATE estate SET popularity = ? WHERE id = ?", [estate.popularity+1, id]);
-    await connection.commit();
     res.json(camelcaseKeys(estate));
   } catch (e) {
-    await connection.rollback();
     next(e);
   } finally {
     await connection.release();

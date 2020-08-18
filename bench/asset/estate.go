@@ -3,7 +3,6 @@ package asset
 import (
 	"encoding/json"
 	"fmt"
-	"sync/atomic"
 )
 
 type JSONEstate struct {
@@ -16,7 +15,7 @@ type JSONEstate struct {
 	Longitude   float64 `json:"longitude"`
 	DoorHeight  int64   `json:"doorHeight"`
 	DoorWidth   int64   `json:"doorWidth"`
-	Popularity   int64   `json:"popularity"`
+	Popularity  int64   `json:"popularity"`
 	Rent        int64   `json:"rent"`
 	Features    string  `json:"features"`
 }
@@ -51,7 +50,7 @@ func (e Estate) MarshalJSON() ([]byte, error) {
 		DoorHeight:  e.DoorHeight,
 		DoorWidth:   e.DoorWidth,
 		Features:    e.Features,
-		Popularity:   e.popularity,
+		Popularity:  e.popularity,
 	}
 
 	return json.Marshal(m)
@@ -97,9 +96,5 @@ func (e1 *Estate) Equal(e2 *Estate) bool {
 }
 
 func (e *Estate) GetPopularity() int64 {
-	return atomic.LoadInt64(&(e.popularity))
-}
-
-func (e *Estate) IncrementPopularity() {
-	atomic.AddInt64(&(e.popularity), 1)
+	return e.popularity
 }

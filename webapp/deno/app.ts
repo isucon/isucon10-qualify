@@ -232,13 +232,6 @@ router.get("/api/chair/:id", async (ctx) => {
       ctx.response.body = "Not Found";
       return;
     }
-    await db.transaction(async (conn) => {
-      await conn.execute(
-        "UPDATE chair SET popularity = ? WHERE id = ?",
-        [chair.popularity + 1, id],
-      );
-      await conn.execute("COMMIT");
-    });
     ctx.response.body = camelcaseKeys(chair);
   } catch (e) {
     ctx.response.status = 500;
@@ -258,14 +251,6 @@ router.post("/api/chair/buy/:id", async (ctx) => {
       ctx.response.body = "Not Found";
       return;
     }
-
-    await db.transaction(async (conn) => {
-      await conn.execute(
-        "UPDATE chair SET stock = ? WHERE id = ?",
-        [chair.stock - 1, id],
-      );
-      await conn.execute("COMMIT");
-    });
 
     ctx.response.body = { ok: true };
   } catch (e) {
