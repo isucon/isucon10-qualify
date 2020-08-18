@@ -157,17 +157,17 @@ func checkWorkers(ctx context.Context) {
 				time.Since(net) > parameter.IntervalForCheckWorkers {
 				log.Println("負荷レベルが上昇しました。")
 				level := atomic.AddInt64(&loadLevel, 1)
-				incList := parameter.IncListOfWorkers[level]
-				for i := 0; i < incList[0]; i++ {
+				incWorkers := parameter.ListOfIncWorkers[level]
+				for i := 0; i < incWorkers.ChairSearchWorker; i++ {
 					go runChairSearchWorker(ctx)
 				}
-				for i := 0; i < incList[1]; i++ {
+				for i := 0; i < incWorkers.EstateSearchWorker; i++ {
 					go runEstateSearchWorker(ctx)
 				}
-				for i := 0; i < incList[2]; i++ {
+				for i := 0; i < incWorkers.EstateNazotteSearchWorker; i++ {
 					go runEstateNazotteSearchWorker(ctx)
 				}
-				for i := 0; i < incList[3]; i++ {
+				for i := 0; i < incWorkers.BotWorker; i++ {
 					go runBotWorker(ctx)
 				}
 			} else {
@@ -182,25 +182,25 @@ func checkWorkers(ctx context.Context) {
 
 func Load(ctx context.Context) {
 	level := GetLoadLevel()
-	incList := parameter.IncListOfWorkers[level]
+	incWorkers := parameter.ListOfIncWorkers[level]
 
 	// 物件検索をして、資料請求をするシナリオ
-	for i := 0; i < incList[0]; i++ {
+	for i := 0; i < incWorkers.ChairSearchWorker; i++ {
 		go runChairSearchWorker(ctx)
 	}
 
 	// イス検索から物件ページに行き、資料請求をするまでのシナリオ
-	for i := 0; i < incList[1]; i++ {
+	for i := 0; i < incWorkers.EstateSearchWorker; i++ {
 		go runEstateSearchWorker(ctx)
 	}
 
 	// なぞって検索をするシナリオ
-	for i := 0; i < incList[2]; i++ {
+	for i := 0; i < incWorkers.EstateNazotteSearchWorker; i++ {
 		go runEstateNazotteSearchWorker(ctx)
 	}
 
 	// ボットによる検索シナリオ
-	for i := 0; i < incList[3]; i++ {
+	for i := 0; i < incWorkers.BotWorker; i++ {
 		go runBotWorker(ctx)
 	}
 

@@ -23,30 +23,133 @@ const (
 	LoadTimeout                    = 60 * time.Second
 )
 
+type incWorkers struct {
+	ChairSearchWorker         int
+	EstateSearchWorker        int
+	EstateNazotteSearchWorker int
+	BotWorker                 int
+}
+
 // IncListOfWorkers 前のレベルとのWorkerの個数の差分を保持するList
-// [level][0]: inc of EstateSearchWorker
-// [level][1]: inc of ChairSearchWorker
-// [level][2]: inc of EstateNazotteSearchWorker
-// [level][3]: inc of BotWorker
-var IncListOfWorkers = [][4]int{
-	{1, 1, 1, 1}, // level 00
-	{1, 1, 1, 1}, // level 01
-	{1, 1, 1, 1}, // level 02
-	{1, 1, 1, 1}, // level 03
-	{1, 1, 1, 1}, // level 04
-	{1, 1, 1, 1}, // level 05
-	{1, 1, 1, 1}, // level 06
-	{1, 1, 1, 1}, // level 07
-	{1, 1, 1, 1}, // level 08
-	{1, 1, 1, 1}, // level 09
-	{1, 1, 1, 1}, // level 10
-	{1, 1, 1, 1}, // level 11
-	{1, 1, 1, 1}, // level 12
-	{1, 1, 1, 1}, // level 13
-	{1, 1, 1, 1}, // level 14
-	{1, 1, 1, 1}, // level 15
-	{1, 1, 1, 1}, // level 16
-	{1, 1, 1, 1}, // level 17
-	{1, 1, 1, 1}, // level 18
-	{1, 1, 1, 1}, // level 19
+var ListOfIncWorkers = []incWorkers{
+	{ // level 00
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 01
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 02
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 03
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 04
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 05
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 06
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 07
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 08
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 09
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 10
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 11
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 12
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 13
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 14
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 15
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 16
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 17
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 18
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
+	{ // level 19
+		ChairSearchWorker:         1,
+		EstateSearchWorker:        1,
+		EstateNazotteSearchWorker: 1,
+		BotWorker:                 1,
+	},
 }
