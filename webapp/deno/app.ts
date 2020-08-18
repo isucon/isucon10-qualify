@@ -195,7 +195,7 @@ router.get("/api/chair/search", async (ctx, next) => {
 
   const sqlprefix = "SELECT * FROM chair WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY view_count DESC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM chair WHERE ";
 
   try {
@@ -232,13 +232,6 @@ router.get("/api/chair/:id", async (ctx) => {
       ctx.response.body = "Not Found";
       return;
     }
-    await db.transaction(async (conn) => {
-      await conn.execute(
-        "UPDATE chair SET view_count = ? WHERE id = ?",
-        [chair.view_count + 1, id],
-      );
-      await conn.execute("COMMIT");
-    });
     ctx.response.body = camelcaseKeys(chair);
   } catch (e) {
     ctx.response.status = 500;
@@ -376,7 +369,7 @@ router.get("/api/estate/search", async (ctx) => {
 
   const sqlprefix = "SELECT * FROM estate WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY view_count DESC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM estate WHERE ";
 
   try {
@@ -436,7 +429,7 @@ router.post("/api/estate/nazotte", async (ctx) => {
 
   try {
     const estates = await db.query(
-      "SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY view_count DESC, id ASC",
+      "SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC",
       [
         boundingbox.bottomright.latitude,
         boundingbox.topleft.latitude,
@@ -497,13 +490,6 @@ router.get("/api/estate/:id", async (ctx) => {
       ctx.response.body = "Estate Not Found";
       return;
     }
-    await db.transaction(async (conn) => {
-      await conn.execute(
-        "UPDATE estate SET view_count = ? WHERE id = ?",
-        [estate.view_count + 1, id],
-      );
-      await conn.execute("COMMIT");
-    });
     ctx.response.body = camelcaseKeys(estate);
   } catch (e) {
     ctx.response.status = 500;
@@ -524,7 +510,7 @@ router.post("/api/estate/req_doc/:id", async (ctx) => {
 
 router.get("/api/popular_estate", async (ctx) => {
   const es = await db.query(
-    "SELECT * FROM estate ORDER BY view_count DESC, id ASC LIMIT ?",
+    "SELECT * FROM estate ORDER BY popularity DESC, id ASC LIMIT ?",
     [LIMIT],
   );
   ctx.response.body = { estates: es.map(camelcaseKeys) };
@@ -538,7 +524,7 @@ router.get("/api/recommended_estate/:id", async (ctx) => {
     const h = chair.height;
     const d = chair.depth;
     const es = await db.query(
-      "SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY view_count DESC, id ASC LIMIT ?",
+      "SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?",
       [
         w,
         h,
@@ -565,7 +551,7 @@ router.get("/api/recommended_estate/:id", async (ctx) => {
 router.get("/api/popular_chair", async (ctx) => {
   try {
     const cs = await db.query(
-      "SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC, id ASC LIMIT ?",
+      "SELECT * FROM chair WHERE stock > 0 ORDER BY popularity DESC, id ASC LIMIT ?",
       [LIMIT],
     );
     ctx.response.body = { chairs: cs.map(camelcaseKeys) };

@@ -17,7 +17,7 @@ type JSONChair struct {
 	Depth       int64  `json:"depth"`
 	Color       string `json:"color"`
 	Features    string `json:"features"`
-	ViewCount   int64  `json:"view_count"`
+	Popularity  int64  `json:"popularity"`
 	Kind        string `json:"kind"`
 	Stock       int64  `json:"stock"`
 }
@@ -35,7 +35,7 @@ type Chair struct {
 	Features    string
 	Kind        string
 
-	viewCount   int64
+	popularity  int64
 	stock       int64
 	soldOutTime atomic.Value
 }
@@ -53,7 +53,7 @@ func (c Chair) MarshalJSON() ([]byte, error) {
 		Depth:       c.Depth,
 		Color:       c.Color,
 		Features:    c.Features,
-		ViewCount:   c.viewCount,
+		Popularity:  c.popularity,
 		Kind:        c.Kind,
 		Stock:       c.stock,
 	}
@@ -79,7 +79,7 @@ func (c *Chair) UnmarshalJSON(data []byte) error {
 	c.Depth = jc.Depth
 	c.Color = jc.Color
 	c.Features = jc.Features
-	c.viewCount = jc.ViewCount
+	c.popularity = jc.Popularity
 	c.Kind = jc.Kind
 	c.stock = jc.Stock
 	c.soldOutTime = atomic.Value{}
@@ -101,16 +101,12 @@ func (c1 *Chair) Equal(c2 *Chair) bool {
 		c1.Kind == c2.Kind
 }
 
-func (c *Chair) GetViewCount() int64 {
-	return atomic.LoadInt64(&(c.viewCount))
+func (c *Chair) GetPopularity() int64 {
+	return c.popularity
 }
 
 func (c *Chair) GetStock() int64 {
 	return atomic.LoadInt64(&(c.stock))
-}
-
-func (c *Chair) IncrementViewCount() {
-	atomic.AddInt64(&(c.viewCount), 1)
 }
 
 func (c *Chair) DecrementStock() {

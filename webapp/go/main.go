@@ -43,7 +43,7 @@ type Chair struct {
 	Color       string `db:"color" json:"color"`
 	Features    string `db:"features" json:"features"`
 	Kind        string `db:"kind" json:"kind"`
-	ViewCount   int64  `db:"view_count" json:"-"`
+	Popularity  int64  `db:"popularity" json:"-"`
 	Stock       int64  `db:"stock" json:"-"`
 }
 
@@ -69,7 +69,7 @@ type Estate struct {
 	DoorHeight  int64   `db:"door_height" json:"doorHeight"`
 	DoorWidth   int64   `db:"door_width" json:"doorWidth"`
 	Features    string  `db:"features" json:"features"`
-	ViewCount   int64   `db:"view_count" json:"-"`
+	Popularity  int64   `db:"popularity" json:"-"`
 }
 
 //EstateSearchResponse estate/searchへのレスポンスの形式
@@ -275,25 +275,6 @@ func getChairDetail(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	tx, err := db.Begin()
-	if err != nil {
-		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	defer tx.Rollback()
-
-	_, err = tx.Exec("UPDATE chair SET view_count = ? WHERE id = ?", chair.ViewCount+1, id)
-	if err != nil {
-		c.Echo().Logger.Errorf("view_count of chair update failed : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		c.Echo().Logger.Errorf("transaction commit error : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
 	return c.JSON(http.StatusOK, chair)
 }
 
@@ -408,7 +389,7 @@ func searchChairs(c echo.Context) error {
 	sqlstr := "SELECT * FROM chair WHERE "
 	searchCondition := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " ORDER BY view_count DESC, id ASC LIMIT ? OFFSET ?"
+	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
 
 	countsql := "SELECT COUNT(*) FROM chair WHERE "
 	err = db.Get(&chairs.Count, countsql+searchCondition, queryParams...)
@@ -498,7 +479,7 @@ func getChairSearchCondition(c echo.Context) error {
 func searchPopularChair(c echo.Context) error {
 	var popularChairs []Chair
 
-	sqlstr := `SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC, id ASC LIMIT ?`
+	sqlstr := `SELECT * FROM chair WHERE stock > 0 ORDER BY popularity DESC, id ASC LIMIT ?`
 
 	err := db.Select(&popularChairs, sqlstr, LIMIT)
 	if err != nil {
@@ -534,23 +515,6 @@ func getEstateDetail(c echo.Context) error {
 			return c.NoContent(http.StatusNotFound)
 		}
 		c.Echo().Logger.Errorf("Database Execution error : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	tx, err := db.Begin()
-	if err != nil {
-		c.Echo().Logger.Errorf("failed to create transaction : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	defer tx.Rollback()
-
-	_, err = tx.Exec("UPDATE estate SET view_count = ? WHERE id = ?", estate.ViewCount+1, id)
-	if err != nil {
-		c.Echo().Logger.Errorf("view_count update failed : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	err = tx.Commit()
-	if err != nil {
-		c.Echo().Logger.Errorf("transaction commit error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
@@ -658,7 +622,7 @@ func searchEstates(c echo.Context) error {
 	sqlstr := "SELECT * FROM estate WHERE "
 	searchQuery := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " ORDER BY view_count DESC, id ASC LIMIT ? OFFSET ?"
+	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
 
 	countsql := "SELECT COUNT(*) FROM estate WHERE "
 	err = db.Get(&estates.Count, countsql+searchQuery, searchQueryParameter...)
@@ -688,7 +652,7 @@ func searchEstates(c echo.Context) error {
 func searchPopularEstate(c echo.Context) error {
 	popularEstates := make([]Estate, 0, LIMIT)
 
-	sqlstr := `SELECT * FROM estate ORDER BY view_count DESC, id ASC LIMIT ?`
+	sqlstr := `SELECT * FROM estate ORDER BY popularity DESC, id ASC LIMIT ?`
 
 	err := db.Select(&popularEstates, sqlstr, LIMIT)
 	if err != nil {
@@ -732,7 +696,7 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 	w := chair.Width
 	h := chair.Height
 	d := chair.Depth
-	sqlstr = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY view_count DESC, id ASC LIMIT ?`
+	sqlstr = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?`
 	err = db.Select(&popularEstates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, LIMIT)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -766,7 +730,7 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []Estate{}
 
-	sqlstr := `SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY view_count DESC, id ASC`
+	sqlstr := `SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC`
 
 	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {

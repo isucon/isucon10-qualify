@@ -33,57 +33,6 @@ func Test_ParallelStockDecrement(t *testing.T) {
 	}
 }
 
-func Test_ParallelViewCountIncrement(t *testing.T) {
-	type Incrementable interface {
-		GetViewCount() int64
-		IncrementViewCount()
-	}
-
-	initialViewCount := int64(100)
-
-	testAsset := []struct {
-		TestName string
-		Asset    Incrementable
-	}{
-		{
-			TestName: "Test Chair",
-			Asset: &Chair{
-				viewCount: initialViewCount,
-			},
-		},
-		{
-			TestName: "Test Estate",
-			Asset: &Estate{
-				viewCount: initialViewCount,
-			},
-		},
-	}
-
-	for _, tc := range testAsset {
-		t.Run(tc.TestName, func(t *testing.T) {
-			var wg sync.WaitGroup
-			start := make(chan struct{})
-			for i := 0; i < 100; i++ {
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
-					<-start
-					for j := 0; j < 100; j++ {
-						tc.Asset.IncrementViewCount()
-					}
-				}()
-			}
-			close(start)
-			wg.Wait()
-			got := tc.Asset.GetViewCount()
-			expected := initialViewCount + 100*100
-			if got != expected {
-				t.Errorf("unexpected stocks. expected: %v, but got: %v", expected, got)
-			}
-		})
-	}
-}
-
 func TestChair_MarshalJSON(t *testing.T) {
 	chair := Chair{
 		ID:          1,
@@ -98,7 +47,7 @@ func TestChair_MarshalJSON(t *testing.T) {
 		Features:    "features",
 		Kind:        "kind",
 		stock:       6,
-		viewCount:   7,
+		popularity:  7,
 	}
 	b, err := json.Marshal(chair)
 	if err != nil {

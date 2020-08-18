@@ -14,18 +14,18 @@ func isEstateEqualToAsset(e *asset.Estate) bool {
 	return estate.Equal(e)
 }
 
-func isEstatesOrderedByViewCount(e []asset.Estate) bool {
-	var viewCount int64 = -1
+func isEstatesOrderedByPopularity(e []asset.Estate) bool {
+	var popularity int64 = -1
 	for i, estate := range e {
 		e, err := asset.GetEstateFromID(estate.ID)
 		if err != nil {
 			return false
 		}
-		vc := e.GetViewCount()
-		if i > 0 && viewCount-vc < -3 {
+		p := e.GetPopularity()
+		if i > 0 && popularity < p {
 			return false
 		}
-		viewCount = vc
+		popularity = p
 	}
 	return true
 }
@@ -50,8 +50,8 @@ func isChairSoldOutAt(c *asset.Chair, t time.Time) bool {
 	return t.After(*soldOutTime)
 }
 
-func isChairsOrderedByViewCount(c []asset.Chair, t time.Time) bool {
-	var viewCount int64 = -1
+func isChairsOrderedByPopularity(c []asset.Chair, t time.Time) bool {
+	var popularity int64 = -1
 	for i, chair := range c {
 		_chair, err := asset.GetChairFromID(chair.ID)
 		if err != nil {
@@ -62,12 +62,12 @@ func isChairsOrderedByViewCount(c []asset.Chair, t time.Time) bool {
 			return false
 		}
 
-		vc := _chair.GetViewCount()
+		p := _chair.GetPopularity()
 
-		if i > 0 && viewCount-vc < -3 {
+		if i > 0 && popularity < p {
 			return false
 		}
-		viewCount = vc
+		popularity = p
 	}
 	return true
 }

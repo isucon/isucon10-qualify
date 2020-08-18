@@ -3,7 +3,6 @@ package asset
 import (
 	"encoding/json"
 	"fmt"
-	"sync/atomic"
 )
 
 type JSONEstate struct {
@@ -16,7 +15,7 @@ type JSONEstate struct {
 	Longitude   float64 `json:"longitude"`
 	DoorHeight  int64   `json:"doorHeight"`
 	DoorWidth   int64   `json:"doorWidth"`
-	ViewCount   int64   `json:"viewCount"`
+	Popularity  int64   `json:"popularity"`
 	Rent        int64   `json:"rent"`
 	Features    string  `json:"features"`
 }
@@ -34,7 +33,7 @@ type Estate struct {
 	Rent        int64
 	Features    string
 
-	viewCount int64
+	popularity int64
 }
 
 func (e Estate) MarshalJSON() ([]byte, error) {
@@ -51,7 +50,7 @@ func (e Estate) MarshalJSON() ([]byte, error) {
 		DoorHeight:  e.DoorHeight,
 		DoorWidth:   e.DoorWidth,
 		Features:    e.Features,
-		ViewCount:   e.viewCount,
+		Popularity:  e.popularity,
 	}
 
 	return json.Marshal(m)
@@ -77,7 +76,7 @@ func (e *Estate) UnmarshalJSON(data []byte) error {
 	e.Latitude = je.Latitude
 	e.Longitude = je.Longitude
 	e.Features = je.Features
-	e.viewCount = je.ViewCount
+	e.popularity = je.Popularity
 
 	return nil
 }
@@ -96,10 +95,6 @@ func (e1 *Estate) Equal(e2 *Estate) bool {
 		e1.Features == e2.Features
 }
 
-func (e *Estate) GetViewCount() int64 {
-	return atomic.LoadInt64(&(e.viewCount))
-}
-
-func (e *Estate) IncrementViewCount() {
-	atomic.AddInt64(&(e.viewCount), 1)
+func (e *Estate) GetPopularity() int64 {
+	return e.popularity
 }

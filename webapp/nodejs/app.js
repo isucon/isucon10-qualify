@@ -156,7 +156,7 @@ app.get("/api/chair/search", async (req, res, next) => {
   
   const sqlprefix = "SELECT * FROM chair WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY view_count DESC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM chair WHERE ";
 
   const getConnection = promisify(db.getConnection.bind(db));
@@ -192,12 +192,8 @@ app.get("/api/chair/:id", async (req, res, next) => {
       res.status(404).send("Not Found");
       return;
     }
-    await connection.beginTransaction();
-    await query("UPDATE chair SET view_count = ? WHERE id = ?", [chair.view_count+1, id]);
-    await connection.commit();
     res.json(camelcaseKeys(chair));
   } catch (e) {
-    await connection.rollback();
     next(e);
   } finally {
     await connection.release();
@@ -314,7 +310,7 @@ app.get("/api/estate/search", async (req, res, next) => {
   
   const sqlprefix = "SELECT * FROM estate WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY view_count DESC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM estate WHERE ";
 
   const getConnection = promisify(db.getConnection.bind(db));
@@ -378,7 +374,7 @@ app.post("/api/estate/nazotte", async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const estates = await query("SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY view_count DESC, id ASC", [
+    const estates = await query("SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC", [
       boundingbox.bottomright.latitude, boundingbox.topleft.latitude, boundingbox.bottomright.longitude, boundingbox.topleft.longitude,
     ]);
 
@@ -426,12 +422,8 @@ app.get("/api/estate/:id", async (req, res, next) => {
       return;
     }
 
-    await connection.beginTransaction();
-    await query("UPDATE estate SET view_count = ? WHERE id = ?", [estate.view_count+1, id]);
-    await connection.commit();
     res.json(camelcaseKeys(estate));
   } catch (e) {
-    await connection.rollback();
     next(e);
   } finally {
     await connection.release();
@@ -443,7 +435,7 @@ app.get("/api/popular_estate", async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const es = await query("SELECT * FROM estate ORDER BY view_count DESC, id ASC LIMIT ?", [LIMIT]);
+    const es = await query("SELECT * FROM estate ORDER BY popularity DESC, id ASC LIMIT ?", [LIMIT]);
     const estates = es.map((estate) => camelcaseKeys(estate)); 
     res.json({estates});
   } catch (e) {
@@ -463,7 +455,7 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
     const w = chair.width;
     const h = chair.height;
     const d = chair.depth;
-    const es = await query("SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY view_count DESC, id ASC LIMIT ?", [
+    const es = await query("SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?", [
       w, h, w, d, h, w, h, d, d, w, d, h, LIMIT
     ]);
     const estates = es.map((estate) => camelcaseKeys(estate)); 
@@ -480,7 +472,7 @@ app.get("/api/popular_chair", async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const cs = await query("SELECT * FROM chair WHERE stock > 0 ORDER BY view_count DESC, id ASC LIMIT ?", [LIMIT]);
+    const cs = await query("SELECT * FROM chair WHERE stock > 0 ORDER BY popularity DESC, id ASC LIMIT ?", [LIMIT]);
     const chairs = cs.map((chair) => camelcaseKeys(chair)); 
     res.json({ chairs });
   } catch (e) {
