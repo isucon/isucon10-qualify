@@ -2,6 +2,7 @@ package asset
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync/atomic"
 	"time"
 )
@@ -127,4 +128,8 @@ func (c *Chair) GetSoldOutTime() *time.Time {
 		return nil
 	}
 	return &t
+}
+
+func (c *Chair) ToCSV() string {
+	return fmt.Sprintf(`%v,"%v","%v","%v",%v,%v,%v,%v,%v,"%v","%v",%v,%v`, c.ID, c.Name, c.Description, c.Thumbnail, c.Price, c.Height, c.Width, c.Depth, c.Color, c.Features, c.Kind, c.popularity, c.stock)
 }

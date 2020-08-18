@@ -98,3 +98,7 @@ func (e1 *Estate) Equal(e2 *Estate) bool {
 func (e *Estate) GetPopularity() int64 {
 	return e.popularity
 }
+
+func (e *Estate) ToCSV() string {
+	return fmt.Sprintf(`%v,"%v","%v","%v","%v",%v,%v,%v,%v,%v,"%v",%v`, e.ID, e.Name, e.Description, e.Thumbnail, e.Address, e.Latitude, e.Longitude, e.Rent, e.DoorHeight, e.DoorWidth, e.Features, e.popularity)
+}
