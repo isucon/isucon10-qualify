@@ -21,10 +21,6 @@ func GetLoadLevel() int64 {
 	return atomic.LoadInt64(&loadLevel)
 }
 
-func IncrementLoadLevel() {
-	atomic.AddInt64(&loadLevel, 1)
-}
-
 func runEstateSearchWorker(ctx context.Context) {
 	u, _ := uuid.NewRandom()
 	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()), false)
@@ -160,10 +156,20 @@ func checkWorkers(ctx context.Context) {
 				time.Since(eet) > parameter.IntervalForCheckWorkers &&
 				time.Since(net) > parameter.IntervalForCheckWorkers {
 				log.Println("負荷レベルが上昇しました。")
-				go runChairSearchWorker(ctx)
-				go runEstateSearchWorker(ctx)
-				go runEstateNazotteSearchWorker(ctx)
-				IncrementLoadLevel()
+				level := atomic.AddInt64(&loadLevel, 1)
+				incWorkers := parameter.ListOfIncWorkers[level]
+				for i := 0; i < incWorkers.ChairSearchWorker; i++ {
+					go runChairSearchWorker(ctx)
+				}
+				for i := 0; i < incWorkers.EstateSearchWorker; i++ {
+					go runEstateSearchWorker(ctx)
+				}
+				for i := 0; i < incWorkers.EstateNazotteSearchWorker; i++ {
+					go runEstateNazotteSearchWorker(ctx)
+				}
+				for i := 0; i < incWorkers.BotWorker; i++ {
+					go runBotWorker(ctx)
+				}
 			} else {
 				log.Println("シナリオ内でエラーが発生したため負荷レベルを上げられませんでした。")
 			}
@@ -175,23 +181,26 @@ func checkWorkers(ctx context.Context) {
 }
 
 func Load(ctx context.Context) {
-	// 物件検索をして、資料請求をするシナリオ
-	for i := 0; i < parameter.NumOfInitialEstateSearchWorker; i++ {
-		go runEstateSearchWorker(ctx)
-	}
+	level := GetLoadLevel()
+	incWorkers := parameter.ListOfIncWorkers[level]
 
-	// イス検索から物件ページに行き、資料請求をするまでのシナリオ
-	for i := 0; i < parameter.NumOfInitialChairSearchWorker; i++ {
+	// 物件検索をして、資料請求をするシナリオ
+	for i := 0; i < incWorkers.ChairSearchWorker; i++ {
 		go runChairSearchWorker(ctx)
 	}
 
+	// イス検索から物件ページに行き、資料請求をするまでのシナリオ
+	for i := 0; i < incWorkers.EstateSearchWorker; i++ {
+		go runEstateSearchWorker(ctx)
+	}
+
 	// なぞって検索をするシナリオ
-	for i := 0; i < parameter.NumOfInitialEstateNazotteSearchWorker; i++ {
+	for i := 0; i < incWorkers.EstateNazotteSearchWorker; i++ {
 		go runEstateNazotteSearchWorker(ctx)
 	}
 
 	// ボットによる検索シナリオ
-	for i := 0; i < parameter.NumOfInitialBotWorker; i++ {
+	for i := 0; i < incWorkers.BotWorker; i++ {
 		go runBotWorker(ctx)
 	}
 
