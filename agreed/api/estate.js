@@ -279,7 +279,7 @@ module.exports = [
             doorWidth: 120,
             rent: 2500000,
             features: '駅直結,バストイレ別',
-            view_count: 10000
+            popularity: 10000
           },
           {
             id: 5,
@@ -372,7 +372,7 @@ module.exports = [
             doorWidth: 120,
             rent: 2500000,
             features: '駅直結,バストイレ別',
-            view_count: 10000
+            popularity: 10000
           },
           {
             id: 5,

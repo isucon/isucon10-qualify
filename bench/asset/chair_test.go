@@ -33,13 +33,13 @@ func Test_ParallelStockDecrement(t *testing.T) {
 	}
 }
 
-func Test_ParallelViewCountIncrement(t *testing.T) {
+func Test_ParallelPopularityIncrement(t *testing.T) {
 	type Incrementable interface {
-		GetViewCount() int64
-		IncrementViewCount()
+		GetPopularity() int64
+		IncrementPopularity()
 	}
 
-	initialViewCount := int64(100)
+	initialPopularity := int64(100)
 
 	testAsset := []struct {
 		TestName string
@@ -48,13 +48,13 @@ func Test_ParallelViewCountIncrement(t *testing.T) {
 		{
 			TestName: "Test Chair",
 			Asset: &Chair{
-				viewCount: initialViewCount,
+				popularity: initialPopularity,
 			},
 		},
 		{
 			TestName: "Test Estate",
 			Asset: &Estate{
-				viewCount: initialViewCount,
+				popularity: initialPopularity,
 			},
 		},
 	}
@@ -69,14 +69,14 @@ func Test_ParallelViewCountIncrement(t *testing.T) {
 					defer wg.Done()
 					<-start
 					for j := 0; j < 100; j++ {
-						tc.Asset.IncrementViewCount()
+						tc.Asset.IncrementPopularity()
 					}
 				}()
 			}
 			close(start)
 			wg.Wait()
-			got := tc.Asset.GetViewCount()
-			expected := initialViewCount + 100*100
+			got := tc.Asset.GetPopularity()
+			expected := initialPopularity + 100*100
 			if got != expected {
 				t.Errorf("unexpected stocks. expected: %v, but got: %v", expected, got)
 			}
@@ -98,7 +98,7 @@ func TestChair_MarshalJSON(t *testing.T) {
 		Features:    "features",
 		Kind:        "kind",
 		stock:       6,
-		viewCount:   7,
+		popularity:   7,
 	}
 	b, err := json.Marshal(chair)
 	if err != nil {

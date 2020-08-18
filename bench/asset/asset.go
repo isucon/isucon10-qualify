@@ -123,9 +123,9 @@ func GetChairFromID(id int64) (*Chair, error) {
 	return nil, errors.New("requested chair not found")
 }
 
-func IncrementChairViewCount(id int64) {
+func IncrementChairPopularity(id int64) {
 	if ExistsChairInMap(id) {
-		chairMap[id].IncrementViewCount()
+		chairMap[id].IncrementPopularity()
 	}
 }
 
@@ -153,8 +153,8 @@ func GetEstateFromID(id int64) (*Estate, error) {
 	return nil, errors.New("requested estate not found")
 }
 
-func IncrementEstateViewCount(id int64) {
+func IncrementEstatePopularity(id int64) {
 	if ExistsEstateInMap(id) {
-		estateMap[id].IncrementViewCount()
+		estateMap[id].IncrementPopularity()
 	}
 }

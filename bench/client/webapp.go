@@ -125,7 +125,7 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 		return nil, failure.Wrap(err, failure.Message("GET /api/chair/:id: JSONデコードに失敗しました"))
 	}
 
-	asset.IncrementChairViewCount(chair.ID)
+	asset.IncrementChairPopularity(chair.ID)
 
 	return &chair, nil
 }
@@ -378,7 +378,7 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 		return nil, failure.Wrap(err, failure.Message("GET /api/estate/:id: JSONデコードに失敗しました"))
 	}
 
-	asset.IncrementEstateViewCount(estate.ID)
+	asset.IncrementEstatePopularity(estate.ID)
 
 	return &estate, nil
 }

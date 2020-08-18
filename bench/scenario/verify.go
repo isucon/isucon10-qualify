@@ -47,7 +47,7 @@ func verifyChairStock(ctx context.Context, c *client.Client, chairFeatureForVeri
 	return nil
 }
 
-func verifyChairViewCount(ctx context.Context, c *client.Client, chairFeatureForVerify string) error {
+func verifyChairPopularity(ctx context.Context, c *client.Client, chairFeatureForVerify string) error {
 	for i := 0; i < 2; i++ {
 		_, err := c.GetChairDetailFromID(ctx, "2")
 		if err != nil {
@@ -79,7 +79,7 @@ func verifyChairViewCount(ctx context.Context, c *client.Client, chairFeatureFor
 	return nil
 }
 
-func verifyEstateViewCount(ctx context.Context, c *client.Client, estateFeatureForVerify string) error {
+func verifyEstatePopularity(ctx context.Context, c *client.Client, estateFeatureForVerify string) error {
 	for i := 0; i < 2; i++ {
 		_, err := c.GetEstateDetailFromID(ctx, "1")
 		if err != nil {
@@ -132,7 +132,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir string
 
 	wg.Add(1)
 	go func() {
-		err := verifyChairViewCount(ctx, c, *chairFeatureForVerify)
+		err := verifyChairPopularity(ctx, c, *chairFeatureForVerify)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 		}
@@ -141,7 +141,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir string
 
 	wg.Add(1)
 	go func() {
-		err := verifyEstateViewCount(ctx, c, *estateFeatureForVerify)
+		err := verifyEstatePopularity(ctx, c, *estateFeatureForVerify)
 		if err != nil {
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 		}
