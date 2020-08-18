@@ -167,6 +167,7 @@ if __name__ == '__main__':
         desc_lines = description_lines.readlines()
 
     with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile, open(OUTPUT_UPDATE_SQL_FILE, mode='w', encoding='utf-8') as update_sqlfile:
+        update_sqlfile.write("START TRANSACTION;\n")
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
                 RECORD_COUNT, BULK_INSERT_COUNT))
@@ -208,6 +209,7 @@ if __name__ == '__main__':
                 "UPDATE isuumo.estate SET view_count = {} WHERE id = {};".format(estate['view_count'], estate['id'])
                 for estate in ESTATES_FOR_VERIFY
             ]))
+        update_sqlfile.write("COMMIT;\n")
 
     with open(OUTPUT_FIXTURE_FILE, mode='w', encoding='utf-8') as fixture_file:
         fixture_file.write(json.dumps({
