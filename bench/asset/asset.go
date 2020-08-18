@@ -15,9 +15,7 @@ import (
 
 var (
 	chairMap  map[int64]*Chair
-	chairIDs  []int64
 	estateMap map[int64]*Estate
-	estateIDs []int64
 )
 
 // メモリ上にデータを展開する
@@ -33,7 +31,6 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 		defer f.Close()
 
 		chairMap = map[int64]*Chair{}
-		chairIDs = make([]int64, 0)
 		decoder := json.NewDecoder(f)
 		for {
 			if err := childCtx.Err(); err != nil {
@@ -47,8 +44,7 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 				}
 				return err
 			}
-			chairMap[chair.ID] = &chair
-			chairIDs = append(chairIDs, chair.ID)
+			StoreChair(chair)
 		}
 		return nil
 	})
@@ -61,7 +57,6 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 		defer f.Close()
 
 		estateMap = map[int64]*Estate{}
-		estateIDs = make([]int64, 0)
 		decoder := json.NewDecoder(f)
 		for {
 			if err := childCtx.Err(); err != nil {
@@ -75,8 +70,7 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 				}
 				return err
 			}
-			estateMap[estate.ID] = &estate
-			estateIDs = append(estateIDs, estate.ID)
+			StoreEstate(estate)
 		}
 
 		return nil
@@ -109,10 +103,6 @@ func ExistsChairInMap(id int64) bool {
 	return ok
 }
 
-func GetChairIDs() []int64 {
-	return chairIDs
-}
-
 func GetChairFromID(id int64) (*Chair, error) {
 	var c *Chair
 	if ExistsChairInMap(id) {
@@ -121,6 +111,10 @@ func GetChairFromID(id int64) (*Chair, error) {
 	}
 
 	return nil, errors.New("requested chair not found")
+}
+
+func StoreChair(chair Chair) {
+	chairMap[chair.ID] = &chair
 }
 
 func DecrementChairStock(id int64) {
@@ -134,10 +128,6 @@ func ExistsEstateInMap(id int64) bool {
 	return ok
 }
 
-func GetEstateIDs() []int64 {
-	return estateIDs
-}
-
 func GetEstateFromID(id int64) (*Estate, error) {
 	var e *Estate
 	if ExistsEstateInMap(id) {
@@ -145,4 +135,8 @@ func GetEstateFromID(id int64) (*Estate, error) {
 		return e, nil
 	}
 	return nil, errors.New("requested estate not found")
+}
+
+func StoreEstate(estate Estate) {
+	estateMap[estate.ID] = &estate
 }
