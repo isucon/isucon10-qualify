@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
@@ -144,6 +145,45 @@ func runBotWorker(ctx context.Context) {
 	}
 }
 
+func runChairDraftPostWorker(ctx context.Context) {
+	u, _ := uuid.NewRandom()
+	c := client.NewClient(fmt.Sprintf("isucon-seller-%v", u.String()), false)
+
+	r := rand.Intn(parameter.SleepSwingBeforePostDraft) - parameter.SleepSwingBeforePostDraft*0.5
+	s := parameter.SleepBeforePostDraft + time.Duration(r)*time.Millisecond
+	t := time.NewTimer(s)
+	select {
+	case <-t.C:
+		filePath, err := asset.ChairDraftFiles.Next()
+		if err != nil {
+			return
+		}
+		chairDraftPostScenario(ctx, c, filePath)
+	case <-ctx.Done():
+		t.Stop()
+		return
+	}
+}
+
+func runEstateDraftPostWorker(ctx context.Context) {
+	u, _ := uuid.NewRandom()
+	c := client.NewClient(fmt.Sprintf("isucon-seller-%v", u.String()), false)
+
+	r := rand.Intn(parameter.SleepSwingBeforePostDraft) - parameter.SleepSwingBeforePostDraft*0.5
+	s := parameter.SleepBeforePostDraft + time.Duration(r)*time.Millisecond
+	t := time.NewTimer(s)
+	select {
+	case <-t.C:
+		filePath, err := asset.EstateDraftFiles.Next()
+		if err != nil {
+			return
+		}
+		estateDraftPostScenario(ctx, c, filePath)
+	case <-ctx.Done():
+		t.Stop()
+	}
+}
+
 func checkWorkers(ctx context.Context) {
 	t := time.NewTicker(parameter.IntervalForCheckWorkers)
 	for {
@@ -169,6 +209,12 @@ func checkWorkers(ctx context.Context) {
 				}
 				for i := 0; i < incWorkers.BotWorker; i++ {
 					go runBotWorker(ctx)
+				}
+				for i := 0; i < incWorkers.ChairDraftPostWorker; i++ {
+					go runChairDraftPostWorker(ctx)
+				}
+				for i := 0; i < incWorkers.EstateDraftPostWorker; i++ {
+					go runEstateDraftPostWorker(ctx)
 				}
 			} else {
 				log.Println("シナリオ内でエラーが発生したため負荷レベルを上げられませんでした。")
@@ -202,6 +248,16 @@ func Load(ctx context.Context) {
 	// ボットによる検索シナリオ
 	for i := 0; i < incWorkers.BotWorker; i++ {
 		go runBotWorker(ctx)
+	}
+
+	// イスの入稿シナリオ
+	for i := 0; i < incWorkers.ChairDraftPostWorker; i++ {
+		go runChairDraftPostWorker(ctx)
+	}
+
+	// 物件の入稿シナリオ
+	for i := 0; i < incWorkers.EstateDraftPostWorker; i++ {
+		go runEstateDraftPostWorker(ctx)
 	}
 
 	go checkWorkers(ctx)
