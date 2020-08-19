@@ -2,6 +2,7 @@ package fails
 
 import (
 	"context"
+	"errors"
 	"log"
 	"sync"
 	"time"
@@ -92,7 +93,8 @@ func (e *Errors) Add(err error, label ErrorLabel) {
 		return
 	}
 
-	if err == context.DeadlineExceeded || err == context.Canceled {
+	cause := failure.CauseOf(err)
+	if errors.Is(cause, context.DeadlineExceeded) || errors.Is(cause, context.Canceled) {
 		return
 	}
 
