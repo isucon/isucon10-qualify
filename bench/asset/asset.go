@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/morikuni/failure"
@@ -15,9 +16,9 @@ import (
 
 var (
 	chairMap  map[int64]*Chair
-	chairIDs  []int64
+	chairMu   sync.RWMutex
 	estateMap map[int64]*Estate
-	estateIDs []int64
+	estateMu  sync.RWMutex
 )
 
 // メモリ上にデータを展開する
@@ -33,7 +34,6 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 		defer f.Close()
 
 		chairMap = map[int64]*Chair{}
-		chairIDs = make([]int64, 0)
 		decoder := json.NewDecoder(f)
 		for {
 			if err := childCtx.Err(); err != nil {
@@ -47,8 +47,7 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 				}
 				return err
 			}
-			chairMap[chair.ID] = &chair
-			chairIDs = append(chairIDs, chair.ID)
+			StoreChair(chair)
 		}
 		return nil
 	})
@@ -61,7 +60,6 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 		defer f.Close()
 
 		estateMap = map[int64]*Estate{}
-		estateIDs = make([]int64, 0)
 		decoder := json.NewDecoder(f)
 		for {
 			if err := childCtx.Err(); err != nil {
@@ -75,8 +73,7 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 				}
 				return err
 			}
-			estateMap[estate.ID] = &estate
-			estateIDs = append(estateIDs, estate.ID)
+			StoreEstate(estate)
 		}
 
 		return nil
@@ -98,51 +95,65 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 		return nil
 	})
 
+	eg.Go(func() error {
+		err := loadChairDraftFiles(dataDir)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	eg.Go(func() error {
+		err := loadEstateDraftFiles(dataDir)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	if err := eg.Wait(); err != nil {
 		err = failure.Translate(err, fails.ErrBenchmarker, failure.Message("assetの初期化に失敗しました"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfInitialize)
 	}
 }
 
-func ExistsChairInMap(id int64) bool {
-	_, ok := chairMap[id]
-	return ok
-}
-
-func GetChairIDs() []int64 {
-	return chairIDs
-}
-
 func GetChairFromID(id int64) (*Chair, error) {
-	var c *Chair
-	if ExistsChairInMap(id) {
-		c, _ = chairMap[id]
-		return c, nil
+	chairMu.RLock()
+	defer chairMu.RUnlock()
+	c, ok := chairMap[id]
+	if !ok {
+		return nil, errors.New("requested chair not found")
 	}
+	return c, nil
+}
 
-	return nil, errors.New("requested chair not found")
+func StoreChair(chair Chair) {
+	chairMu.Lock()
+	defer chairMu.Unlock()
+	chairMap[chair.ID] = &chair
 }
 
 func DecrementChairStock(id int64) {
-	if ExistsChairInMap(id) {
-		chairMap[id].DecrementStock()
+	chairMu.RLock()
+	defer chairMu.RUnlock()
+	c, ok := chairMap[id]
+	if ok {
+		c.DecrementStock()
 	}
-}
-
-func ExistsEstateInMap(id int64) bool {
-	_, ok := estateMap[id]
-	return ok
-}
-
-func GetEstateIDs() []int64 {
-	return estateIDs
 }
 
 func GetEstateFromID(id int64) (*Estate, error) {
-	var e *Estate
-	if ExistsEstateInMap(id) {
-		e, _ = estateMap[id]
-		return e, nil
+	estateMu.RLock()
+	defer estateMu.RUnlock()
+	e, ok := estateMap[id]
+	if !ok {
+		return nil, errors.New("requested estate not found")
 	}
-	return nil, errors.New("requested estate not found")
+	return e, nil
+}
+
+func StoreEstate(estate Estate) {
+	estateMu.Lock()
+	defer estateMu.Unlock()
+	estateMap[estate.ID] = &estate
 }

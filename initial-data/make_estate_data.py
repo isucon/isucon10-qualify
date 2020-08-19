@@ -1,7 +1,5 @@
 # coding:utf-8
 import random
-import time
-import string
 import json
 import os
 import glob
@@ -13,6 +11,7 @@ random.seed(19700101)
 DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_SQL_FILE = "./result/1_DummyEstateData.sql"
 OUTPUT_TXT_FILE = "./result/estate_json.txt"
+OUTPUT_DRAFT_FILE = "./result/draft_data/estate/{index}.txt"
 OUTPUT_FIXTURE_FILE = "./result/estate_condition.json"
 ESTATE_IMAGE_ORIGIN_DIR = "./origin/estate"
 ESTATE_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/estate"
@@ -26,6 +25,8 @@ DOOR_WIDTH_RANGE_SEPARATORS = [80, 110, 150]
 RENT_RANGE_SEPARATORS = [50000, 100000, 150000]
 MIN_VIEW_COUNT = 3000
 MAX_VIEW_COUNT = 1000000
+DRAFT_COUNT_PER_FILE = 500
+DRAFT_FILE_COUNT = 20
 
 BUILDING_NAME_LIST = [
     "{name}ISUビルディング",
@@ -165,12 +166,12 @@ if __name__ == '__main__':
     with open(DESCRIPTION_LINES_FILE, mode='r', encoding='utf-8') as description_lines:
         desc_lines = description_lines.readlines()
 
+    estate_id = 1
+
     with open(OUTPUT_SQL_FILE, mode='w', encoding='utf-8') as sqlfile, open(OUTPUT_TXT_FILE, mode='w', encoding='utf-8') as txtfile:
         if RECORD_COUNT % BULK_INSERT_COUNT != 0:
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
                 RECORD_COUNT, BULK_INSERT_COUNT))
-
-        estate_id = 1
 
         ESTATES_FOR_VERIFY = [
             # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (2位 → 1位)
@@ -200,6 +201,14 @@ if __name__ == '__main__':
             sqlfile.write(sqlCommand)
             txtfile.write("\n".join([dump_estate_to_json_str(estate)
                                      for estate in bulk_list]) + "\n")
+
+    for i in range(DRAFT_FILE_COUNT):
+        with open(OUTPUT_DRAFT_FILE.format(index=i), mode='w', encoding='utf-8') as draft_file:
+            draft_estates = [generate_estate_dummy_data(
+                estate_id + i) for i in range(DRAFT_COUNT_PER_FILE)]
+            estate_id += DRAFT_COUNT_PER_FILE
+            draft_file.write(
+                "\n".join([dump_estate_to_json_str(estate) for estate in draft_estates]) + "\n")
 
     with open(OUTPUT_FIXTURE_FILE, mode='w', encoding='utf-8') as fixture_file:
         fixture_file.write(json.dumps({

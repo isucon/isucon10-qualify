@@ -6,14 +6,18 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
+	"strings"
+
+	"github.com/morikuni/failure"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/conversion"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
-	"github.com/morikuni/failure"
 )
 
 type Coordinates struct {
@@ -126,6 +130,89 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	}
 
 	return &chair, nil
+}
+
+func loadChairsFromJSON(ctx context.Context, filePath string) ([]asset.Chair, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	chairs := []asset.Chair{}
+	decoder := json.NewDecoder(f)
+	for {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		var chair asset.Chair
+		if err := decoder.Decode(&chair); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+		chairs = append(chairs, chair)
+	}
+
+	return chairs, nil
+}
+
+func (c *Client) PostChairs(ctx context.Context, filePath string) error {
+	chairs, err := loadChairsFromJSON(ctx, filePath)
+	if err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	var (
+		b  bytes.Buffer
+		fw io.Writer
+	)
+	w := multipart.NewWriter(&b)
+	csv := ""
+	for _, chair := range chairs {
+		csv += chair.ToCSV()
+		asset.StoreChair(chair)
+	}
+	r := strings.NewReader(csv)
+
+	if fw, err = w.CreateFormFile("chairs", filePath); err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	if _, err := io.Copy(fw, r); err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	w.Close()
+
+	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/chair", &b)
+	if err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	req = req.WithContext(ctx)
+	res, err := c.Do(req)
+
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return ctxErr
+		}
+		return failure.Wrap(err, failure.Message("POST /api/chair: リクエストに失敗しました"))
+	}
+	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
+
+	err = checkStatusCode(res, []int{http.StatusCreated})
+	if err != nil {
+		if c.isBot {
+			return failure.Translate(err, fails.ErrBot)
+		}
+		return failure.Wrap(err, failure.Message("POST /api/chair: リクエストに失敗しました"))
+	}
+
+	return nil
 }
 
 func (c *Client) GetChairSearchCondition(ctx context.Context) (*asset.ChairSearchCondition, error) {
@@ -377,6 +464,89 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 	}
 
 	return &estate, nil
+}
+
+func loadEstatesFromJSON(ctx context.Context, filePath string) ([]asset.Estate, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	estates := []asset.Estate{}
+	decoder := json.NewDecoder(f)
+	for {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		var estate asset.Estate
+		if err := decoder.Decode(&estate); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+		estates = append(estates, estate)
+	}
+
+	return estates, nil
+}
+
+func (c *Client) PostEstates(ctx context.Context, filePath string) error {
+	estates, err := loadEstatesFromJSON(ctx, filePath)
+	if err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	var (
+		b  bytes.Buffer
+		fw io.Writer
+	)
+	w := multipart.NewWriter(&b)
+	csv := ""
+	for _, estate := range estates {
+		csv += estate.ToCSV()
+		asset.StoreEstate(estate)
+	}
+	r := strings.NewReader(csv)
+
+	if fw, err = w.CreateFormFile("estates", filePath); err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	if _, err := io.Copy(fw, r); err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	w.Close()
+
+	req, err := c.newPostRequest(ShareTargetURLs.AppURL, "/api/estate", &b)
+	if err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker)
+	}
+
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	req = req.WithContext(ctx)
+	res, err := c.Do(req)
+
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return ctxErr
+		}
+		return failure.Wrap(err, failure.Message("POST /api/estate: リクエストに失敗しました"))
+	}
+	defer res.Body.Close()
+	defer io.Copy(ioutil.Discard, res.Body)
+
+	err = checkStatusCode(res, []int{http.StatusCreated})
+	if err != nil {
+		if c.isBot {
+			return failure.Translate(err, fails.ErrBot)
+		}
+		return failure.Wrap(err, failure.Message("POST /api/estate: リクエストに失敗しました"))
+	}
+
+	return nil
 }
 
 func (c *Client) GetPopularChair(ctx context.Context) (*ChairsResponse, error) {

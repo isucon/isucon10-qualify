@@ -1,7 +1,10 @@
 package asset
 
 import (
+	"bytes"
+	"encoding/csv"
 	"encoding/json"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -127,4 +130,26 @@ func (c *Chair) GetSoldOutTime() *time.Time {
 		return nil
 	}
 	return &t
+}
+
+func (c *Chair) ToCSV() string {
+	var buf bytes.Buffer
+	w := csv.NewWriter(&buf)
+	w.Write([]string{
+		strconv.Itoa(int(c.ID)),
+		c.Name,
+		c.Description,
+		c.Thumbnail,
+		strconv.Itoa(int(c.Price)),
+		strconv.Itoa(int(c.Height)),
+		strconv.Itoa(int(c.Width)),
+		strconv.Itoa(int(c.Depth)),
+		c.Color,
+		c.Features,
+		c.Kind,
+		strconv.Itoa(int(c.popularity)),
+		strconv.Itoa(int(c.stock)),
+	})
+	w.Flush()
+	return buf.String()
 }
