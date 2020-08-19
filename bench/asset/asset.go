@@ -95,6 +95,22 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 		return nil
 	})
 
+	eg.Go(func() error {
+		err := loadChairDraftFiles(dataDir)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	eg.Go(func() error {
+		err := loadEstateDraftFiles(dataDir)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	if err := eg.Wait(); err != nil {
 		err = failure.Translate(err, fails.ErrBenchmarker, failure.Message("assetの初期化に失敗しました"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfInitialize)
