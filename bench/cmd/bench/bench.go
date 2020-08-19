@@ -97,7 +97,7 @@ func main() {
 			Pass:     false,
 			Score:    0,
 			Messages: uniqMsgs(eMsgs),
-			Language: initRes.Language,
+			Language: "",
 		}
 		json.NewEncoder(os.Stdout).Encode(output)
 
