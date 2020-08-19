@@ -5,8 +5,9 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/morikuni/failure"
+
+	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 )
 
 var (

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -14,10 +13,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/morikuni/failure"
+
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/conversion"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
-	"github.com/morikuni/failure"
 )
 
 type Coordinates struct {
@@ -171,10 +171,7 @@ func (c *Client) PostChairs(ctx context.Context, filePath string) error {
 	w := multipart.NewWriter(&b)
 	csv := ""
 	for _, chair := range chairs {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-		csv += fmt.Sprintf("%s\n", chair.ToCSV())
+		csv += chair.ToCSV()
 		asset.StoreChair(chair)
 	}
 	r := strings.NewReader(csv)
@@ -508,10 +505,7 @@ func (c *Client) PostEstates(ctx context.Context, filePath string) error {
 	w := multipart.NewWriter(&b)
 	csv := ""
 	for _, estate := range estates {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-		csv += fmt.Sprintf("%s\n", estate.ToCSV())
+		csv += estate.ToCSV()
 		asset.StoreEstate(estate)
 	}
 	r := strings.NewReader(csv)
