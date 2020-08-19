@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/morikuni/failure"
@@ -15,7 +16,9 @@ import (
 
 var (
 	chairMap  map[int64]*Chair
+	chairMu   sync.RWMutex
 	estateMap map[int64]*Estate
+	estateMu  sync.RWMutex
 )
 
 // メモリ上にデータを展開する
@@ -98,45 +101,43 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 	}
 }
 
-func ExistsChairInMap(id int64) bool {
-	_, ok := chairMap[id]
-	return ok
-}
-
 func GetChairFromID(id int64) (*Chair, error) {
-	var c *Chair
-	if ExistsChairInMap(id) {
-		c, _ = chairMap[id]
-		return c, nil
+	chairMu.RLock()
+	defer chairMu.RUnlock()
+	c, ok := chairMap[id]
+	if !ok {
+		return nil, errors.New("requested chair not found")
 	}
-
-	return nil, errors.New("requested chair not found")
+	return c, nil
 }
 
 func StoreChair(chair Chair) {
+	chairMu.Lock()
+	defer chairMu.Unlock()
 	chairMap[chair.ID] = &chair
 }
 
 func DecrementChairStock(id int64) {
-	if ExistsChairInMap(id) {
-		chairMap[id].DecrementStock()
+	chairMu.RLock()
+	defer chairMu.RUnlock()
+	c, ok := chairMap[id]
+	if ok {
+		c.DecrementStock()
 	}
-}
-
-func ExistsEstateInMap(id int64) bool {
-	_, ok := estateMap[id]
-	return ok
 }
 
 func GetEstateFromID(id int64) (*Estate, error) {
-	var e *Estate
-	if ExistsEstateInMap(id) {
-		e, _ = estateMap[id]
-		return e, nil
+	estateMu.RLock()
+	defer estateMu.RUnlock()
+	e, ok := estateMap[id]
+	if !ok {
+		return nil, errors.New("requested estate not found")
 	}
-	return nil, errors.New("requested estate not found")
+	return e, nil
 }
 
 func StoreEstate(estate Estate) {
+	estateMu.Lock()
+	defer estateMu.Unlock()
 	estateMap[estate.ID] = &estate
 }
