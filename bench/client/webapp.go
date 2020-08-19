@@ -132,7 +132,7 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	return &chair, nil
 }
 
-func loadChairsFromJSON(filePath string) ([]asset.Chair, error) {
+func loadChairsFromJSON(ctx context.Context, filePath string) ([]asset.Chair, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -142,6 +142,9 @@ func loadChairsFromJSON(filePath string) ([]asset.Chair, error) {
 	chairs := []asset.Chair{}
 	decoder := json.NewDecoder(f)
 	for {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
 		var chair asset.Chair
 		if err := decoder.Decode(&chair); err != nil {
 			if err == io.EOF {
@@ -156,7 +159,7 @@ func loadChairsFromJSON(filePath string) ([]asset.Chair, error) {
 }
 
 func (c *Client) PostChairs(ctx context.Context, filePath string) error {
-	chairs, err := loadChairsFromJSON(filePath)
+	chairs, err := loadChairsFromJSON(ctx, filePath)
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker)
 	}
@@ -168,6 +171,9 @@ func (c *Client) PostChairs(ctx context.Context, filePath string) error {
 	w := multipart.NewWriter(&b)
 	csv := ""
 	for _, chair := range chairs {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		csv += fmt.Sprintf("%s\n", chair.ToCSV())
 		asset.StoreChair(chair)
 	}
@@ -463,7 +469,7 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 	return &estate, nil
 }
 
-func loadEstatesFromJSON(filePath string) ([]asset.Estate, error) {
+func loadEstatesFromJSON(ctx context.Context, filePath string) ([]asset.Estate, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -473,6 +479,9 @@ func loadEstatesFromJSON(filePath string) ([]asset.Estate, error) {
 	estates := []asset.Estate{}
 	decoder := json.NewDecoder(f)
 	for {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
 		var estate asset.Estate
 		if err := decoder.Decode(&estate); err != nil {
 			if err == io.EOF {
@@ -487,7 +496,7 @@ func loadEstatesFromJSON(filePath string) ([]asset.Estate, error) {
 }
 
 func (c *Client) PostEstates(ctx context.Context, filePath string) error {
-	estates, err := loadEstatesFromJSON(filePath)
+	estates, err := loadEstatesFromJSON(ctx, filePath)
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker)
 	}
@@ -499,6 +508,9 @@ func (c *Client) PostEstates(ctx context.Context, filePath string) error {
 	w := multipart.NewWriter(&b)
 	csv := ""
 	for _, estate := range estates {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		csv += fmt.Sprintf("%s\n", estate.ToCSV())
 		asset.StoreEstate(estate)
 	}
