@@ -201,7 +201,7 @@ func (c *Client) PostChairs(ctx context.Context, filePath string) error {
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
 
-	err = checkStatusCode(res, []int{http.StatusOK})
+	err = checkStatusCode(res, []int{http.StatusCreated})
 	if err != nil {
 		if c.isBot {
 			return failure.Translate(err, fails.ErrBot)
@@ -532,7 +532,7 @@ func (c *Client) PostEstates(ctx context.Context, filePath string) error {
 	defer res.Body.Close()
 	defer io.Copy(ioutil.Discard, res.Body)
 
-	err = checkStatusCode(res, []int{http.StatusOK})
+	err = checkStatusCode(res, []int{http.StatusCreated})
 	if err != nil {
 		if c.isBot {
 			return failure.Translate(err, fails.ErrBot)
