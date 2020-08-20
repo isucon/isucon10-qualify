@@ -195,7 +195,7 @@ router.get("/api/chair/search", async (ctx, next) => {
 
   const sqlprefix = "SELECT * FROM chair WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY price ASC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM chair WHERE ";
 
   try {
@@ -369,7 +369,7 @@ router.get("/api/estate/search", async (ctx) => {
 
   const sqlprefix = "SELECT * FROM estate WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY rent ASC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM estate WHERE ";
 
   try {

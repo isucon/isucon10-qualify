@@ -156,7 +156,7 @@ app.get("/api/chair/search", async (req, res, next) => {
   
   const sqlprefix = "SELECT * FROM chair WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY price ASC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM chair WHERE ";
 
   const getConnection = promisify(db.getConnection.bind(db));
@@ -310,7 +310,7 @@ app.get("/api/estate/search", async (req, res, next) => {
   
   const sqlprefix = "SELECT * FROM estate WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY rent ASC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM estate WHERE ";
 
   const getConnection = promisify(db.getConnection.bind(db));

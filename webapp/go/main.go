@@ -506,7 +506,7 @@ func searchChairs(c echo.Context) error {
 	sqlstr := "SELECT * FROM chair WHERE "
 	searchCondition := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
+	limitOffset := " ORDER BY price ASC, id ASC LIMIT ? OFFSET ?"
 
 	countsql := "SELECT COUNT(*) FROM chair WHERE "
 	err = db.Get(&chairs.Count, countsql+searchCondition, queryParams...)
@@ -794,7 +794,7 @@ func searchEstates(c echo.Context) error {
 	sqlstr := "SELECT * FROM estate WHERE "
 	searchQuery := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
+	limitOffset := " ORDER BY rent ASC, id ASC LIMIT ? OFFSET ?"
 
 	countsql := "SELECT COUNT(*) FROM estate WHERE "
 	err = db.Get(&estates.Count, countsql+searchQuery, searchQueryParameter...)
