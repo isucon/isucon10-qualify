@@ -14,6 +14,23 @@ func isEstateEqualToAsset(e *asset.Estate) bool {
 	return estate.Equal(e)
 }
 
+func isEstatesOrderedByRent(e []asset.Estate) bool {
+	if len(e) == 0 {
+		return true
+	}
+
+	rent := e[0].Rent
+	for _, estate := range e {
+		r := estate.Rent
+
+		if rent > r {
+			return false
+		}
+		rent = r
+	}
+	return true
+}
+
 func isEstatesOrderedByPopularity(e []asset.Estate) bool {
 	var popularity int64 = -1
 	for i, estate := range e {
@@ -48,6 +65,28 @@ func isChairSoldOutAt(c *asset.Chair, t time.Time) bool {
 		return false
 	}
 	return t.After(*soldOutTime)
+}
+
+func isChairsOrderedByPrice(c []asset.Chair, t time.Time) bool {
+	if len(c) == 0 {
+		return true
+	}
+
+	price := c[0].Price
+	for _, chair := range c {
+		_chair, err := asset.GetChairFromID(chair.ID)
+		if err != nil || isChairSoldOutAt(_chair, t) {
+			return false
+		}
+
+		p := _chair.Price
+
+		if price > p {
+			return false
+		}
+		price = p
+	}
+	return true
 }
 
 func isChairsOrderedByPopularity(c []asset.Chair, t time.Time) bool {

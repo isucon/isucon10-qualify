@@ -104,7 +104,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 		return nil
 	}
 
-	if !isChairsOrderedByPopularity(cr.Chairs, t) {
+	if !isChairsOrderedByPrice(cr.Chairs, t) {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
@@ -132,7 +132,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 				return failure.New(fails.ErrApplication)
 			}
 
-			if !isChairsOrderedByPopularity(cr.Chairs, t) {
+			if !isChairsOrderedByPrice(cr.Chairs, t) {
 				err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
