@@ -470,6 +470,11 @@ func searchChairs(c echo.Context) error {
 		}
 	}
 
+	if c.QueryParam("kind") != "" {
+		searchQueryArray = append(searchQueryArray, "kind = ?")
+		queryParams = append(queryParams, c.QueryParam("kind"))
+	}
+
 	if c.QueryParam("color") != "" {
 		searchQueryArray = append(searchQueryArray, "color = ?")
 		queryParams = append(queryParams, c.QueryParam("color"))
