@@ -27,8 +27,8 @@ const (
 	NumOfVerifyChairSearch                = 3
 	NumOfVerifyEstateSearchCondition      = 3
 	NumOfVerifyEstateSearch               = 3
-	NumOfVerifyLowPricedChair               = 1
-	NumOfVerifyLowPricedEstate              = 1
+	NumOfVerifyLowPricedChair             = 1
+	NumOfVerifyLowPricedEstate            = 1
 	NumOfVerifyRecommendedEstateWithChair = 3
 	NumOfVerifyEstateNazotte              = 3
 )
