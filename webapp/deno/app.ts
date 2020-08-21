@@ -76,6 +76,7 @@ router.get("/api/chair/search", async (ctx, next) => {
     heightRangeId,
     widthRangeId,
     depthRangeId,
+    kind,
     color,
     features,
     page,
@@ -156,6 +157,11 @@ router.get("/api/chair/search", async (ctx, next) => {
       searchQueries.push("depth < ? ");
       queryParams.push(chairDepth.max);
     }
+  }
+
+  if (kind != null) {
+    searchQueries.push("kind = ? ");
+    queryParams.push(kind);
   }
 
   if (color != null) {

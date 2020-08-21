@@ -47,7 +47,7 @@ app.post("/initialize", async (req, res, next) => {
 app.get("/api/chair/search", async (req, res, next) => {
   const searchQueries = [];
   const queryParams = [];
-  const {priceRangeId, heightRangeId, widthRangeId, depthRangeId, color, features, page, perPage, } = req.query;
+  const {priceRangeId, heightRangeId, widthRangeId, depthRangeId, kind, color, features, page, perPage, } = req.query;
 
   if (priceRangeId != null) {
     const chairPrice = chairSearchCondition["price"].ranges[priceRangeId];
@@ -119,6 +119,11 @@ app.get("/api/chair/search", async (req, res, next) => {
       searchQueries.push("depth < ? ");
       queryParams.push(chairDepth.max);
     }
+  }
+
+  if (kind != null) {
+    searchQueries.push("kind = ? ");
+    queryParams.push(kind);
   }
 
   if (color != null) {
