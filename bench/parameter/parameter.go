@@ -5,6 +5,8 @@ import "time"
 const (
 	NumOfCheckChairSearchPaging    = 3
 	NumOfCheckEstateSearchPaging   = 3
+	NumOfCheckChairDetailPage      = 7
+	NumOfCheckEstateDetailPage     = 3
 	PerPageOfChairSearch           = 30
 	PerPageOfEstateSearch          = 30
 	MaxLengthOfNazotteResponse     = 50

@@ -98,34 +98,43 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	// Get detail of Chair
-	randomPosition := rand.Intn(len(cr.Chairs))
-	targetID := cr.Chairs[randomPosition].ID
-	t = time.Now()
-	chair, er, err := c.AccessChairDetailPage(ctx, targetID)
+	var targetID int64 = -1
+	var chair *asset.Chair
+	var er *client.EstatesResponse
+	for i := 0; i < parameter.NumOfCheckChairDetailPage; i++ {
+		randomPosition := rand.Intn(len(cr.Chairs))
+		targetID = cr.Chairs[randomPosition].ID
+		t = time.Now()
+		chair, er, err = c.AccessChairDetailPage(ctx, targetID)
 
-	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
+		if err != nil {
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
+
+		if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
+			return failure.New(fails.ErrTimeout)
+		}
+
+		if chair == nil {
+			return nil
+		}
+
+		if !isChairEqualToAsset(chair) {
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: イス情報が不正です"))
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
+
+		if !isEstatesOrderedByPopularity(er.Estates) {
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: おすすめ結果が不正です"))
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
 	}
 
-	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
-		return failure.New(fails.ErrTimeout)
-	}
-
-	if chair == nil {
+	if targetID == -1 {
 		return nil
-	}
-
-	if !isChairEqualToAsset(chair) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: イス情報が不正です"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
-
-	if !isEstatesOrderedByPopularity(er.Estates) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: おすすめ結果が不正です"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
 	}
 
 	// Buy Chair
@@ -138,23 +147,30 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	// Get detail of Estate
-	randomPosition = rand.Intn(len(er.Estates))
-	targetID = er.Estates[randomPosition].ID
-	t = time.Now()
-	e, err := c.AccessEstateDetailPage(ctx, targetID)
-	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
+	targetID = -1
+	for i := 0; i < parameter.NumOfCheckEstateDetailPage; i++ {
+		randomPosition := rand.Intn(len(er.Estates))
+		targetID = er.Estates[randomPosition].ID
+		t = time.Now()
+		e, err := c.AccessEstateDetailPage(ctx, targetID)
+		if err != nil {
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
+
+		if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
+			return failure.New(fails.ErrTimeout)
+		}
+
+		if !isEstateEqualToAsset(e) {
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
 	}
 
-	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
-		return failure.New(fails.ErrTimeout)
-	}
-
-	if !isEstateEqualToAsset(e) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
+	if targetID == -1 {
+		return nil
 	}
 
 	// Request docs of Estate
