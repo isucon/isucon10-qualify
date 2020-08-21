@@ -58,7 +58,7 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 		return nil
 	}
 
-	if !isEstatesOrderedByRent(er.Estates) {
+	if !isEstatesOrderedByPopularity(er.Estates) {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 		return failure.New(fails.ErrApplication)
@@ -85,7 +85,7 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 				return failure.New(fails.ErrApplication)
 			}
 
-			if !isEstatesOrderedByRent(er.Estates) {
+			if !isEstatesOrderedByPopularity(er.Estates) {
 				err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 				return failure.New(fails.ErrApplication)

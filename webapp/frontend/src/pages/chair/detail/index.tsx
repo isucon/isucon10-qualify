@@ -52,10 +52,10 @@ const useChairDetailStyles = makeStyles((theme: Theme) =>
 
 interface Props {
   chair: Chair
-  popularEstates: Estate[]
+  lowPricedEstates: Estate[]
 }
 
-const ChairDetail: FC<Props> = ({ chair, popularEstates }) => {
+const ChairDetail: FC<Props> = ({ chair, lowPricedEstates }) => {
   const classes = useChairDetailStyles()
 
   const emailInputRef = useRef<HTMLInputElement>(null)
@@ -131,7 +131,7 @@ const ChairDetail: FC<Props> = ({ chair, popularEstates }) => {
       <Box width={1} className={classes.column}>
         <h3>このイスにオススメの物件:</h3>
         <Box width={1} className={classes.cards}>
-          {popularEstates.map((estate, i) => <EstateCard key={i} estate={estate} />)}
+          {lowPricedEstates.map((estate, i) => <EstateCard key={i} estate={estate} />)}
         </Box>
       </Box>
     </>
@@ -141,7 +141,7 @@ const ChairDetail: FC<Props> = ({ chair, popularEstates }) => {
 const ChairDetailPage = () => {
   const [chair, setChair] = useState<Chair | null>(null)
   const [statusCode, setStatusCode] = useState(200)
-  const [popularEstates, setPopularEstates] = useState<Estate[] | null>(null)
+  const [lowPricedEstates, setLowPricedEstates] = useState<Estate[] | null>(null)
   const router = useRouter()
   const id = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id
 
@@ -158,9 +158,9 @@ const ChairDetailPage = () => {
       .then(chair => setChair(chair as Chair))
       .catch(error => { throw error })
 
-    fetch(`/api/popular_estate/${id.toString()}`, { mode: 'cors' })
+    fetch(`/api/estate/low_priced/${id.toString()}`, { mode: 'cors' })
       .then(async response => await response.json())
-      .then(json => setPopularEstates(json.estates as Estate[]))
+      .then(json => setLowPricedEstates(json.estates as Estate[]))
       .catch(error => { throw error })
   }, [id])
 
@@ -171,8 +171,8 @@ const ChairDetailPage = () => {
   return (
     <Paper className={classes.page}>
       <Container maxWidth='md'>
-        {chair && popularEstates ? (
-          <ChairDetail chair={chair} popularEstates={popularEstates} />
+        {chair && lowPricedEstates ? (
+          <ChairDetail chair={chair} lowPricedEstates={lowPricedEstates} />
         ) : (
           <Loading />
         )}

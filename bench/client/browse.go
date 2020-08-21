@@ -13,12 +13,12 @@ func (c *Client) AccessTopPage(ctx context.Context) error {
 	eg, childCtx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
-		_, err := c.GetPopularChair(childCtx)
+		_, err := c.GetLowPricedChair(childCtx)
 		return err
 	})
 
 	eg.Go(func() error {
-		_, err := c.GetPopularEstate(childCtx)
+		_, err := c.GetLowPricedEstate(childCtx)
 		return err
 	})
 

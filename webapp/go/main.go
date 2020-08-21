@@ -53,7 +53,7 @@ type ChairSearchResponse struct {
 	Chairs []Chair `json:"chairs"`
 }
 
-type ChairPopularResponse struct {
+type ChairListResponse struct {
 	Chairs []Chair `json:"chairs"`
 }
 
@@ -79,7 +79,7 @@ type EstateSearchResponse struct {
 	Estates []Estate `json:"estates"`
 }
 
-type EstatePopularResponse struct {
+type EstateListResponse struct {
 	Estates []Estate `json:"estates"`
 }
 
@@ -255,6 +255,7 @@ func main() {
 	e.GET("/api/chair/:id", getChairDetail)
 	e.POST("/api/chair", postChair)
 	e.GET("/api/chair/search", searchChairs)
+	e.GET("/api/chair/low_priced", getLowPricedChair)
 	e.GET("/api/chair/search/condition", getChairSearchCondition)
 	e.POST("/api/chair/buy/:id", buyChair)
 
@@ -262,14 +263,11 @@ func main() {
 	e.GET("/api/estate/:id", getEstateDetail)
 	e.POST("/api/estate", postEstate)
 	e.GET("/api/estate/search", searchEstates)
+	e.GET("/api/estate/low_priced", getLowPricedEstate)
 	e.POST("/api/estate/req_doc/:id", postEstateRequestDocument)
 	e.POST("/api/estate/nazotte", searchEstateNazotte)
 	e.GET("/api/estate/search/condition", getEstateSearchCondition)
-
-	// Popular Handler
-	e.GET("/api/popular_estate", searchPopularEstate)
 	e.GET("/api/recommended_estate/:id", searchRecommendedEstateWithChair)
-	e.GET("/api/popular_chair", searchPopularChair)
 
 	MySQLConnectionData = NewMySQLConnectionEnv()
 
@@ -506,23 +504,23 @@ func searchChairs(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	var chairs ChairSearchResponse
-	chairs.Chairs = []Chair{}
+	var res ChairSearchResponse
+	res.Chairs = []Chair{}
 	sqlstr := "SELECT * FROM chair WHERE "
 	searchCondition := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " ORDER BY price ASC, id ASC LIMIT ? OFFSET ?"
+	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
 
 	countsql := "SELECT COUNT(*) FROM chair WHERE "
-	err = db.Get(&chairs.Count, countsql+searchCondition, queryParams...)
+	err = db.Get(&res.Count, countsql+searchCondition, queryParams...)
 	if err != nil {
 		c.Logger().Errorf("searchChairs DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	searchedchairs := []Chair{}
+	chairs := []Chair{}
 	queryParams = append(queryParams, perpage, page*perpage)
-	err = db.Select(&searchedchairs, sqlstr+searchCondition+limitOffset, queryParams...)
+	err = db.Select(&chairs, sqlstr+searchCondition+limitOffset, queryParams...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusOK, ChairSearchResponse{Count: 0, Chairs: []Chair{}})
@@ -531,11 +529,11 @@ func searchChairs(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	for _, c := range searchedchairs {
-		chairs.Chairs = append(chairs.Chairs, c)
+	for _, chair := range chairs {
+		res.Chairs = append(res.Chairs, chair)
 	}
 
-	return c.JSON(http.StatusOK, chairs)
+	return c.JSON(http.StatusOK, res)
 }
 
 func sendEmail(email string) {
@@ -598,24 +596,24 @@ func getChairSearchCondition(c echo.Context) error {
 	return c.JSON(http.StatusOK, chairSearchCondition)
 }
 
-func searchPopularChair(c echo.Context) error {
-	var popularChairs []Chair
+func getLowPricedChair(c echo.Context) error {
+	var chairs []Chair
 
-	sqlstr := `SELECT * FROM chair WHERE stock > 0 ORDER BY popularity DESC, id ASC LIMIT ?`
+	sqlstr := `SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?`
 
-	err := db.Select(&popularChairs, sqlstr, LIMIT)
+	err := db.Select(&chairs, sqlstr, LIMIT)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.Logger().Error("searchPopularChair not found")
-			return c.JSON(http.StatusOK, ChairPopularResponse{[]Chair{}})
+			c.Logger().Error("getLowPricedChair not found")
+			return c.JSON(http.StatusOK, ChairListResponse{[]Chair{}})
 		}
-		c.Logger().Errorf("searchPopularChair DB execution error : %v", err)
+		c.Logger().Errorf("getLowPricedChair DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	var rc ChairPopularResponse
+	var rc ChairListResponse
 
-	for _, chair := range popularChairs {
+	for _, chair := range chairs {
 		rc.Chairs = append(rc.Chairs, chair)
 	}
 
@@ -794,23 +792,23 @@ func searchEstates(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	var estates EstateSearchResponse
-	estates.Estates = []Estate{}
+	var res EstateSearchResponse
+	res.Estates = []Estate{}
 	sqlstr := "SELECT * FROM estate WHERE "
 	searchQuery := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " ORDER BY rent ASC, id ASC LIMIT ? OFFSET ?"
+	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
 
 	countsql := "SELECT COUNT(*) FROM estate WHERE "
-	err = db.Get(&estates.Count, countsql+searchQuery, searchQueryParameter...)
+	err = db.Get(&res.Count, countsql+searchQuery, searchQueryParameter...)
 	if err != nil {
 		c.Logger().Errorf("searchEstates DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	matchestates := []Estate{}
+	estates := []Estate{}
 	searchQueryParameter = append(searchQueryParameter, perpage, page*perpage)
-	err = db.Select(&matchestates, sqlstr+searchQuery+limitOffset, searchQueryParameter...)
+	err = db.Select(&estates, sqlstr+searchQuery+limitOffset, searchQueryParameter...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusOK, EstateSearchResponse{Count: 0, Estates: []Estate{}})
@@ -819,30 +817,30 @@ func searchEstates(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	for _, e := range matchestates {
-		estates.Estates = append(estates.Estates, e)
+	for _, e := range estates {
+		res.Estates = append(res.Estates, e)
 	}
 
-	return c.JSON(http.StatusOK, estates)
+	return c.JSON(http.StatusOK, res)
 }
 
-func searchPopularEstate(c echo.Context) error {
-	popularEstates := make([]Estate, 0, LIMIT)
+func getLowPricedEstate(c echo.Context) error {
+	estates := make([]Estate, 0, LIMIT)
 
-	sqlstr := `SELECT * FROM estate ORDER BY popularity DESC, id ASC LIMIT ?`
+	sqlstr := `SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?`
 
-	err := db.Select(&popularEstates, sqlstr, LIMIT)
+	err := db.Select(&estates, sqlstr, LIMIT)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.Logger().Error("searchPopularEstate not found")
-			return c.JSON(http.StatusOK, EstatePopularResponse{[]Estate{}})
+			c.Logger().Error("getLowPricedEstate not found")
+			return c.JSON(http.StatusOK, EstateListResponse{[]Estate{}})
 		}
-		c.Logger().Errorf("searchPopularEstate DB execution error : %v", err)
+		c.Logger().Errorf("getLowPricedEstate DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	var re EstatePopularResponse
+	var re EstateListResponse
 
-	for _, estate := range popularEstates {
+	for _, estate := range estates {
 		re.Estates = append(re.Estates, estate)
 	}
 
@@ -869,23 +867,23 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	var popularEstates []Estate
+	var estates []Estate
 	w := chair.Width
 	h := chair.Height
 	d := chair.Depth
 	sqlstr = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?`
-	err = db.Select(&popularEstates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, LIMIT)
+	err = db.Select(&estates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, LIMIT)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusOK, EstatePopularResponse{[]Estate{}})
+			return c.JSON(http.StatusOK, EstateListResponse{[]Estate{}})
 		}
 		c.Logger().Errorf("Database execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	var re EstatePopularResponse
+	var re EstateListResponse
 
-	for _, estate := range popularEstates {
+	for _, estate := range estates {
 		re.Estates = append(re.Estates, estate)
 	}
 
