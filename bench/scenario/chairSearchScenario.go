@@ -3,9 +3,7 @@ package scenario
 import (
 	"context"
 	"math/rand"
-	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/morikuni/failure"
@@ -15,51 +13,6 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
 )
-
-func createRandomChairSearchQuery() (url.Values, error) {
-	condition, err := asset.GetChairSearchCondition()
-	if err != nil {
-		return nil, err
-	}
-
-	q := url.Values{}
-	priceRangeID := condition.Price.Ranges[rand.Intn(len(condition.Price.Ranges))].ID
-	if (rand.Intn(100) % 10) == 0 {
-		q.Set("priceRangeId", strconv.FormatInt(priceRangeID, 10))
-	}
-	if (rand.Intn(100) % 10) == 0 {
-		heightRangeID := condition.Height.Ranges[rand.Intn(len(condition.Height.Ranges))].ID
-		q.Set("heightRangeId", strconv.FormatInt(heightRangeID, 10))
-	}
-	if (rand.Intn(100) % 10) == 0 {
-		widthRangeID := condition.Width.Ranges[rand.Intn(len(condition.Width.Ranges))].ID
-		q.Set("widthRangeId", strconv.FormatInt(widthRangeID, 10))
-	}
-	if (rand.Intn(100) % 10) == 0 {
-		depthRangeID := condition.Depth.Ranges[rand.Intn(len(condition.Depth.Ranges))].ID
-		q.Set("depthRangeId", strconv.FormatInt(depthRangeID, 10))
-	}
-
-	if (rand.Intn(100) % 10) == 0 {
-		q.Set("kind", condition.Kind.List[rand.Intn(len(condition.Kind.List))])
-	}
-	if (rand.Intn(100) % 10) == 0 {
-		q.Set("color", condition.Color.List[rand.Intn(len(condition.Color.List))])
-	}
-	features := make([]string, len(condition.Feature.List))
-	copy(features, condition.Feature.List)
-	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
-	featureLength := rand.Intn(len(features)) + 1
-	if featureLength > 3 {
-		featureLength = rand.Intn(3) + 1
-	}
-	q.Set("features", strings.Join(features[:featureLength], ","))
-
-	q.Set("perPage", strconv.Itoa(parameter.PerPageOfChairSearch))
-	q.Set("page", "0")
-
-	return q, nil
-}
 
 func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	t := time.Now()

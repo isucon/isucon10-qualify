@@ -3,9 +3,7 @@ package scenario
 import (
 	"context"
 	"math/rand"
-	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/morikuni/failure"
@@ -15,45 +13,6 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
 )
-
-var estateFeatureList = []string{
-	"バストイレ別",
-	"駅から徒歩5分",
-	"ペット飼育可能",
-}
-
-func createRandomEstateSearchQuery() (url.Values, error) {
-	condition, err := asset.GetEstateSearchCondition()
-	if err != nil {
-		return nil, err
-	}
-
-	q := url.Values{}
-	if (rand.Intn(100) % 10) == 0 {
-		rentRangeID := condition.Rent.Ranges[rand.Intn(len(condition.Rent.Ranges))].ID
-		q.Set("rentRangeId", strconv.FormatInt(rentRangeID, 10))
-	}
-	if (rand.Intn(100) % 10) == 0 {
-		doorHeightRangeID := condition.DoorHeight.Ranges[rand.Intn(len(condition.DoorHeight.Ranges))].ID
-		q.Set("doorHeightRangeId", strconv.FormatInt(doorHeightRangeID, 10))
-	}
-	if (rand.Intn(100) % 10) == 0 {
-		doorWidthRangeID := condition.DoorWidth.Ranges[rand.Intn(len(condition.DoorWidth.Ranges))].ID
-		q.Set("doorWidthRangeId", strconv.FormatInt(doorWidthRangeID, 10))
-	}
-	features := make([]string, len(condition.Feature.List))
-	copy(features, condition.Feature.List)
-	rand.Shuffle(len(features), func(i, j int) { features[i], features[j] = features[j], features[i] })
-	featureLength := rand.Intn(len(features)) + 1
-	if featureLength > 3 {
-		featureLength = rand.Intn(3) + 1
-	}
-	q.Set("features", strings.Join(features[:featureLength], ","))
-	q.Set("perPage", strconv.Itoa(parameter.PerPageOfEstateSearch))
-	q.Set("page", "0")
-
-	return q, nil
-}
 
 func estateSearchScenario(ctx context.Context, c *client.Client) error {
 
