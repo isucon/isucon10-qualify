@@ -9,24 +9,37 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 )
 
-func (c *Client) AccessTopPage(ctx context.Context) error {
+func (c *Client) AccessTopPage(ctx context.Context) (*ChairsResponse, *EstatesResponse, error) {
 	eg, childCtx := errgroup.WithContext(ctx)
 
+	chairsCh := make(chan *ChairsResponse, 1)
+	estatesCh := make(chan *EstatesResponse, 1)
+
 	eg.Go(func() error {
-		_, err := c.GetLowPricedChair(childCtx)
-		return err
+		chairs, err := c.GetLowPricedChair(childCtx)
+		if err != nil {
+			chairsCh <- nil
+			return err
+		}
+		chairsCh <- chairs
+		return nil
 	})
 
 	eg.Go(func() error {
-		_, err := c.GetLowPricedEstate(childCtx)
-		return err
+		estates, err := c.GetLowPricedEstate(childCtx)
+		if err != nil {
+			estatesCh <- nil
+			return err
+		}
+		estatesCh <- estates
+		return nil
 	})
 
 	if err := eg.Wait(); err != nil {
-		return err
+		return nil, nil, err
 	}
 
-	return nil
+	return <-chairsCh, <-estatesCh, nil
 }
 
 func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Chair, *EstatesResponse, error) {
