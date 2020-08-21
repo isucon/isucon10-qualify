@@ -14,9 +14,9 @@ import (
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
-	"github.com/isucon10-qualify/isucon10-qualify/bench/conversion"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/scenario"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/score"
 )
 
 type Message struct {
@@ -129,7 +129,7 @@ func main() {
 	// checkとloadは区別がつかないようにしないといけない。loadのリクエストはログアウト状態しかなかったので、ログアウト時のキャッシュを強くするだけでスコアがはねる問題が過去にあった
 	// 今回はほぼ全リクエストがログイン前提になっているので、checkとloadの区別はできないはず
 	scenario.Validation(context.Background())
-	log.Printf("最終的な負荷レベル: %d", scenario.GetLoadLevel())
+	log.Printf("最終的な負荷レベル: %d", score.GetLevel())
 
 	// context.Canceledのエラーは直後に取れば基本的には入ってこない
 	eMsgs, cCnt, aCnt, _ := fails.ErrorsForCheck.Get()
@@ -148,7 +148,7 @@ func main() {
 		return
 	}
 
-	score := int(conversion.GetCount())
+	score := int(score.GetScore())
 
 	// application errorは1回で10点減点
 	penalty := 50 * aCnt

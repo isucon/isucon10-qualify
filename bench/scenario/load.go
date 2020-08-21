@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,14 +12,9 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/score"
 	"github.com/morikuni/failure"
 )
-
-var loadLevel int64
-
-func GetLoadLevel() int64 {
-	return atomic.LoadInt64(&loadLevel)
-}
 
 func runEstateSearchWorker(ctx context.Context) {
 	u, _ := uuid.NewRandom()
@@ -185,10 +179,9 @@ func runEstateDraftPostWorker(ctx context.Context) {
 }
 
 func checkWorkers(ctx context.Context) {
-	t := time.NewTicker(parameter.IntervalForCheckWorkers)
 	for {
 		select {
-		case <-t.C:
+		case level := <-score.LevelUp():
 			cet := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfChairSearchScenario)
 			eet := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateSearchScenario)
 			net := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateNazotteSearchScenario)
@@ -196,7 +189,6 @@ func checkWorkers(ctx context.Context) {
 				time.Since(eet) > parameter.IntervalForCheckWorkers &&
 				time.Since(net) > parameter.IntervalForCheckWorkers {
 				log.Println("負荷レベルが上昇しました。")
-				level := atomic.AddInt64(&loadLevel, 1)
 				incWorkers := parameter.ListOfIncWorkers[level]
 				for i := 0; i < incWorkers.ChairSearchWorker; i++ {
 					go runChairSearchWorker(ctx)
@@ -220,14 +212,13 @@ func checkWorkers(ctx context.Context) {
 				log.Println("シナリオ内でエラーが発生したため負荷レベルを上げられませんでした。")
 			}
 		case <-ctx.Done():
-			t.Stop()
 			return
 		}
 	}
 }
 
 func Load(ctx context.Context) {
-	level := GetLoadLevel()
+	level := score.GetLevel()
 	incWorkers := parameter.ListOfIncWorkers[level]
 
 	// 物件検索をして、資料請求をするシナリオ
