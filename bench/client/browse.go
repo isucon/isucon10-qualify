@@ -12,26 +12,24 @@ import (
 func (c *Client) AccessTopPage(ctx context.Context) (*ChairsResponse, *EstatesResponse, error) {
 	eg, childCtx := errgroup.WithContext(ctx)
 
-	chairsCh := make(chan *ChairsResponse, 1)
-	estatesCh := make(chan *EstatesResponse, 1)
+	var (
+		chairs  *ChairsResponse
+		estates *EstatesResponse
+	)
 
-	eg.Go(func() error {
-		chairs, err := c.GetLowPricedChair(childCtx)
+	eg.Go(func() (err error) {
+		chairs, err = c.GetLowPricedChair(childCtx)
 		if err != nil {
-			chairsCh <- nil
 			return err
 		}
-		chairsCh <- chairs
 		return nil
 	})
 
-	eg.Go(func() error {
-		estates, err := c.GetLowPricedEstate(childCtx)
+	eg.Go(func() (err error) {
+		estates, err = c.GetLowPricedEstate(childCtx)
 		if err != nil {
-			estatesCh <- nil
 			return err
 		}
-		estatesCh <- estates
 		return nil
 	})
 
@@ -39,38 +37,35 @@ func (c *Client) AccessTopPage(ctx context.Context) (*ChairsResponse, *EstatesRe
 		return nil, nil, err
 	}
 
-	return <-chairsCh, <-estatesCh, nil
+	return chairs, estates, nil
 }
 
 func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Chair, *EstatesResponse, error) {
 	eg, childCtx := errgroup.WithContext(ctx)
 
-	chairCh := make(chan *asset.Chair, 1)
-	estatesCh := make(chan *EstatesResponse, 1)
+	var (
+		chair *asset.Chair
+		estates *EstatesResponse
+	)
 
-	eg.Go(func() error {
-		chair, err := c.GetChairDetailFromID(childCtx, strconv.FormatInt(id, 10))
+	eg.Go(func() (err error) {
+		chair, err = c.GetChairDetailFromID(childCtx, strconv.FormatInt(id, 10))
 		if err != nil {
-			chairCh <- nil
 			return err
 		}
 		if chair == nil {
-			chairCh <- nil
 			return nil
 		}
 
-		chairCh <- chair
 		return nil
 	})
 
-	eg.Go(func() error {
-		estates, err := c.GetRecommendedEstatesFromChair(childCtx, id)
+	eg.Go(func() (err error) {
+		estates, err = c.GetRecommendedEstatesFromChair(childCtx, id)
 		if err != nil {
-			estatesCh <- nil
 			return err
 		}
 
-		estatesCh <- estates
 		return nil
 	})
 
@@ -78,7 +73,7 @@ func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Ch
 		return nil, nil, err
 	}
 
-	return <-chairCh, <-estatesCh, nil
+	return chair, estates, nil
 }
 
 func (c *Client) AccessEstateDetailPage(ctx context.Context, id int64) (*asset.Estate, error) {
