@@ -37,40 +37,47 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	// Search Estates with Query
-	q, err := createRandomEstateSearchQuery()
-	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
+	var er *client.EstatesResponse
+	for i := 0; i < parameter.NumOfSearchEstateInScenario; i++ {
+		q, err := createRandomEstateSearchQuery()
+		if err != nil {
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
 
-	t = time.Now()
-	er, err := c.SearchEstatesWithQuery(ctx, q)
-	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
+		t = time.Now()
+		_er, err := c.SearchEstatesWithQuery(ctx, q)
+		if err != nil {
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
 
-	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
-		return failure.New(fails.ErrTimeout)
-	}
+		if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
+			return failure.New(fails.ErrTimeout)
+		}
 
-	if len(er.Estates) == 0 {
-		return nil
-	}
+		if len(_er.Estates) == 0 {
+			continue
+		}
 
-	if !isEstatesOrderedByRent(er.Estates) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
+		if !isEstatesOrderedByRent(_er.Estates) {
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
 
-	numOfPages := int(er.Count) / parameter.PerPageOfEstateSearch
-	if numOfPages != 0 {
-		for i := 0; i < parameter.NumOfCheckEstateSearchPaging; i++ {
+		er = _er
+
+		numOfPages := int(_er.Count) / parameter.PerPageOfEstateSearch
+		if numOfPages == 0 {
+			continue
+		}
+
+		for j := 0; j < parameter.NumOfCheckEstateSearchPaging; j++ {
 			q.Set("page", strconv.Itoa(rand.Intn(numOfPages)))
 
 			t := time.Now()
-			er, err := c.SearchEstatesWithQuery(ctx, q)
+			_er, err := c.SearchEstatesWithQuery(ctx, q)
 			if err != nil {
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 				return failure.New(fails.ErrApplication)
@@ -80,21 +87,27 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 				return failure.New(fails.ErrTimeout)
 			}
 
-			if len(er.Estates) == 0 {
+			if len(_er.Estates) == 0 {
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
 
-			if !isEstatesOrderedByRent(er.Estates) {
+			if !isEstatesOrderedByRent(_er.Estates) {
 				err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: 検索結果が不正です"))
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
+
+			er = _er
 			numOfPages = int(er.Count) / parameter.PerPageOfEstateSearch
 			if numOfPages == 0 {
 				break
 			}
 		}
+	}
+
+	if len(er.Estates) == 0 {
+		return nil
 	}
 
 	// Get Details with ID from previously searched list
