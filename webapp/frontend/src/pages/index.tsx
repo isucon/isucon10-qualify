@@ -67,7 +67,7 @@ const TopPage = () => {
       </Paper>
       {lowPricedEstates && (
         <Paper className={classes.paper}>
-          <h2> オススメの物件 </h2>
+          <h2> 最安の物件 </h2>
           <Box className={classes.cards}>
             {lowPricedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
           </Box>
@@ -75,7 +75,7 @@ const TopPage = () => {
       )}
       {lowPricedChairs && (
         <Paper className={classes.paper}>
-          <h2> オススメのイス </h2>
+          <h2> 最安のイス </h2>
           <Box className={classes.cards}>
             {lowPricedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
           </Box>
