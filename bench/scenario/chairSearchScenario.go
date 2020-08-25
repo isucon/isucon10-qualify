@@ -23,13 +23,13 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	if !isChairsOrderedByPrice(chairs.Chairs, t) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: 検索結果が不正です"))
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
 
 	if !isEstatesOrderedByRent(estates.Estates) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: 検索結果が不正です"))
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
@@ -73,7 +73,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 		}
 
 		if !isChairsOrderedByPopularity(_cr.Chairs, t) {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
@@ -104,7 +104,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 			}
 
 			if !isChairsOrderedByPopularity(cr.Chairs, t) {
-				err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
+				err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
@@ -145,13 +145,13 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 		}
 
 		if !isChairEqualToAsset(chair) {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: イス情報が不正です"))
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
 
 		if !isEstatesOrderedByPopularity(er.Estates) {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: おすすめ結果が不正です"))
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスの内容が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
@@ -187,7 +187,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 		}
 
 		if !isEstateEqualToAsset(e) {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: 物件情報が不正です"))
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
