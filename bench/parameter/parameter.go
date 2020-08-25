@@ -3,6 +3,8 @@ package parameter
 import "time"
 
 const (
+	NumOfSearchChairInScenario     = 5
+	NumOfSearchEstateInScenario    = 5
 	NumOfCheckChairSearchPaging    = 3
 	NumOfCheckEstateSearchPaging   = 3
 	NumOfCheckChairDetailPage      = 7

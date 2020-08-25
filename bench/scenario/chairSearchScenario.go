@@ -49,41 +49,46 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	}
 
 	// Search Chairs with Query
-	q, err := createRandomChairSearchQuery()
-	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
+	var cr *client.ChairsResponse
+	for i := 0; i < parameter.NumOfSearchChairInScenario; i++ {
+		q, err := createRandomChairSearchQuery()
+		if err != nil {
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
 
-	t = time.Now()
-	cr, err := c.SearchChairsWithQuery(ctx, q)
-	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
+		t = time.Now()
+		_cr, err := c.SearchChairsWithQuery(ctx, q)
+		if err != nil {
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
 
-	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
-		return failure.New(fails.ErrTimeout)
-	}
+		if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
+			return failure.New(fails.ErrTimeout)
+		}
 
-	if len(cr.Chairs) == 0 {
-		return nil
-	}
+		if len(_cr.Chairs) == 0 {
+			continue
+		}
 
-	if !isChairsOrderedByPopularity(cr.Chairs, t) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
-		return failure.New(fails.ErrApplication)
-	}
+		if !isChairsOrderedByPopularity(_cr.Chairs, t) {
+			err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
+			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			return failure.New(fails.ErrApplication)
+		}
 
-	numOfPages := int(cr.Count) / parameter.PerPageOfChairSearch
+		cr = _cr
+		numOfPages := int(_cr.Count) / parameter.PerPageOfChairSearch
+		if numOfPages == 0 {
+			continue
+		}
 
-	if numOfPages != 0 {
-		for i := 0; i < parameter.NumOfCheckChairSearchPaging; i++ {
+		for j := 0; j < parameter.NumOfCheckChairSearchPaging; j++ {
 			q.Set("page", strconv.Itoa(rand.Intn(numOfPages)))
 
 			t := time.Now()
-			cr, err := c.SearchChairsWithQuery(ctx, q)
+			_cr, err := c.SearchChairsWithQuery(ctx, q)
 			if err != nil {
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
@@ -93,7 +98,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 				return failure.New(fails.ErrTimeout)
 			}
 
-			if len(cr.Chairs) == 0 {
+			if len(_cr.Chairs) == 0 {
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
@@ -103,11 +108,17 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
+
+			cr = _cr
 			numOfPages = int(cr.Count) / parameter.PerPageOfChairSearch
 			if numOfPages == 0 {
 				break
 			}
 		}
+	}
+
+	if len(cr.Chairs) == 0 {
+		return nil
 	}
 
 	// Get detail of Chair
