@@ -12,7 +12,6 @@ const (
 	PerPageOfChairSearch           = 30
 	PerPageOfEstateSearch          = 30
 	MaxLengthOfNazotteResponse     = 50
-	NeighborhoodRadiusOfNazotte    = 1e-6
 	SleepTimeOnFailScenario        = 1500 * time.Millisecond
 	SleepSwingOnFailScenario       = 500 // * time.Millisecond
 	SleepTimeOnUserAway            = 500 * time.Millisecond

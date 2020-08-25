@@ -129,16 +129,6 @@ func ToCoordinates(po []point) *client.Coordinates {
 	return &client.Coordinates{Coordinates: r}
 }
 
-// 点Pの周りの4点を返す
-func getPointNeighbors(p point) []point {
-	return []point{
-		{Latitude: p.Latitude - parameter.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude + parameter.NeighborhoodRadiusOfNazotte},
-		{Latitude: p.Latitude + parameter.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude + parameter.NeighborhoodRadiusOfNazotte},
-		{Latitude: p.Latitude - parameter.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude - parameter.NeighborhoodRadiusOfNazotte},
-		{Latitude: p.Latitude + parameter.NeighborhoodRadiusOfNazotte, Longitude: p.Longitude - parameter.NeighborhoodRadiusOfNazotte},
-	}
-}
-
 func contains(s []int64, e int64) bool {
 	for _, v := range s {
 		if e == v {
