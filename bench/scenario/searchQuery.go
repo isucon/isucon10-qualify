@@ -81,24 +81,20 @@ func createRandomEstateSearchQuery() (url.Values, error) {
 	q.Set("page", "0")
 
 	for i := 0; i < paramNum; i++ {
-		switch rand.Intn(5) {
+		switch rand.Intn(4) {
 		case 0:
 			rentRangeID := condition.Rent.Ranges[rand.Intn(len(condition.Rent.Ranges))].ID
 			q.Set("rentRangeId", strconv.FormatInt(rentRangeID, 10))
 
 		case 1:
-			rentRangeID := condition.Rent.Ranges[rand.Intn(len(condition.Rent.Ranges))].ID
-			q.Set("rentRangeId", strconv.FormatInt(rentRangeID, 10))
-
-		case 2:
 			doorHeightRangeID := condition.DoorHeight.Ranges[rand.Intn(len(condition.DoorHeight.Ranges))].ID
 			q.Set("doorHeightRangeId", strconv.FormatInt(doorHeightRangeID, 10))
 
-		case 3:
+		case 2:
 			doorWidthRangeID := condition.DoorWidth.Ranges[rand.Intn(len(condition.DoorWidth.Ranges))].ID
 			q.Set("doorWidthRangeId", strconv.FormatInt(doorWidthRangeID, 10))
 
-		case 4:
+		case 3:
 			features := strings.Join(randomTakeMany(condition.Feature.List, 1, 3), ",")
 			q.Set("features", features)
 		}
