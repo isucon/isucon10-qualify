@@ -68,6 +68,27 @@ router.post("/initialize", async (ctx) => {
   };
 });
 
+router.get("/api/estate/low_priced", async (ctx) => {
+  const es = await db.query(
+    "SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?",
+    [LIMIT],
+  );
+  ctx.response.body = { estates: es.map(camelcaseKeys) };
+});
+
+router.get("/api/chair/low_priced", async (ctx) => {
+  try {
+    const cs = await db.query(
+      "SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?",
+      [LIMIT],
+    );
+    ctx.response.body = { chairs: cs.map(camelcaseKeys) };
+  } catch (e) {
+    ctx.response.status = 500;
+    ctx.response.body = e.toString();
+  }
+});
+
 router.get("/api/chair/search", async (ctx, next) => {
   const searchQueries = [];
   const queryParams = [];
@@ -201,7 +222,7 @@ router.get("/api/chair/search", async (ctx, next) => {
 
   const sqlprefix = "SELECT * FROM chair WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY price ASC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM chair WHERE ";
 
   try {
@@ -375,7 +396,7 @@ router.get("/api/estate/search", async (ctx) => {
 
   const sqlprefix = "SELECT * FROM estate WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY rent ASC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM estate WHERE ";
 
   try {
@@ -514,14 +535,6 @@ router.post("/api/estate/req_doc/:id", async (ctx) => {
   ctx.response.body = { ok: true };
 });
 
-router.get("/api/popular_estate", async (ctx) => {
-  const es = await db.query(
-    "SELECT * FROM estate ORDER BY popularity DESC, id ASC LIMIT ?",
-    [LIMIT],
-  );
-  ctx.response.body = { estates: es.map(camelcaseKeys) };
-});
-
 router.get("/api/recommended_estate/:id", async (ctx) => {
   try {
     const id = ctx.params.id;
@@ -548,19 +561,6 @@ router.get("/api/recommended_estate/:id", async (ctx) => {
       ],
     );
     ctx.response.body = { estates: es.map(camelcaseKeys) };
-  } catch (e) {
-    ctx.response.status = 500;
-    ctx.response.body = e.toString();
-  }
-});
-
-router.get("/api/popular_chair", async (ctx) => {
-  try {
-    const cs = await db.query(
-      "SELECT * FROM chair WHERE stock > 0 ORDER BY popularity DESC, id ASC LIMIT ?",
-      [LIMIT],
-    );
-    ctx.response.body = { chairs: cs.map(camelcaseKeys) };
   } catch (e) {
     ctx.response.status = 500;
     ctx.response.body = e.toString();

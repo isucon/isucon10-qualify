@@ -212,6 +212,76 @@ module.exports = [
     }
   },
 
+  // GET: /api/estate/low_priced
+  {
+    request: {
+      path: `${PATH}/low_priced`,
+      method: 'GET',
+      body: {},
+      values: {}
+    },
+    response: {
+      status: 200,
+      body: {
+        estates: '{:estates}'
+      },
+      schema: {
+        type: 'object',
+        properties: {
+          estates: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: 'number',
+                thumbnail: 'string',
+                name: 'string',
+                description: 'string',
+                address: 'string',
+                latitude: 'number',
+                longitude: 'number',
+                doorHeight: 'number',
+                doorWidth: 'number',
+                rent: 'number',
+                features: 'array'
+              }
+            }
+          }
+        }
+      },
+      values: {
+        estates: [
+          {
+            id: 1,
+            thumbnail: '/images/estate/3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg',
+            name: 'イスイスレジデンス南タワー',
+            description: 'ビル群の中に佇む最高のお部屋、さらなるイスの高みへ',
+            address: '東京都千代田区丸の内1丁目9-2',
+            latitude: 35.678637,
+            longitude: 139.767375,
+            doorHeight: 230,
+            doorWidth: 120,
+            rent: 2500000,
+            features: '駅直結,バストイレ別'
+          },
+          {
+            id: 5,
+            thumbnail: '/images/estate/1501E5C34A2B8EE645480ED1CC6442CD5929FE7616E20513574628096163DF0C.jpg',
+            name: '四丼往親空中イスコビル',
+            description: '一階が金融機関になっております！',
+            address: '東京都中央区京橋1丁目6-1',
+            latitude: 35.678617,
+            longitude: 139.767345,
+            doorHeight: 220,
+            doorWidth: 150,
+            rent: 2000000,
+            features: '音響攻撃あり,バストイレ別'
+          }
+        ]
+      }
+    }
+  },
+
   // `GET: /api/estate/search`
   {
     request: {

@@ -269,6 +269,68 @@ module.exports = [
     }
   },
 
+  // POST: /api/chair/low_priced
+  {
+    request: {
+      path: `${PATH}/low_priced`,
+      method: 'GET',
+      body: {},
+      values: {}
+    },
+    response: {
+      status: 200,
+      body: {
+        chairs: '{:chairs}'
+      },
+      schema: {
+        type: 'object',
+        properties: {
+          id: 'number',
+          name: 'string',
+          description: 'string',
+          thumbnail: 'string',
+          price: 'number',
+          height: 'number',
+          width: 'number',
+          depth: 'number',
+          color: 'string',
+          features: 'string',
+          kind: 'string'
+        }
+      },
+      values: {
+        chairs: [
+          {
+            id: 10,
+            name: 'スモスモチェアー',
+            description: 'スモスモハウスにぴったりの素敵なイスです',
+            thumbnail: '/images/chair/3E880A828B1DBFACB42209724583B56EF28466E45E2BF3704475EA02B19BDBFC.jpg',
+            price: 10000,
+            height: 100,
+            width: 50,
+            depth: 60,
+            color: '緑',
+            features: 'リクライニング,キャスター付き,肘掛け',
+            kind: 'エルゴノミクス'
+          },
+          {
+            id: 13,
+            name: '王様のイス',
+            description: 'どうぶつの森からきました',
+            thumbnail: '/images/chair/9120C2E3CAF5CD376C1B14899C2FD31438A839D1F6B6F8A52091392E0B9168FC.jpg',
+            price: 100000,
+            height: 100,
+            width: 50,
+            depth: 60,
+            color: '黄',
+            features: 'リクライニング,キャスター付き,肘掛け',
+            kind: 'エルゴノミクス'
+          }
+        ]
+      }
+    }
+  },
+
   // GET: /api/chair/search
   {
     request: {

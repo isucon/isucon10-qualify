@@ -27,8 +27,8 @@ const (
 	NumOfVerifyChairSearch                = 3
 	NumOfVerifyEstateSearchCondition      = 3
 	NumOfVerifyEstateSearch               = 3
-	NumOfVerifyPopularChair               = 1
-	NumOfVerifyPopularEstate              = 1
+	NumOfVerifyLowPricedChair             = 1
+	NumOfVerifyLowPricedEstate            = 1
 	NumOfVerifyRecommendedEstateWithChair = 3
 	NumOfVerifyEstateNazotte              = 3
 )
@@ -216,68 +216,68 @@ func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) 
 	return nil
 }
 
-func verifyPopularChair(ctx context.Context, c *client.Client, filePath string) error {
+func verifyLowPricedChair(ctx context.Context, c *client.Client, filePath string) error {
 	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_chair: Snapshotの読み込みに失敗しました"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/low_priced: Snapshotの読み込みに失敗しました"))
 	}
 
-	actual, err := c.GetPopularChair(ctx)
+	actual, err := c.GetLowPricedChair(ctx)
 
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/popular_chair: イスのおすすめ結果が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/low_priced: イスのおすすめ結果が不正です"))
 		}
 
 		var expected *client.ChairsResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_chair: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/low_priced: Response BodyのUnmarshalでエラーが発生しました"))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreChairUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/popular_chair: イスのおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: イスのおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/popular_chair: イスのおすすめ結果が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: イスのおすすめ結果が不正です"))
 		}
 	}
 
 	return nil
 }
 
-func verifyPopularEstate(ctx context.Context, c *client.Client, filePath string) error {
+func verifyLowPricedEstate(ctx context.Context, c *client.Client, filePath string) error {
 	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_estate: Snapshotの読み込みに失敗しました"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/low_priced: Snapshotの読み込みに失敗しました"))
 	}
 
-	actual, err := c.GetPopularEstate(ctx)
+	actual, err := c.GetLowPricedEstate(ctx)
 
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/popular_estate: 物件のおすすめ結果が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/low_priced: 物件のおすすめ結果が不正です"))
 		}
 
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_estate: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/low_priced: Response BodyのUnmarshalでエラーが発生しました"))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/popular_estate: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: 物件のおすすめ結果が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/popular_estate: 物件のおすすめ結果が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: 物件のおすすめ結果が不正です"))
 		}
 	}
 
@@ -445,17 +445,17 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 		}
 	}
 
-	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "popular_chair")
+	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "chair_low_priced")
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
-		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_chair: Snapshotディレクトリがありません"))
+		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/low_priced: Snapshotディレクトリがありません"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 	} else {
-		for i := 0; i < NumOfVerifyPopularChair; i++ {
+		for i := 0; i < NumOfVerifyLowPricedChair; i++ {
 			wg.Add(1)
 			r := rand.Intn(len(snapshots))
 			go func(filePath string) {
-				err := verifyPopularChair(ctx, c, filePath)
+				err := verifyLowPricedChair(ctx, c, filePath)
 				if err != nil {
 					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 				}
@@ -464,17 +464,17 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 		}
 	}
 
-	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "popular_estate")
+	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "estate_low_priced")
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
-		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/popular_estate: Snapshotディレクトリがありません"))
+		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/low_priced: Snapshotディレクトリがありません"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 	} else {
-		for i := 0; i < NumOfVerifyPopularEstate; i++ {
+		for i := 0; i < NumOfVerifyLowPricedEstate; i++ {
 			wg.Add(1)
 			r := rand.Intn(len(snapshots))
 			go func(filePath string) {
-				err := verifyPopularEstate(ctx, c, filePath)
+				err := verifyLowPricedEstate(ctx, c, filePath)
 				if err != nil {
 					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 				}

@@ -16,11 +16,24 @@ import (
 
 func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	t := time.Now()
-	err := c.AccessTopPage(ctx)
+	chairs, estates, err := c.AccessTopPage(ctx)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
+
+	if !isChairsOrderedByPrice(chairs.Chairs, t) {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: 検索結果が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	if !isEstatesOrderedByRent(estates.Estates) {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: 検索結果が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
 	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
@@ -59,7 +72,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 			continue
 		}
 
-		if !isChairsOrderedByPrice(_cr.Chairs, t) {
+		if !isChairsOrderedByPopularity(_cr.Chairs, t) {
 			err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
@@ -90,7 +103,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 				return failure.New(fails.ErrApplication)
 			}
 
-			if !isChairsOrderedByPrice(_cr.Chairs, t) {
+			if !isChairsOrderedByPopularity(cr.Chairs, t) {
 				err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: 検索結果が不正です"))
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)

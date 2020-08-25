@@ -30,18 +30,18 @@ const useStyles = makeStyles(theme =>
 const TopPage = () => {
   const classes = useStyles()
 
-  const [popularEstates, setPopularEstates] = useState<Estate[] | null>(null)
-  const [popularChairs, setPopularChairs] = useState<Chair[] | null>(null)
+  const [lowPricedEstates, setLowPricedEstates] = useState<Estate[] | null>(null)
+  const [lowPricedChairs, setLowPricedChairs] = useState<Chair[] | null>(null)
 
   useEffect(() => {
-    fetch('/api/popular_estate', { mode: 'cors' })
+    fetch('/api/estate/low_priced', { mode: 'cors' })
       .then(async response => await response.json())
-      .then(json => setPopularEstates(json.estates as Estate[]))
+      .then(json => setLowPricedEstates(json.estates as Estate[]))
       .catch(console.error)
 
-    fetch('/api/popular_chair', { mode: 'cors' })
+    fetch('/api/chair/low_priced', { mode: 'cors' })
       .then(async response => await response.json())
-      .then(json => setPopularChairs(json.chairs as Chair[]))
+      .then(json => setLowPricedChairs(json.chairs as Chair[]))
       .catch(console.error)
   }, [])
 
@@ -65,19 +65,19 @@ const TopPage = () => {
           </Button>
         </Link>
       </Paper>
-      {popularEstates && (
+      {lowPricedEstates && (
         <Paper className={classes.paper}>
-          <h2> オススメの物件 </h2>
+          <h2> 最安の物件 </h2>
           <Box className={classes.cards}>
-            {popularEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
+            {lowPricedEstates.map(estate => <EstateCard key={estate.id} estate={estate} />)}
           </Box>
         </Paper>
       )}
-      {popularChairs && (
+      {lowPricedChairs && (
         <Paper className={classes.paper}>
-          <h2> オススメのイス </h2>
+          <h2> 最安のイス </h2>
           <Box className={classes.cards}>
-            {popularChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
+            {lowPricedChairs.map(chair => <ChairCard key={chair.id} chair={chair} />)}
           </Box>
         </Paper>
       )}

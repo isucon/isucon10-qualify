@@ -168,41 +168,41 @@ func main() {
 	wg.Wait()
 	log.Println("Done generating verification data of /api/estate/search")
 
-	// popular_chair
-	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "popular_chair"))
+	// chair/low_priced
+	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "chair_low_priced"))
 	wg.Add(1)
 	go func() {
 		req := Request{
 			Method:   "GET",
-			Resource: "/api/popular_chair",
+			Resource: "/api/chair/low_priced",
 			Query:    "",
 			Body:     "",
 		}
 
 		snapshot := getSnapshotFromRequest(TargetServer, req)
-		writeSnapshotDataToFile(filepath.Join(DestDirectoryPath, "popular_chair", "0.json"), snapshot)
+		writeSnapshotDataToFile(filepath.Join(DestDirectoryPath, "chair_low_priced", "0.json"), snapshot)
 		wg.Done()
 	}()
 	wg.Wait()
-	log.Println("Done generating verification data of /api/popular_chair")
+	log.Println("Done generating verification data of /api/chair/low_priced")
 
-	// popular_estate
-	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "popular_estate"))
+	// estate/low_priced
+	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "estate_low_priced"))
 	wg.Add(1)
 	go func() {
 		req := Request{
 			Method:   "GET",
-			Resource: "/api/popular_estate",
+			Resource: "/api/estate/low_priced",
 			Query:    "",
 			Body:     "",
 		}
 
 		snapshot := getSnapshotFromRequest(TargetServer, req)
-		writeSnapshotDataToFile(filepath.Join(DestDirectoryPath, "popular_estate", "0.json"), snapshot)
+		writeSnapshotDataToFile(filepath.Join(DestDirectoryPath, "estate_low_priced", "0.json"), snapshot)
 		wg.Done()
 	}()
 	wg.Wait()
-	log.Println("Done generating verification data of /api/popular_estate")
+	log.Println("Done generating verification data of /api/estate/low_priced")
 
 	// recommended_estate/:id
 	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "recommended_estate_with_chair"))

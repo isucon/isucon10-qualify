@@ -9,55 +9,27 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 )
 
-func (c *Client) AccessTopPage(ctx context.Context) error {
+func (c *Client) AccessTopPage(ctx context.Context) (*ChairsResponse, *EstatesResponse, error) {
 	eg, childCtx := errgroup.WithContext(ctx)
 
-	eg.Go(func() error {
-		_, err := c.GetPopularChair(childCtx)
-		return err
-	})
+	var (
+		chairs  *ChairsResponse
+		estates *EstatesResponse
+	)
 
-	eg.Go(func() error {
-		_, err := c.GetPopularEstate(childCtx)
-		return err
-	})
-
-	if err := eg.Wait(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Chair, *EstatesResponse, error) {
-	eg, childCtx := errgroup.WithContext(ctx)
-
-	chairCh := make(chan *asset.Chair, 1)
-	estatesCh := make(chan *EstatesResponse, 1)
-
-	eg.Go(func() error {
-		chair, err := c.GetChairDetailFromID(childCtx, strconv.FormatInt(id, 10))
+	eg.Go(func() (err error) {
+		chairs, err = c.GetLowPricedChair(childCtx)
 		if err != nil {
-			chairCh <- nil
 			return err
 		}
-		if chair == nil {
-			chairCh <- nil
-			return nil
-		}
-
-		chairCh <- chair
 		return nil
 	})
 
-	eg.Go(func() error {
-		estates, err := c.GetRecommendedEstatesFromChair(childCtx, id)
+	eg.Go(func() (err error) {
+		estates, err = c.GetLowPricedEstate(childCtx)
 		if err != nil {
-			estatesCh <- nil
 			return err
 		}
-
-		estatesCh <- estates
 		return nil
 	})
 
@@ -65,7 +37,43 @@ func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Ch
 		return nil, nil, err
 	}
 
-	return <-chairCh, <-estatesCh, nil
+	return chairs, estates, nil
+}
+
+func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Chair, *EstatesResponse, error) {
+	eg, childCtx := errgroup.WithContext(ctx)
+
+	var (
+		chair *asset.Chair
+		estates *EstatesResponse
+	)
+
+	eg.Go(func() (err error) {
+		chair, err = c.GetChairDetailFromID(childCtx, strconv.FormatInt(id, 10))
+		if err != nil {
+			return err
+		}
+		if chair == nil {
+			return nil
+		}
+
+		return nil
+	})
+
+	eg.Go(func() (err error) {
+		estates, err = c.GetRecommendedEstatesFromChair(childCtx, id)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err := eg.Wait(); err != nil {
+		return nil, nil, err
+	}
+
+	return chair, estates, nil
 }
 
 func (c *Client) AccessEstateDetailPage(ctx context.Context, id int64) (*asset.Estate, error) {

@@ -44,6 +44,36 @@ app.post("/initialize", async (req, res, next) => {
   }
 });
 
+app.get("/api/estate/low_priced", async (req, res, next) => {
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    const es = await query("SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?", [LIMIT]);
+    const estates = es.map((estate) => camelcaseKeys(estate)); 
+    res.json({estates});
+  } catch (e) {
+    next(e);
+  } finally {
+    await connection.release();
+  } 
+});
+
+app.get("/api/chair/low_priced", async (req, res, next) => {
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    const cs = await query("SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?", [LIMIT]);
+    const chairs = cs.map((chair) => camelcaseKeys(chair)); 
+    res.json({ chairs });
+  } catch (e) {
+    next(e);
+  } finally {
+    await connection.release();
+  } 
+});
+
 app.get("/api/chair/search", async (req, res, next) => {
   const searchQueries = [];
   const queryParams = [];
@@ -161,7 +191,7 @@ app.get("/api/chair/search", async (req, res, next) => {
   
   const sqlprefix = "SELECT * FROM chair WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY price ASC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM chair WHERE ";
 
   const getConnection = promisify(db.getConnection.bind(db));
@@ -315,7 +345,7 @@ app.get("/api/estate/search", async (req, res, next) => {
   
   const sqlprefix = "SELECT * FROM estate WHERE ";
   const searchCondition = searchQueries.join(" AND ");
-  const limitOffset = " ORDER BY rent ASC, id ASC LIMIT ? OFFSET ?";
+  const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM estate WHERE ";
 
   const getConnection = promisify(db.getConnection.bind(db));
@@ -435,21 +465,6 @@ app.get("/api/estate/:id", async (req, res, next) => {
   }
 });
 
-app.get("/api/popular_estate", async (req, res, next) => {
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
-  const query = promisify(connection.query.bind(connection));
-  try {
-    const es = await query("SELECT * FROM estate ORDER BY popularity DESC, id ASC LIMIT ?", [LIMIT]);
-    const estates = es.map((estate) => camelcaseKeys(estate)); 
-    res.json({estates});
-  } catch (e) {
-    next(e);
-  } finally {
-    await connection.release();
-  } 
-});
-
 app.get("/api/recommended_estate/:id", async (req, res, next) => {
   const id = req.params.id;
   const getConnection = promisify(db.getConnection.bind(db));
@@ -465,21 +480,6 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
     ]);
     const estates = es.map((estate) => camelcaseKeys(estate)); 
     res.json({ estates });
-  } catch (e) {
-    next(e);
-  } finally {
-    await connection.release();
-  } 
-});
-
-app.get("/api/popular_chair", async (req, res, next) => {
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
-  const query = promisify(connection.query.bind(connection));
-  try {
-    const cs = await query("SELECT * FROM chair WHERE stock > 0 ORDER BY popularity DESC, id ASC LIMIT ?", [LIMIT]);
-    const chairs = cs.map((chair) => camelcaseKeys(chair)); 
-    res.json({ chairs });
   } catch (e) {
     next(e);
   } finally {

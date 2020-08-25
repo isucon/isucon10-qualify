@@ -182,11 +182,24 @@ func getBoundingBox(points []point) [2]point {
 
 func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 	t := time.Now()
-	err := c.AccessTopPage(ctx)
+	chairs, estates, err := c.AccessTopPage(ctx)
 	if err != nil {
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
+
+	if !isChairsOrderedByPrice(chairs.Chairs, t) {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: 検索結果が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
+	if !isEstatesOrderedByRent(estates.Estates) {
+		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: 検索結果が不正です"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		return failure.New(fails.ErrApplication)
+	}
+
 	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
 		return failure.New(fails.ErrTimeout)
 	}
