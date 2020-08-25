@@ -3,16 +3,16 @@ package parameter
 import "time"
 
 const (
-	NumOfSearchChairInScenario     = 5
-	NumOfSearchEstateInScenario    = 5
-	NumOfCheckChairSearchPaging    = 3
-	NumOfCheckEstateSearchPaging   = 3
+	NumOfSearchChairInScenario     = 2
+	NumOfSearchEstateInScenario    = 2
+	NumOfCheckChairSearchPaging    = 2
+	NumOfCheckEstateSearchPaging   = 2
 	LimitOfChairSearchPageDepth    = 5
 	LimitOfEstateSearchPageDepth   = 5
-	NumOfCheckChairDetailPage      = 7
-	NumOfCheckEstateDetailPage     = 3
-	PerPageOfChairSearch           = 30
-	PerPageOfEstateSearch          = 30
+	NumOfCheckChairDetailPage      = 2
+	NumOfCheckEstateDetailPage     = 2
+	PerPageOfChairSearch           = 25
+	PerPageOfEstateSearch          = 25
 	MaxLengthOfNazotteResponse     = 50
 	SleepTimeOnFailScenario        = 1500 * time.Millisecond
 	SleepSwingOnFailScenario       = 500 // * time.Millisecond
@@ -31,7 +31,7 @@ const (
 )
 
 var BoundaryOfLevel []int64 = []int64{
-	400, 800, 1200, 1600, 2000,
+	500, 800, 1200, 1600, 2000,
 	2400, 2800, 3200, 3600, 4000,
 	4400, 4800, 5200, 5600, 6000,
 	6400, 6800, 7200, 7600, 8000,
@@ -50,8 +50,8 @@ type incWorkers struct {
 // IncListOfWorkers 前のレベルとのWorkerの個数の差分を保持するList
 var ListOfIncWorkers = []incWorkers{
 	{ // level 00
-		ChairSearchWorker:         5,
-		EstateSearchWorker:        5,
+		ChairSearchWorker:         3,
+		EstateSearchWorker:        4,
 		EstateNazotteSearchWorker: 0,
 		BotWorker:                 0,
 		ChairDraftPostWorker:      0,
