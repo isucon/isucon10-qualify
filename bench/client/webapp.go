@@ -16,8 +16,8 @@ import (
 	"github.com/morikuni/failure"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
-	"github.com/isucon10-qualify/isucon10-qualify/bench/conversion"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/score"
 )
 
 type Coordinates struct {
@@ -713,7 +713,7 @@ func (c *Client) BuyChair(ctx context.Context, id string) error {
 	intid, _ := strconv.ParseInt(id, 10, 64)
 	asset.DecrementChairStock(intid)
 	if !c.isBot {
-		conversion.IncrementCount()
+		score.IncrementScore()
 	}
 
 	return nil
@@ -751,7 +751,7 @@ func (c *Client) RequestEstateDocument(ctx context.Context, id string) error {
 	}
 
 	if !c.isBot {
-		conversion.IncrementCount()
+		score.IncrementScore()
 	}
 
 	return nil

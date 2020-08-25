@@ -8,6 +8,7 @@ import (
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/score"
 )
 
 func randomTakeMany(slice []string, minLength, maxLength int) []string {
@@ -24,7 +25,7 @@ func createRandomChairSearchQuery() (url.Values, error) {
 		return nil, err
 	}
 
-	level := GetLoadLevel()
+	level := score.GetLevel()
 	paramNum := int(level/2 + 1)
 
 	q := url.Values{}
@@ -72,7 +73,7 @@ func createRandomEstateSearchQuery() (url.Values, error) {
 		return nil, err
 	}
 
-	level := GetLoadLevel()
+	level := score.GetLevel()
 	paramNum := int(level/2 + 1)
 
 	q := url.Values{}

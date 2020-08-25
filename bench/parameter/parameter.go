@@ -29,6 +29,14 @@ const (
 	LoadTimeout                    = 60 * time.Second
 )
 
+var BoundaryOfLevel []int64 = []int64{
+	400, 800, 1200, 1600, 2000,
+	2400, 2800, 3200, 3600, 4000,
+	4400, 4800, 5200, 5600, 6000,
+	6400, 6800, 7200, 7600, 8000,
+	8400, 8800, 9200, 9600, 10000,
+}
+
 type incWorkers struct {
 	ChairSearchWorker         int
 	EstateSearchWorker        int
