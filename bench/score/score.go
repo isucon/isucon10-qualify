@@ -9,6 +9,7 @@ import (
 var (
 	score     int64 = 0
 	level     int64 = 0
+	maxLevel  int64 = int64(len(parameter.BoundaryOfLevel))
 	levelChan chan int64
 	mu        sync.RWMutex
 )
@@ -21,7 +22,7 @@ func IncrementScore() {
 	mu.Lock()
 	defer mu.Unlock()
 	score++
-	if score >= parameter.BoundaryOfLevel[level] {
+	if level < maxLevel && score >= parameter.BoundaryOfLevel[level] {
 		level++
 		levelChan <- level
 	}
