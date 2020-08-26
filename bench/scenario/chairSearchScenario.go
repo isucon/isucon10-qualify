@@ -117,7 +117,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 		}
 	}
 
-	if cr != nil || len(cr.Chairs) == 0 {
+	if cr == nil || len(cr.Chairs) == 0 {
 		return nil
 	}
 
