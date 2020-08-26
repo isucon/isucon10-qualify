@@ -119,7 +119,7 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 		}
 	}
 
-	if len(er.Estates) == 0 {
+	if er == nil || len(er.Estates) == 0 {
 		return nil
 	}
 

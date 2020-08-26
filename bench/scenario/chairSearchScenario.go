@@ -117,7 +117,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 		}
 	}
 
-	if len(cr.Chairs) == 0 {
+	if cr == nil || len(cr.Chairs) == 0 {
 		return nil
 	}
 
@@ -140,7 +140,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 			return failure.New(fails.ErrTimeout)
 		}
 
-		if chair == nil {
+		if chair == nil || len(er.Estates) == 0 {
 			return nil
 		}
 
