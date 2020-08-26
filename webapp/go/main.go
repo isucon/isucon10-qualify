@@ -394,78 +394,29 @@ func postChair(c echo.Context) error {
 }
 
 func searchChairs(c echo.Context) error {
-	var chairHeight, chairWidth, chairDepth, chairPrice *Range
 	var err error
 
 	searchQueryArray := make([]string, 0)
 	queryParams := make([]interface{}, 0)
 
 	if c.QueryParam("priceRangeId") != "" {
-		chairPrice, err = getRange(chairSearchCondition.Price, c.QueryParam("priceRangeId"))
-		if err != nil {
-			c.Echo().Logger.Infof("priceRangeID invalid, %v : %v", c.QueryParam("priceRangeId"), err)
-			return c.NoContent(http.StatusBadRequest)
-		}
-
-		if chairPrice.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "price >= ? ")
-			queryParams = append(queryParams, chairPrice.Min)
-		}
-		if chairPrice.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "price < ? ")
-			queryParams = append(queryParams, chairPrice.Max)
-		}
+		searchQueryArray = append(searchQueryArray, "priceRange = ? ")
+		queryParams = append(queryParams, c.QueryParam("priceRangeId"))
 	}
 
 	if c.QueryParam("heightRangeId") != "" {
-		chairHeight, err = getRange(chairSearchCondition.Height, c.QueryParam("heightRangeId"))
-		if err != nil {
-			c.Echo().Logger.Infof("heightRangeIf invalid, %v : %v", c.QueryParam("heightRangeId"), err)
-			return c.NoContent(http.StatusBadRequest)
-		}
-
-		if chairHeight.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "height >= ? ")
-			queryParams = append(queryParams, chairHeight.Min)
-		}
-		if chairHeight.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "height < ? ")
-			queryParams = append(queryParams, chairHeight.Max)
-		}
+		searchQueryArray = append(searchQueryArray, "heightRange = ? ")
+		queryParams = append(queryParams, c.QueryParam("heightRangeId"))
 	}
 
 	if c.QueryParam("widthRangeId") != "" {
-		chairWidth, err = getRange(chairSearchCondition.Width, c.QueryParam("widthRangeId"))
-		if err != nil {
-			c.Echo().Logger.Infof("widthRangeID invalid, %v : %v", c.QueryParam("widthRangeId"), err)
-			return c.NoContent(http.StatusBadRequest)
-		}
-
-		if chairWidth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "width >= ? ")
-			queryParams = append(queryParams, chairWidth.Min)
-		}
-		if chairWidth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "width < ? ")
-			queryParams = append(queryParams, chairWidth.Max)
-		}
+		searchQueryArray = append(searchQueryArray, "widthRange = ? ")
+		queryParams = append(queryParams, c.QueryParam("widthRangeId"))
 	}
 
 	if c.QueryParam("depthRangeId") != "" {
-		chairDepth, err = getRange(chairSearchCondition.Depth, c.QueryParam("depthRangeId"))
-		if err != nil {
-			c.Echo().Logger.Infof("depthRangeId invalid, %v : %v", c.QueryParam("depthRangeId"), err)
-			return c.NoContent(http.StatusBadRequest)
-		}
-
-		if chairDepth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "depth >= ? ")
-			queryParams = append(queryParams, chairDepth.Min)
-		}
-		if chairDepth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "depth < ? ")
-			queryParams = append(queryParams, chairDepth.Max)
-		}
+		searchQueryArray = append(searchQueryArray, "depthRange = ? ")
+		queryParams = append(queryParams, c.QueryParam("depthRangeId"))
 	}
 
 	if c.QueryParam("kind") != "" {
@@ -711,62 +662,24 @@ func postEstate(c echo.Context) error {
 }
 
 func searchEstates(c echo.Context) error {
-	var doorHeight, doorWidth, estateRent *Range
 	var err error
 
 	searchQueryArray := make([]string, 0)
 	var searchQueryParameter []interface{}
 
 	if c.QueryParam("doorHeightRangeId") != "" {
-		doorHeight, err = getRange(estateSearchCondition.DoorHeight, c.QueryParam("doorHeightRangeId"))
-		if err != nil {
-			c.Echo().Logger.Infof("doorHeightRangeID invalid, %v : %v", c.QueryParam("doorHeightRangeId"), err)
-			return c.NoContent(http.StatusBadRequest)
-		}
-
-		if doorHeight.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "door_height >= ? ")
-			searchQueryParameter = append(searchQueryParameter, doorHeight.Min)
-		}
-		if doorHeight.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "door_height < ? ")
-			searchQueryParameter = append(searchQueryParameter, doorHeight.Max)
-		}
+		searchQueryArray = append(searchQueryArray, "heightRange = ? ")
+		searchQueryParameter = append(searchQueryParameter, c.QueryParam("doorHeightRangeId"))
 	}
 
 	if c.QueryParam("doorWidthRangeId") != "" {
-		doorWidth, err = getRange(estateSearchCondition.DoorWidth, c.QueryParam("doorWidthRangeId"))
-		if err != nil {
-			c.Echo().Logger.Infof("doorWidthRangeID invalid, %v : %v", c.QueryParam("doorWidthRangeId"), err)
-			return c.NoContent(http.StatusBadRequest)
-		}
-
-		if doorWidth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "door_width >= ? ")
-			searchQueryParameter = append(searchQueryParameter, doorWidth.Min)
-		}
-		if doorWidth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "door_width < ? ")
-			searchQueryParameter = append(searchQueryParameter, doorWidth.Max)
-		}
+		searchQueryArray = append(searchQueryArray, "widthRange = ? ")
+		searchQueryParameter = append(searchQueryParameter, c.QueryParam("doorWidthRangeId"))
 	}
 
 	if c.QueryParam("rentRangeId") != "" {
-		estateRent, err = getRange(estateSearchCondition.Rent, c.QueryParam("rentRangeId"))
-		if err != nil {
-			c.Echo().Logger.Infof("rentRangeID invalid, %v : %v", c.QueryParam("rentRangeId"), err)
-			return c.NoContent(http.StatusBadRequest)
-		}
-
-		if estateRent.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "rent >= ? ")
-			searchQueryParameter = append(searchQueryParameter, estateRent.Min)
-		}
-		if estateRent.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "rent < ? ")
-			searchQueryParameter = append(searchQueryParameter, estateRent.Max)
-		}
-
+		searchQueryArray = append(searchQueryArray, "rentRange = ? ")
+		searchQueryParameter = append(searchQueryParameter, c.QueryParam("rentRangeId"))
 	}
 
 	if c.QueryParam("features") != "" {
