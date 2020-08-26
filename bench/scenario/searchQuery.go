@@ -33,7 +33,12 @@ func createRandomChairSearchQuery() (url.Values, error) {
 	q.Set("page", "0")
 
 	for i := 0; i < paramNum; i++ {
-		switch rand.Intn(7) {
+		r := rand.Intn(6)
+		if level >= 2 {
+			r = rand.Intn(7)
+		}
+
+		switch r {
 		case 0:
 			priceRangeID := condition.Price.Ranges[rand.Intn(len(condition.Price.Ranges))].ID
 			q.Set("priceRangeId", strconv.FormatInt(priceRangeID, 10))
@@ -81,7 +86,12 @@ func createRandomEstateSearchQuery() (url.Values, error) {
 	q.Set("page", "0")
 
 	for i := 0; i < paramNum; i++ {
-		switch rand.Intn(4) {
+		r := rand.Intn(3)
+		if level >= 2 {
+			r = rand.Intn(4)
+		}
+
+		switch r {
 		case 0:
 			rentRangeID := condition.Rent.Ranges[rand.Intn(len(condition.Rent.Ranges))].ID
 			q.Set("rentRangeId", strconv.FormatInt(rentRangeID, 10))
