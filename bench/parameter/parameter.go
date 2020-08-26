@@ -31,7 +31,7 @@ const (
 )
 
 var BoundaryOfLevel []int64 = []int64{
-	500, 800, 1200, 1600, 2000,
+	400, 600, 800, 1600, 2000,
 	2400, 2800, 3200, 3600, 4000,
 	4400, 4800, 5200, 5600, 6000,
 	6400, 6800, 7200, 7600, 8000,
@@ -51,25 +51,25 @@ type incWorkers struct {
 var ListOfIncWorkers = []incWorkers{
 	{ // level 00
 		ChairSearchWorker:         3,
-		EstateSearchWorker:        4,
+		EstateSearchWorker:        3,
 		EstateNazotteSearchWorker: 0,
 		BotWorker:                 0,
 		ChairDraftPostWorker:      0,
 		EstateDraftPostWorker:     0,
 	},
 	{ // level 01
-		ChairSearchWorker:         3,
-		EstateSearchWorker:        2,
-		EstateNazotteSearchWorker: 0,
+		ChairSearchWorker:         0,
+		EstateSearchWorker:        0,
+		EstateNazotteSearchWorker: 3,
 		BotWorker:                 0,
 		ChairDraftPostWorker:      0,
 		EstateDraftPostWorker:     0,
 	},
 	{ // level 02
-		ChairSearchWorker:         3,
-		EstateSearchWorker:        1,
+		ChairSearchWorker:         0,
+		EstateSearchWorker:        0,
 		EstateNazotteSearchWorker: 0,
-		BotWorker:                 1,
+		BotWorker:                 5,
 		ChairDraftPostWorker:      0,
 		EstateDraftPostWorker:     0,
 	},
