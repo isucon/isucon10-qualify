@@ -320,7 +320,7 @@ func getChairDetail(c echo.Context) error {
 	}
 
 	chair := Chair{}
-	sqlstr := "SELECT * FROM chair WHERE id = ?"
+	sqlstr := "SELECT id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock FROM chair WHERE id = ?"
 	err = db.Get(&chair, sqlstr, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -506,12 +506,12 @@ func searchChairs(c echo.Context) error {
 
 	var res ChairSearchResponse
 	res.Chairs = []Chair{}
-	sqlstr := "SELECT * FROM chair WHERE "
+	sqlstr := "SELECT id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock FROM chair WHERE "
 	searchCondition := strings.Join(searchQueryArray, " AND ")
 
 	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
 
-	countsql := "SELECT COUNT(*) FROM chair WHERE "
+	countsql := "SELECT COUNT(id) FROM chair WHERE "
 	err = db.Get(&res.Count, countsql+searchCondition, queryParams...)
 	if err != nil {
 		c.Logger().Errorf("searchChairs DB execution error : %v", err)
@@ -567,7 +567,7 @@ func buyChair(c echo.Context) error {
 	defer tx.Rollback()
 
 	var chair Chair
-	err = tx.QueryRowx("SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE", id).StructScan(&chair)
+	err = tx.QueryRowx("SELECT id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock FROM chair WHERE id = ? AND stock > 0 FOR UPDATE", id).StructScan(&chair)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Echo().Logger.Infof("buyChair chair id \"%v\" not found", id)
@@ -600,7 +600,7 @@ func getChairSearchCondition(c echo.Context) error {
 func getLowPricedChair(c echo.Context) error {
 	var chairs []Chair
 
-	sqlstr := `SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?`
+	sqlstr := `SELECT id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?`
 
 	err := db.Select(&chairs, sqlstr, LIMIT)
 	if err != nil {
@@ -629,7 +629,7 @@ func getEstateDetail(c echo.Context) error {
 	}
 
 	var estate Estate
-	err = db.Get(&estate, "SELECT * FROM estate WHERE id = ?", id)
+	err = db.Get(&estate, "SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE id = ?", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Echo().Logger.Infof("getEstateDetail estate id %v not found", id)
@@ -795,12 +795,12 @@ func searchEstates(c echo.Context) error {
 
 	var res EstateSearchResponse
 	res.Estates = []Estate{}
-	sqlstr := "SELECT * FROM estate WHERE "
+	sqlstr := "SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE "
 	searchQuery := strings.Join(searchQueryArray, " AND ")
 
 	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
 
-	countsql := "SELECT COUNT(*) FROM estate WHERE "
+	countsql := "SELECT COUNT(id) FROM estate WHERE "
 	err = db.Get(&res.Count, countsql+searchQuery, searchQueryParameter...)
 	if err != nil {
 		c.Logger().Errorf("searchEstates DB execution error : %v", err)
@@ -828,7 +828,7 @@ func searchEstates(c echo.Context) error {
 func getLowPricedEstate(c echo.Context) error {
 	estates := make([]Estate, 0, LIMIT)
 
-	sqlstr := `SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?`
+	sqlstr := `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate ORDER BY rent ASC, id ASC LIMIT ?`
 
 	err := db.Select(&estates, sqlstr, LIMIT)
 	if err != nil {
@@ -855,8 +855,11 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	chair := Chair{}
-	sqlstr := `SELECT * FROM chair WHERE id = ?`
+	chair := struct {
+		Shortest int64 `db:"shortest"`
+		Second   int64 `db:"second"`
+	}{}
+	sqlstr := `SELECT shortest, second FROM chair WHERE id = ?`
 
 	err = db.Get(&chair, sqlstr, id)
 	if err != nil {
@@ -869,11 +872,8 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 	}
 
 	var estates []Estate
-	w := chair.Width
-	h := chair.Height
-	d := chair.Depth
-	sqlstr = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?`
-	err = db.Select(&estates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, LIMIT)
+	sqlstr = `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE longer >= ? AND shorter >= ? ORDER BY popularity DESC, id ASC LIMIT ?`
+	err = db.Select(&estates, sqlstr, chair.Second, chair.Shortest, LIMIT)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusOK, EstateListResponse{[]Estate{}})
@@ -906,7 +906,7 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []Estate{}
 
-	sqlstr := `SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC`
+	sqlstr := `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC`
 
 	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {
@@ -922,7 +922,7 @@ func searchEstateNazotte(c echo.Context) error {
 		validatedEstate := Estate{}
 
 		point := fmt.Sprintf("'POINT(%f %f)'", estate.Latitude, estate.Longitude)
-		sqlstr := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))`
+		sqlstr := `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))`
 		sqlstr = fmt.Sprintf(sqlstr, coordinates.coordinatesToText(), point)
 
 		err = db.Get(&validatedEstate, sqlstr, estate.ID)
@@ -970,7 +970,7 @@ func postEstateRequestDocument(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	sqlstr := `SELECT * FROM estate WHERE id = ?`
+	sqlstr := `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE id = ?`
 
 	estate := Estate{}
 	err = db.Get(&estate, sqlstr, id)
