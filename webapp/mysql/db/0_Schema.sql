@@ -36,3 +36,6 @@ CREATE TABLE isuumo.chair
     popularity  INTEGER         NOT NULL,
     stock       INTEGER         NOT NULL
 );
+
+CREATE INDEX rent_idx ON isuumo.estate(rent);
+CREATE INDEX price_idx ON isuumo.chair(price);
