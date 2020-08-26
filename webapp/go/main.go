@@ -509,7 +509,7 @@ func searchChairs(c echo.Context) error {
 	sqlstr := "SELECT id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock FROM chair WHERE "
 	searchCondition := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
+	limitOffset := " ORDER BY rev_pop ASC, id ASC LIMIT ? OFFSET ?"
 
 	countsql := "SELECT COUNT(id) FROM chair WHERE "
 	err = db.Get(&res.Count, countsql+searchCondition, queryParams...)
@@ -798,7 +798,7 @@ func searchEstates(c echo.Context) error {
 	sqlstr := "SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE "
 	searchQuery := strings.Join(searchQueryArray, " AND ")
 
-	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
+	limitOffset := " ORDER BY rev_pop ASC, id ASC LIMIT ? OFFSET ?"
 
 	countsql := "SELECT COUNT(id) FROM estate WHERE "
 	err = db.Get(&res.Count, countsql+searchQuery, searchQueryParameter...)
@@ -872,7 +872,7 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 	}
 
 	var estates []Estate
-	sqlstr = `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE longer >= ? AND shorter >= ? ORDER BY popularity DESC, id ASC LIMIT ?`
+	sqlstr = `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE longer >= ? AND shorter >= ? ORDER BY rev_pop ASC, id ASC LIMIT ?`
 	err = db.Select(&estates, sqlstr, chair.Second, chair.Shortest, LIMIT)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -906,7 +906,7 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []Estate{}
 
-	sqlstr := `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC`
+	sqlstr := `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY rev_pop ASC, id ASC`
 
 	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {

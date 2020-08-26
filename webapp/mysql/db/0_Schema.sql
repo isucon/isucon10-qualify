@@ -19,7 +19,8 @@ CREATE TABLE isuumo.estate
     longer      INTEGER             GENERATED ALWAYS AS (GREATEST(door_height, door_width)),
     shorter     INTEGER             GENERATED ALWAYS AS (LEAST(door_height, door_width)),
     features    VARCHAR(64)         NOT NULL,
-    popularity  INTEGER             NOT NULL
+    popularity  INTEGER             NOT NULL,
+    rev_pop     INTEGER             GENERATED ALWAYS AS (-1 * popularity)
 );
 
 CREATE TABLE isuumo.chair
@@ -38,8 +39,11 @@ CREATE TABLE isuumo.chair
     features    VARCHAR(64)     NOT NULL,
     kind        VARCHAR(64)     NOT NULL,
     popularity  INTEGER         NOT NULL,
+    rev_pop     INTEGER             GENERATED ALWAYS AS (-1 * popularity),
     stock       INTEGER         NOT NULL
 );
 
 CREATE INDEX rent_idx ON isuumo.estate(rent);
 CREATE INDEX price_idx ON isuumo.chair(price);
+CREATE INDEX popularity_idx ON isuumo.estate(rev_pop ASC);
+CREATE INDEX popularity_idx ON isuumo.chair(rev_pop ASC);
