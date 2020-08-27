@@ -284,7 +284,6 @@ router.post("/api/chair/buy/:id", async (ctx) => {
         "UPDATE chair SET stock = ? WHERE id = ?",
         [chair.stock - 1, id],
       );
-      await conn.execute("COMMIT");
     });
 
     ctx.response.body = { ok: true };
