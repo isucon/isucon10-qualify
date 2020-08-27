@@ -277,6 +277,7 @@ router.post("/api/chair/buy/:id", async (ctx) => {
       if (result.rows?.[0] == null) {
         ctx.response.status = 404;
         ctx.response.body = "Not Found";
+        await conn.execute("ROLLBACK");
         return;
       }
       const chair = result.rows[0]

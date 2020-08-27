@@ -245,6 +245,7 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
     const [chair] = await query("SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE", [id]);
     if (chair == null) {
       res.status(404).send("Not Found");
+      await connection.rollback();
       return;
     }
     await query("UPDATE chair SET stock = ? WHERE id = ?", [chair.stock-1, id]);
