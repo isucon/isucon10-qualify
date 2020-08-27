@@ -8,7 +8,14 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
 )
 
-func NewClient(userAgent string, isBot bool) *Client {
+func NewClient(isBot bool) *Client {
+	var userAgent string
+	if isBot {
+		userAgent = GenerateBotUserAgent()
+	} else {
+		userAgent = GenerateUserAgent()
+	}
+
 	return &Client{
 		userAgent: userAgent,
 		isBot:     isBot,

@@ -2,12 +2,10 @@ package scenario
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"math/rand"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
@@ -17,8 +15,8 @@ import (
 )
 
 func runEstateSearchWorker(ctx context.Context) {
-	u, _ := uuid.NewRandom()
-	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()), false)
+
+	c := client.NewClient(false)
 
 	for {
 		r := rand.Intn(100)
@@ -52,8 +50,8 @@ func runEstateSearchWorker(ctx context.Context) {
 }
 
 func runChairSearchWorker(ctx context.Context) {
-	u, _ := uuid.NewRandom()
-	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()), false)
+
+	c := client.NewClient(false)
 
 	for {
 		r := rand.Intn(100)
@@ -87,8 +85,8 @@ func runChairSearchWorker(ctx context.Context) {
 }
 
 func runEstateNazotteSearchWorker(ctx context.Context) {
-	u, _ := uuid.NewRandom()
-	c := client.NewClient(fmt.Sprintf("isucon-user-%v", u.String()), false)
+
+	c := client.NewClient(false)
 
 	for {
 		r := rand.Intn(100)
@@ -122,8 +120,8 @@ func runEstateNazotteSearchWorker(ctx context.Context) {
 }
 
 func runBotWorker(ctx context.Context) {
-	u, _ := uuid.NewRandom()
-	c := client.NewClient(fmt.Sprintf("isucon-bot-%v", u.String()), true)
+
+	c := client.NewClient(true)
 
 	for {
 		go botScenario(ctx, c)
@@ -140,8 +138,7 @@ func runBotWorker(ctx context.Context) {
 }
 
 func runChairDraftPostWorker(ctx context.Context) {
-	u, _ := uuid.NewRandom()
-	c := client.NewClient(fmt.Sprintf("isucon-seller-%v", u.String()), false)
+	c := client.NewClient(false)
 
 	r := rand.Intn(parameter.SleepSwingBeforePostDraft) - parameter.SleepSwingBeforePostDraft*0.5
 	s := parameter.SleepBeforePostDraft + time.Duration(r)*time.Millisecond
@@ -160,8 +157,7 @@ func runChairDraftPostWorker(ctx context.Context) {
 }
 
 func runEstateDraftPostWorker(ctx context.Context) {
-	u, _ := uuid.NewRandom()
-	c := client.NewClient(fmt.Sprintf("isucon-seller-%v", u.String()), false)
+	c := client.NewClient(false)
 
 	r := rand.Intn(parameter.SleepSwingBeforePostDraft) - parameter.SleepSwingBeforePostDraft*0.5
 	s := parameter.SleepBeforePostDraft + time.Duration(r)*time.Millisecond
