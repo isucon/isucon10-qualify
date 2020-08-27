@@ -241,12 +241,12 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
-    const [chair] = await query("SELECT * FROM chair WHERE id = ? AND stock > 0", [id]);
+    await connection.beginTransaction();
+    const [chair] = await query("SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE", [id]);
     if (chair == null) {
       res.status(404).send("Not Found");
       return;
     }
-    await connection.beginTransaction();
     await query("UPDATE chair SET stock = ? WHERE id = ?", [chair.stock-1, id]);
     await connection.commit();
     res.json({ ok: true });
