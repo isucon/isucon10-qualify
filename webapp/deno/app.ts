@@ -269,22 +269,22 @@ router.get("/api/chair/:id", async (ctx) => {
 router.post("/api/chair/buy/:id", async (ctx) => {
   try {
     const id = ctx.params.id;
-    const [chair] = await db.query(
-      "SELECT * FROM chair WHERE id = ? AND stock > 0",
-      [id],
-    );
-    if (chair == null) {
-      ctx.response.status = 404;
-      ctx.response.body = "Not Found";
-      return;
-    }
-
     await db.transaction(async (conn) => {
+      const result = await conn.execute(
+        "SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE",
+        [id],
+      );
+      if (result.rows?.[0] == null) {
+        ctx.response.status = 404;
+        ctx.response.body = "Not Found";
+        await conn.execute("ROLLBACK");
+        return;
+      }
+      const chair = result.rows[0]
       await conn.execute(
         "UPDATE chair SET stock = ? WHERE id = ?",
         [chair.stock - 1, id],
       );
-      await conn.execute("COMMIT");
     });
 
     ctx.response.body = { ok: true };
