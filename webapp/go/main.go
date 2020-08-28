@@ -394,103 +394,100 @@ func postChair(c echo.Context) error {
 }
 
 func searchChairs(c echo.Context) error {
-	var chairHeight, chairWidth, chairDepth, chairPrice *Range
-	var err error
-
-	searchQueryArray := make([]string, 0)
-	queryParams := make([]interface{}, 0)
+	conditions := make([]string, 0)
+	params := make([]interface{}, 0)
 
 	if c.QueryParam("priceRangeId") != "" {
-		chairPrice, err = getRange(chairSearchCondition.Price, c.QueryParam("priceRangeId"))
+		chairPrice, err := getRange(chairSearchCondition.Price, c.QueryParam("priceRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("priceRangeID invalid, %v : %v", c.QueryParam("priceRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
 		}
 
 		if chairPrice.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "price >= ? ")
-			queryParams = append(queryParams, chairPrice.Min)
+			conditions = append(conditions, "price >= ?")
+			params = append(params, chairPrice.Min)
 		}
 		if chairPrice.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "price < ? ")
-			queryParams = append(queryParams, chairPrice.Max)
+			conditions = append(conditions, "price < ?")
+			params = append(params, chairPrice.Max)
 		}
 	}
 
 	if c.QueryParam("heightRangeId") != "" {
-		chairHeight, err = getRange(chairSearchCondition.Height, c.QueryParam("heightRangeId"))
+		chairHeight, err := getRange(chairSearchCondition.Height, c.QueryParam("heightRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("heightRangeIf invalid, %v : %v", c.QueryParam("heightRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
 		}
 
 		if chairHeight.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "height >= ? ")
-			queryParams = append(queryParams, chairHeight.Min)
+			conditions = append(conditions, "height >= ?")
+			params = append(params, chairHeight.Min)
 		}
 		if chairHeight.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "height < ? ")
-			queryParams = append(queryParams, chairHeight.Max)
+			conditions = append(conditions, "height < ?")
+			params = append(params, chairHeight.Max)
 		}
 	}
 
 	if c.QueryParam("widthRangeId") != "" {
-		chairWidth, err = getRange(chairSearchCondition.Width, c.QueryParam("widthRangeId"))
+		chairWidth, err := getRange(chairSearchCondition.Width, c.QueryParam("widthRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("widthRangeID invalid, %v : %v", c.QueryParam("widthRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
 		}
 
 		if chairWidth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "width >= ? ")
-			queryParams = append(queryParams, chairWidth.Min)
+			conditions = append(conditions, "width >= ?")
+			params = append(params, chairWidth.Min)
 		}
 		if chairWidth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "width < ? ")
-			queryParams = append(queryParams, chairWidth.Max)
+			conditions = append(conditions, "width < ?")
+			params = append(params, chairWidth.Max)
 		}
 	}
 
 	if c.QueryParam("depthRangeId") != "" {
-		chairDepth, err = getRange(chairSearchCondition.Depth, c.QueryParam("depthRangeId"))
+		chairDepth, err := getRange(chairSearchCondition.Depth, c.QueryParam("depthRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("depthRangeId invalid, %v : %v", c.QueryParam("depthRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
 		}
 
 		if chairDepth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "depth >= ? ")
-			queryParams = append(queryParams, chairDepth.Min)
+			conditions = append(conditions, "depth >= ?")
+			params = append(params, chairDepth.Min)
 		}
 		if chairDepth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "depth < ? ")
-			queryParams = append(queryParams, chairDepth.Max)
+			conditions = append(conditions, "depth < ?")
+			params = append(params, chairDepth.Max)
 		}
 	}
 
 	if c.QueryParam("kind") != "" {
-		searchQueryArray = append(searchQueryArray, "kind = ?")
-		queryParams = append(queryParams, c.QueryParam("kind"))
+		conditions = append(conditions, "kind = ?")
+		params = append(params, c.QueryParam("kind"))
 	}
 
 	if c.QueryParam("color") != "" {
-		searchQueryArray = append(searchQueryArray, "color = ?")
-		queryParams = append(queryParams, c.QueryParam("color"))
+		conditions = append(conditions, "color = ?")
+		params = append(params, c.QueryParam("color"))
 	}
 
 	if c.QueryParam("features") != "" {
 		for _, f := range strings.Split(c.QueryParam("features"), ",") {
-			searchQueryArray = append(searchQueryArray, "features LIKE CONCAT('%', ?, '%')")
-			queryParams = append(queryParams, f)
+			conditions = append(conditions, "features LIKE CONCAT('%', ?, '%')")
+			params = append(params, f)
 		}
 	}
 
-	if len(searchQueryArray) == 0 {
+	if len(conditions) == 0 {
 		c.Echo().Logger.Infof("Search condition not found")
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	searchQueryArray = append(searchQueryArray, "stock > 0")
+	conditions = append(conditions, "stock > 0")
 
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil {
@@ -504,23 +501,21 @@ func searchChairs(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	var res ChairSearchResponse
-	res.Chairs = []Chair{}
-	query := "SELECT * FROM chair WHERE "
-	searchCondition := strings.Join(searchQueryArray, " AND ")
-
+	searchQuery := "SELECT * FROM chair WHERE "
+	countQuery := "SELECT COUNT(*) FROM chair WHERE "
+	searchCondition := strings.Join(conditions, " AND ")
 	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
 
-	countQuery := "SELECT COUNT(*) FROM chair WHERE "
-	err = db.Get(&res.Count, countQuery+searchCondition, queryParams...)
+	var res ChairSearchResponse
+	err = db.Get(&res.Count, countQuery+searchCondition, params...)
 	if err != nil {
 		c.Logger().Errorf("searchChairs DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	chairs := []Chair{}
-	queryParams = append(queryParams, perPage, page*perPage)
-	err = db.Select(&chairs, query+searchCondition+limitOffset, queryParams...)
+	params = append(params, perPage, page*perPage)
+	err = db.Select(&chairs, searchQuery+searchCondition+limitOffset, params...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusOK, ChairSearchResponse{Count: 0, Chairs: []Chair{}})
@@ -529,9 +524,7 @@ func searchChairs(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	for _, chair := range chairs {
-		res.Chairs = append(res.Chairs, chair)
-	}
+	res.Chairs = chairs
 
 	return c.JSON(http.StatusOK, res)
 }
@@ -711,72 +704,68 @@ func postEstate(c echo.Context) error {
 }
 
 func searchEstates(c echo.Context) error {
-	var doorHeight, doorWidth, estateRent *Range
-	var err error
-
-	searchQueryArray := make([]string, 0)
-	var searchQueryParameter []interface{}
+	conditions := make([]string, 0)
+	params := make([]interface{}, 0)
 
 	if c.QueryParam("doorHeightRangeId") != "" {
-		doorHeight, err = getRange(estateSearchCondition.DoorHeight, c.QueryParam("doorHeightRangeId"))
+		doorHeight, err := getRange(estateSearchCondition.DoorHeight, c.QueryParam("doorHeightRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("doorHeightRangeID invalid, %v : %v", c.QueryParam("doorHeightRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
 		}
 
 		if doorHeight.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "door_height >= ? ")
-			searchQueryParameter = append(searchQueryParameter, doorHeight.Min)
+			conditions = append(conditions, "door_height >= ?")
+			params = append(params, doorHeight.Min)
 		}
 		if doorHeight.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "door_height < ? ")
-			searchQueryParameter = append(searchQueryParameter, doorHeight.Max)
+			conditions = append(conditions, "door_height < ?")
+			params = append(params, doorHeight.Max)
 		}
 	}
 
 	if c.QueryParam("doorWidthRangeId") != "" {
-		doorWidth, err = getRange(estateSearchCondition.DoorWidth, c.QueryParam("doorWidthRangeId"))
+		doorWidth, err := getRange(estateSearchCondition.DoorWidth, c.QueryParam("doorWidthRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("doorWidthRangeID invalid, %v : %v", c.QueryParam("doorWidthRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
 		}
 
 		if doorWidth.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "door_width >= ? ")
-			searchQueryParameter = append(searchQueryParameter, doorWidth.Min)
+			conditions = append(conditions, "door_width >= ?")
+			params = append(params, doorWidth.Min)
 		}
 		if doorWidth.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "door_width < ? ")
-			searchQueryParameter = append(searchQueryParameter, doorWidth.Max)
+			conditions = append(conditions, "door_width < ?")
+			params = append(params, doorWidth.Max)
 		}
 	}
 
 	if c.QueryParam("rentRangeId") != "" {
-		estateRent, err = getRange(estateSearchCondition.Rent, c.QueryParam("rentRangeId"))
+		estateRent, err := getRange(estateSearchCondition.Rent, c.QueryParam("rentRangeId"))
 		if err != nil {
 			c.Echo().Logger.Infof("rentRangeID invalid, %v : %v", c.QueryParam("rentRangeId"), err)
 			return c.NoContent(http.StatusBadRequest)
 		}
 
 		if estateRent.Min != -1 {
-			searchQueryArray = append(searchQueryArray, "rent >= ? ")
-			searchQueryParameter = append(searchQueryParameter, estateRent.Min)
+			conditions = append(conditions, "rent >= ?")
+			params = append(params, estateRent.Min)
 		}
 		if estateRent.Max != -1 {
-			searchQueryArray = append(searchQueryArray, "rent < ? ")
-			searchQueryParameter = append(searchQueryParameter, estateRent.Max)
+			conditions = append(conditions, "rent < ?")
+			params = append(params, estateRent.Max)
 		}
-
 	}
 
 	if c.QueryParam("features") != "" {
 		for _, f := range strings.Split(c.QueryParam("features"), ",") {
-			searchQueryArray = append(searchQueryArray, "features like concat('%', ?, '%')")
-			searchQueryParameter = append(searchQueryParameter, f)
+			conditions = append(conditions, "features like concat('%', ?, '%')")
+			params = append(params, f)
 		}
 	}
 
-	if len(searchQueryArray) == 0 {
+	if len(conditions) == 0 {
 		c.Echo().Logger.Infof("searchEstates search condition not found")
 		return c.NoContent(http.StatusBadRequest)
 	}
@@ -793,23 +782,21 @@ func searchEstates(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	var res EstateSearchResponse
-	res.Estates = []Estate{}
-	query := "SELECT * FROM estate WHERE "
-	searchQuery := strings.Join(searchQueryArray, " AND ")
-
+	searchQuery := "SELECT * FROM estate WHERE "
+	countQuery := "SELECT COUNT(*) FROM estate WHERE "
+	searchCondition := strings.Join(conditions, " AND ")
 	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
 
-	countQuery := "SELECT COUNT(*) FROM estate WHERE "
-	err = db.Get(&res.Count, countQuery+searchQuery, searchQueryParameter...)
+	var res EstateSearchResponse
+	err = db.Get(&res.Count, countQuery+searchCondition, params...)
 	if err != nil {
 		c.Logger().Errorf("searchEstates DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	estates := []Estate{}
-	searchQueryParameter = append(searchQueryParameter, perPage, page*perPage)
-	err = db.Select(&estates, query+searchQuery+limitOffset, searchQueryParameter...)
+	params = append(params, perPage, page*perPage)
+	err = db.Select(&estates, searchQuery+searchCondition+limitOffset, params...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusOK, EstateSearchResponse{Count: 0, Estates: []Estate{}})
@@ -818,9 +805,7 @@ func searchEstates(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	for _, e := range estates {
-		res.Estates = append(res.Estates, e)
-	}
+	res.Estates = estates
 
 	return c.JSON(http.StatusOK, res)
 }
