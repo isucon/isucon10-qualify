@@ -8,10 +8,9 @@ const path = require("path");
 const cp = require("child_process");
 const util = require("util");
 const os = require("os");
-const fs = require("fs").promises;
 const parse = require('csv-parse/lib/sync');
 const camelcaseKeys = require("camelcase-keys");
-const upload = multer({ dest: os.tmpdir() });
+const upload = multer();
 const promisify = util.promisify;
 const exec = promisify(cp.exec);
 const chairSearchCondition = require("../fixture/chair_condition.json");
@@ -501,8 +500,7 @@ app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     await connection.beginTransaction();
-    const content = await fs.readFile(req.file.path);
-    const csv = parse(content, { skip_empty_line: true });
+    const csv = parse(req.file.buffer, { skip_empty_line: true });
     for (var i=1;i<csv.length;i++) {
       const items = csv[i];
       await query("INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", items);
@@ -524,8 +522,7 @@ app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     await connection.beginTransaction();
-    const content = await fs.readFile(req.file.path);
-    const csv = parse(content, { skip_empty_line: true });
+    const csv = parse(req.file.buffer, { skip_empty_line: true });
     for (var i=1;i<csv.length;i++) {
       const items = csv[i];
       await query("INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", items);
