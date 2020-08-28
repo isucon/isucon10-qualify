@@ -495,7 +495,7 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
   } 
 });
 
-app.post("/api/chair", upload.single("chair"), async (req, res, next) => {
+app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
   const getConnection = promisify(db.getConnection.bind(db));
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
@@ -503,21 +503,22 @@ app.post("/api/chair", upload.single("chair"), async (req, res, next) => {
     await connection.beginTransaction();
     const content = await fs.readFile(req.file.path);
     const csv = parse(content, { skip_empty_line: true });
-    console.log(csv);
     for (var i=1;i<csv.length;i++) {
       const items = csv[i];
       await query("INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", items);
     }
     await connection.commit();
+    res.status(201);
+    res.json({ ok: true });
   } catch (e) {
     await connection.rollback();
     next(e);
   } finally {
     await connection.release();
-  } 
+  }
 });
 
-app.post("/api/estate", upload.single("estate"), async (req, res, next) => {
+app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
   const getConnection = promisify(db.getConnection.bind(db));
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
@@ -525,12 +526,13 @@ app.post("/api/estate", upload.single("estate"), async (req, res, next) => {
     await connection.beginTransaction();
     const content = await fs.readFile(req.file.path);
     const csv = parse(content, { skip_empty_line: true });
-    console.log(csv);
     for (var i=1;i<csv.length;i++) {
       const items = csv[i];
       await query("INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", items);
     }
     await connection.commit();
+    res.status(201);
+    res.json({ ok: true });
   } catch (e) {
     await connection.rollback();
     next(e);
