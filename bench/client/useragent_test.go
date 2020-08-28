@@ -9,15 +9,15 @@ import (
 )
 
 var botUserAgentRegExpList []*regexp.Regexp = []*regexp.Regexp{
-	regexp.MustCompile(`Isuuglebot(-Mobile)?`),
-	regexp.MustCompile(`Isuuglebot-Image\/`),
-	regexp.MustCompile(`Mediapartners-Isuugle`),
-	regexp.MustCompile(`IsuhooSlurp`),
-	regexp.MustCompile(`IsuhooFeedSeeker(Beta)?Jp`),
-	regexp.MustCompile(`crawler \(http:\/\/(listing\.isuhoo\.co\.jp\/support\/faq\/|help\.isuhoo\.co\.jp\/help\/jp\/)`),
-	regexp.MustCompile(`isuingbot`),
-	regexp.MustCompile(`Baisuspider`),
-	regexp.MustCompile(`Baisuspider(-image)?\+`),
+	regexp.MustCompile(`ISUCONbot(-Mobile)?`),
+	regexp.MustCompile(`ISUCONbot-Image\/`),
+	regexp.MustCompile(`Mediapartners-ISUCON`),
+	regexp.MustCompile(`ISUCONCoffee`),
+	regexp.MustCompile(`ISUCONFeedSeeker(Beta)?`),
+	regexp.MustCompile(`crawler \(https:\/\/isucon\.invalid\/(support\/faq\/|help\/jp\/)`),
+	regexp.MustCompile(`isubot`),
+	regexp.MustCompile(`Isupider`),
+	regexp.MustCompile(`Isupider(-image)?\+`),
 	regexp.MustCompile(`(?i)(bot|crawler|spider)(?:[-_ .\/;@()]|$)`),
 }
 
