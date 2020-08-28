@@ -529,10 +529,6 @@ func searchChairs(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func sendEmail(email string) {
-	// Not implemented
-}
-
 func buyChair(c echo.Context) error {
 	m := echo.Map{}
 	if err := c.Bind(&m); err != nil {
@@ -540,7 +536,7 @@ func buyChair(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	email, ok := m["email"].(string)
+	_, ok := m["email"].(string)
 	if !ok {
 		c.Echo().Logger.Info("post request document failed : email not found in request body")
 		return c.NoContent(http.StatusBadRequest)
@@ -582,7 +578,6 @@ func buyChair(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	sendEmail(email)
 	return c.NoContent(http.StatusOK)
 }
 
@@ -925,7 +920,7 @@ func postEstateRequestDocument(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	email, ok := m["email"].(string)
+	_, ok := m["email"].(string)
 	if !ok {
 		c.Echo().Logger.Info("post request document failed : email not found in request body")
 		return c.NoContent(http.StatusBadRequest)
@@ -949,7 +944,6 @@ func postEstateRequestDocument(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	sendEmail(email)
 	return c.NoContent(http.StatusOK)
 }
 
