@@ -605,13 +605,7 @@ func getLowPricedChair(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	var rc ChairListResponse
-
-	for _, chair := range chairs {
-		rc.Chairs = append(rc.Chairs, chair)
-	}
-
-	return c.JSON(http.StatusOK, rc)
+	return c.JSON(http.StatusOK, ChairListResponse{Chairs: chairs})
 }
 
 func getEstateDetail(c echo.Context) error {
@@ -824,13 +818,8 @@ func getLowPricedEstate(c echo.Context) error {
 		c.Logger().Errorf("getLowPricedEstate DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	var re EstateListResponse
 
-	for _, estate := range estates {
-		re.Estates = append(re.Estates, estate)
-	}
-
-	return c.JSON(http.StatusOK, re)
+	return c.JSON(http.StatusOK, EstateListResponse{Estates: estates})
 }
 
 func searchRecommendedEstateWithChair(c echo.Context) error {
@@ -867,13 +856,7 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	var re EstateListResponse
-
-	for _, estate := range estates {
-		re.Estates = append(re.Estates, estate)
-	}
-
-	return c.JSON(http.StatusOK, re)
+	return c.JSON(http.StatusOK, EstateListResponse{Estates: estates})
 }
 
 func searchEstateNazotte(c echo.Context) error {
@@ -925,11 +908,10 @@ func searchEstateNazotte(c echo.Context) error {
 
 	var re EstateSearchResponse
 	re.Estates = []Estate{}
-	for i, estate := range estatesInPolygon {
-		if i >= NazotteLimit {
-			break
-		}
-		re.Estates = append(re.Estates, estate)
+	if len(estatesInPolygon) > NazotteLimit {
+		re.Estates = estatesInPolygon[:NazotteLimit]
+	} else {
+		re.Estates = estatesInPolygon
 	}
 	re.Count = int64(len(re.Estates))
 
