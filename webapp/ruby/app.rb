@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'mysql2'
 require 'mysql2-cs-bind'
+require 'csv'
 
 class App < Sinatra::Base
   LIMIT = 20
@@ -60,5 +61,28 @@ class App < Sinatra::Base
     end
 
     chair.to_json
+  end
+
+  post '/api/chair' do
+    if !params[:chairs] || !params[:chairs].respond_to?(:key) || !params[:chairs].key?(:tempfile)
+      logger.error 'Failed to get form file'
+      halt 400
+    end
+
+    db.query('BEGIN')
+    begin
+      CSV.parse(params[:chairs][:tempfile].read) do |row|
+        sql = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        db.xquery(sql, *row)
+      end
+    rescue => e
+      db.query('ROLLBACK')
+      logger.error("Failed to commit tx: #{e.inspect}")
+      halt 500
+    end
+
+    db.query('COMMIT')
+
+    status 201
   end
 end
