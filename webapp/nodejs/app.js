@@ -1,10 +1,17 @@
+"use strict";
+
 const express = require("express");
 const morgan = require("morgan");
+const multer = require("multer");
 const mysql = require("mysql");
 const path = require("path");
 const cp = require("child_process");
 const util = require("util");
+const os = require("os");
+const fs = require("fs").promises;
+const parse = require('csv-parse/lib/sync');
 const camelcaseKeys = require("camelcase-keys");
+const upload = multer({ dest: os.tmpdir() });
 const promisify = util.promisify;
 const exec = promisify(cp.exec);
 const chairSearchCondition = require("../fixture/chair_condition.json");
@@ -482,6 +489,50 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
     const estates = es.map((estate) => camelcaseKeys(estate)); 
     res.json({ estates });
   } catch (e) {
+    next(e);
+  } finally {
+    await connection.release();
+  } 
+});
+
+app.post("/api/chair", upload.single("chair"), async (req, res, next) => {
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    await connection.beginTransaction();
+    const content = await fs.readFile(req.file.path);
+    const csv = parse(content, { skip_empty_line: true });
+    console.log(csv);
+    for (var i=1;i<csv.length;i++) {
+      const items = csv[i];
+      await query("INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", items);
+    }
+    await connection.commit();
+  } catch (e) {
+    await connection.rollback();
+    next(e);
+  } finally {
+    await connection.release();
+  } 
+});
+
+app.post("/api/estate", upload.single("estate"), async (req, res, next) => {
+  const getConnection = promisify(db.getConnection.bind(db));
+  const connection = await getConnection();
+  const query = promisify(connection.query.bind(connection));
+  try {
+    await connection.beginTransaction();
+    const content = await fs.readFile(req.file.path);
+    const csv = parse(content, { skip_empty_line: true });
+    console.log(csv);
+    for (var i=1;i<csv.length;i++) {
+      const items = csv[i];
+      await query("INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", items);
+    }
+    await connection.commit();
+  } catch (e) {
+    await connection.rollback();
     next(e);
   } finally {
     await connection.release();
