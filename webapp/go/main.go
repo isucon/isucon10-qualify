@@ -20,11 +20,11 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-const LIMIT = 20
-const NAZOTTE_LIMIT = 50
+const Limit = 20
+const NazotteLimit = 50
 
 var db *sqlx.DB
-var MySQLConnectionData *MySQLConnectionEnv
+var mySQLConnectionData *MySQLConnectionEnv
 var chairSearchCondition ChairSearchCondition
 var estateSearchCondition EstateSearchCondition
 
@@ -269,10 +269,10 @@ func main() {
 	e.GET("/api/estate/search/condition", getEstateSearchCondition)
 	e.GET("/api/recommended_estate/:id", searchRecommendedEstateWithChair)
 
-	MySQLConnectionData = NewMySQLConnectionEnv()
+	mySQLConnectionData = NewMySQLConnectionEnv()
 
 	var err error
-	db, err = MySQLConnectionData.ConnectDB()
+	db, err = mySQLConnectionData.ConnectDB()
 	if err != nil {
 		e.Logger.Fatalf("DB connection failed : %v", err)
 	}
@@ -285,23 +285,23 @@ func main() {
 }
 
 func initialize(c echo.Context) error {
-	fpathprefix := filepath.Join("..", "mysql", "db")
+	sqlDir := filepath.Join("..", "mysql", "db")
 	paths := []string{
-		filepath.Join(fpathprefix, "0_Schema.sql"),
-		filepath.Join(fpathprefix, "1_DummyEstateData.sql"),
-		filepath.Join(fpathprefix, "2_DummyChairData.sql"),
+		filepath.Join(sqlDir, "0_Schema.sql"),
+		filepath.Join(sqlDir, "1_DummyEstateData.sql"),
+		filepath.Join(sqlDir, "2_DummyChairData.sql"),
 	}
 
 	for _, p := range paths {
 		sqlFile, _ := filepath.Abs(p)
-		cmdstr := fmt.Sprintf("mysql -h %v -u %v -p%v %v < %v",
-			MySQLConnectionData.Host,
-			MySQLConnectionData.User,
-			MySQLConnectionData.Password,
-			MySQLConnectionData.DBName,
+		cmdStr := fmt.Sprintf("mysql -h %v -u %v -p%v %v < %v",
+			mySQLConnectionData.Host,
+			mySQLConnectionData.User,
+			mySQLConnectionData.Password,
+			mySQLConnectionData.DBName,
 			sqlFile,
 		)
-		if err := exec.Command("bash", "-c", cmdstr).Run(); err != nil {
+		if err := exec.Command("bash", "-c", cmdStr).Run(); err != nil {
 			c.Logger().Errorf("Initialize script error : %v", err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
@@ -320,8 +320,8 @@ func getChairDetail(c echo.Context) error {
 	}
 
 	chair := Chair{}
-	sqlstr := "SELECT * FROM chair WHERE id = ?"
-	err = db.Get(&chair, sqlstr, id)
+	query := "SELECT * FROM chair WHERE id = ?"
+	err = db.Get(&chair, query, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Echo().Logger.Infof("requested id's chair not found : %v", id)
@@ -498,7 +498,7 @@ func searchChairs(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	perpage, err := strconv.Atoi(c.QueryParam("perPage"))
+	perPage, err := strconv.Atoi(c.QueryParam("perPage"))
 	if err != nil {
 		c.Logger().Infof("Invalid format perPage parameter : %v", err)
 		return c.NoContent(http.StatusBadRequest)
@@ -506,21 +506,21 @@ func searchChairs(c echo.Context) error {
 
 	var res ChairSearchResponse
 	res.Chairs = []Chair{}
-	sqlstr := "SELECT * FROM chair WHERE "
+	query := "SELECT * FROM chair WHERE "
 	searchCondition := strings.Join(searchQueryArray, " AND ")
 
 	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
 
-	countsql := "SELECT COUNT(*) FROM chair WHERE "
-	err = db.Get(&res.Count, countsql+searchCondition, queryParams...)
+	countQuery := "SELECT COUNT(*) FROM chair WHERE "
+	err = db.Get(&res.Count, countQuery+searchCondition, queryParams...)
 	if err != nil {
 		c.Logger().Errorf("searchChairs DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	chairs := []Chair{}
-	queryParams = append(queryParams, perpage, page*perpage)
-	err = db.Select(&chairs, sqlstr+searchCondition+limitOffset, queryParams...)
+	queryParams = append(queryParams, perPage, page*perPage)
+	err = db.Select(&chairs, query+searchCondition+limitOffset, queryParams...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusOK, ChairSearchResponse{Count: 0, Chairs: []Chair{}})
@@ -600,9 +600,9 @@ func getChairSearchCondition(c echo.Context) error {
 func getLowPricedChair(c echo.Context) error {
 	var chairs []Chair
 
-	sqlstr := `SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?`
+	query := `SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?`
 
-	err := db.Select(&chairs, sqlstr, LIMIT)
+	err := db.Select(&chairs, query, Limit)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Logger().Error("getLowPricedChair not found")
@@ -787,7 +787,7 @@ func searchEstates(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	perpage, err := strconv.Atoi(c.QueryParam("perPage"))
+	perPage, err := strconv.Atoi(c.QueryParam("perPage"))
 	if err != nil {
 		c.Logger().Infof("Invalid format perPage parameter : %v", err)
 		return c.NoContent(http.StatusBadRequest)
@@ -795,21 +795,21 @@ func searchEstates(c echo.Context) error {
 
 	var res EstateSearchResponse
 	res.Estates = []Estate{}
-	sqlstr := "SELECT * FROM estate WHERE "
+	query := "SELECT * FROM estate WHERE "
 	searchQuery := strings.Join(searchQueryArray, " AND ")
 
 	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
 
-	countsql := "SELECT COUNT(*) FROM estate WHERE "
-	err = db.Get(&res.Count, countsql+searchQuery, searchQueryParameter...)
+	countQuery := "SELECT COUNT(*) FROM estate WHERE "
+	err = db.Get(&res.Count, countQuery+searchQuery, searchQueryParameter...)
 	if err != nil {
 		c.Logger().Errorf("searchEstates DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	estates := []Estate{}
-	searchQueryParameter = append(searchQueryParameter, perpage, page*perpage)
-	err = db.Select(&estates, sqlstr+searchQuery+limitOffset, searchQueryParameter...)
+	searchQueryParameter = append(searchQueryParameter, perPage, page*perPage)
+	err = db.Select(&estates, query+searchQuery+limitOffset, searchQueryParameter...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusOK, EstateSearchResponse{Count: 0, Estates: []Estate{}})
@@ -826,11 +826,11 @@ func searchEstates(c echo.Context) error {
 }
 
 func getLowPricedEstate(c echo.Context) error {
-	estates := make([]Estate, 0, LIMIT)
+	estates := make([]Estate, 0, Limit)
 
-	sqlstr := `SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?`
+	query := `SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?`
 
-	err := db.Select(&estates, sqlstr, LIMIT)
+	err := db.Select(&estates, query, Limit)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Logger().Error("getLowPricedEstate not found")
@@ -856,9 +856,9 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 	}
 
 	chair := Chair{}
-	sqlstr := `SELECT * FROM chair WHERE id = ?`
+	query := `SELECT * FROM chair WHERE id = ?`
 
-	err = db.Get(&chair, sqlstr, id)
+	err = db.Get(&chair, query, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.Logger().Infof("Requested chair id \"%v\" not found", id)
@@ -872,8 +872,8 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 	w := chair.Width
 	h := chair.Height
 	d := chair.Depth
-	sqlstr = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?`
-	err = db.Select(&estates, sqlstr, w, h, w, d, h, w, h, d, d, w, d, h, LIMIT)
+	query = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?`
+	err = db.Select(&estates, query, w, h, w, d, h, w, h, d, d, w, d, h, Limit)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusOK, EstateListResponse{[]Estate{}})
@@ -906,9 +906,9 @@ func searchEstateNazotte(c echo.Context) error {
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []Estate{}
 
-	sqlstr := `SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC`
+	query := `SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC`
 
-	err = db.Select(&estatesInBoundingBox, sqlstr, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
+	err = db.Select(&estatesInBoundingBox, query, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Infof("select * from estate where latitude ...", err)
 		return c.JSON(http.StatusOK, EstateSearchResponse{Count: 0, Estates: []Estate{}})
@@ -922,10 +922,10 @@ func searchEstateNazotte(c echo.Context) error {
 		validatedEstate := Estate{}
 
 		point := fmt.Sprintf("'POINT(%f %f)'", estate.Latitude, estate.Longitude)
-		sqlstr := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))`
-		sqlstr = fmt.Sprintf(sqlstr, coordinates.coordinatesToText(), point)
+		query := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))`
+		query = fmt.Sprintf(query, coordinates.coordinatesToText(), point)
 
-		err = db.Get(&validatedEstate, sqlstr, estate.ID)
+		err = db.Get(&validatedEstate, query, estate.ID)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				continue
@@ -941,7 +941,7 @@ func searchEstateNazotte(c echo.Context) error {
 	var re EstateSearchResponse
 	re.Estates = []Estate{}
 	for i, estate := range estatesInPolygon {
-		if i >= NAZOTTE_LIMIT {
+		if i >= NazotteLimit {
 			break
 		}
 		re.Estates = append(re.Estates, estate)
@@ -970,10 +970,10 @@ func postEstateRequestDocument(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	sqlstr := `SELECT * FROM estate WHERE id = ?`
+	query := `SELECT * FROM estate WHERE id = ?`
 
 	estate := Estate{}
-	err = db.Get(&estate, sqlstr, id)
+	err = db.Get(&estate, query, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.NoContent(http.StatusNotFound)
@@ -1019,9 +1019,9 @@ func (cs Coordinates) getBoundingBox() BoundingBox {
 }
 
 func (cs Coordinates) coordinatesToText() string {
-	PolygonArray := make([]string, 0, len(cs.Coordinates))
+	points := make([]string, 0, len(cs.Coordinates))
 	for _, c := range cs.Coordinates {
-		PolygonArray = append(PolygonArray, fmt.Sprintf("%f %f", c.Latitude, c.Longitude))
+		points = append(points, fmt.Sprintf("%f %f", c.Latitude, c.Longitude))
 	}
-	return fmt.Sprintf("'POLYGON((%s))'", strings.Join(PolygonArray, ","))
+	return fmt.Sprintf("'POLYGON((%s))'", strings.Join(points, ","))
 }
