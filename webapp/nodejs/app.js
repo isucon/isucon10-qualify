@@ -56,13 +56,13 @@ app.get("/api/estate/low_priced", async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const es = await query("SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?", [LIMIT]);
-    const estates = es.map((estate) => camelcaseKeys(estate)); 
+    const estates = es.map((estate) => camelcaseKeys(estate));
     res.json({estates});
   } catch (e) {
     next(e);
   } finally {
     await connection.release();
-  } 
+  }
 });
 
 app.get("/api/chair/low_priced", async (req, res, next) => {
@@ -71,13 +71,13 @@ app.get("/api/chair/low_priced", async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const cs = await query("SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?", [LIMIT]);
-    const chairs = cs.map((chair) => camelcaseKeys(chair)); 
+    const chairs = cs.map((chair) => camelcaseKeys(chair));
     res.json({ chairs });
   } catch (e) {
     next(e);
   } finally {
     await connection.release();
-  } 
+  }
 });
 
 app.get("/api/chair/search", async (req, res, next) => {
@@ -194,7 +194,7 @@ app.get("/api/chair/search", async (req, res, next) => {
 
   const pageNum = parseInt(page, 10);
   const perPageNum = parseInt(perPage, 10);
-  
+
   const sqlprefix = "SELECT * FROM chair WHERE ";
   const searchCondition = searchQueries.join(" AND ");
   const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
@@ -349,7 +349,7 @@ app.get("/api/estate/search", async (req, res, next) => {
 
   const pageNum = parseInt(page, 10);
   const perPageNum = parseInt(perPage, 10);
-  
+
   const sqlprefix = "SELECT * FROM estate WHERE ";
   const searchCondition = searchQueries.join(" AND ");
   const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
@@ -485,13 +485,13 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
     const es = await query("SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?", [
       w, h, w, d, h, w, h, d, d, w, d, h, LIMIT
     ]);
-    const estates = es.map((estate) => camelcaseKeys(estate)); 
+    const estates = es.map((estate) => camelcaseKeys(estate));
     res.json({ estates });
   } catch (e) {
     next(e);
   } finally {
     await connection.release();
-  } 
+  }
 });
 
 app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
@@ -535,7 +535,7 @@ app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
     next(e);
   } finally {
     await connection.release();
-  } 
+  }
 });
 
 app.listen(PORT, () => {
