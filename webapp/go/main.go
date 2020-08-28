@@ -320,7 +320,7 @@ func getChairDetail(c echo.Context) error {
 	}
 
 	chair := Chair{}
-	query := "SELECT * FROM chair WHERE id = ?"
+	query := `SELECT * FROM chair WHERE id = ?`
 	err = db.Get(&chair, query, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -587,9 +587,7 @@ func getChairSearchCondition(c echo.Context) error {
 
 func getLowPricedChair(c echo.Context) error {
 	var chairs []Chair
-
 	query := `SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?`
-
 	err := db.Select(&chairs, query, Limit)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -801,9 +799,7 @@ func searchEstates(c echo.Context) error {
 
 func getLowPricedEstate(c echo.Context) error {
 	estates := make([]Estate, 0, Limit)
-
 	query := `SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?`
-
 	err := db.Select(&estates, query, Limit)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -826,7 +822,6 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 
 	chair := Chair{}
 	query := `SELECT * FROM chair WHERE id = ?`
-
 	err = db.Get(&chair, query, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -841,7 +836,7 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 	w := chair.Width
 	h := chair.Height
 	d := chair.Depth
-	query = `SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?`
+	query = `SELECT * FROM estate WHERE (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) ORDER BY popularity DESC, id ASC LIMIT ?`
 	err = db.Select(&estates, query, w, h, w, d, h, w, h, d, d, w, d, h, Limit)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -868,9 +863,7 @@ func searchEstateNazotte(c echo.Context) error {
 
 	b := coordinates.getBoundingBox()
 	estatesInBoundingBox := []Estate{}
-
 	query := `SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC`
-
 	err = db.Select(&estatesInBoundingBox, query, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Infof("select * from estate where latitude ...", err)
@@ -885,9 +878,7 @@ func searchEstateNazotte(c echo.Context) error {
 		validatedEstate := Estate{}
 
 		point := fmt.Sprintf("'POINT(%f %f)'", estate.Latitude, estate.Longitude)
-		query := `SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))`
-		query = fmt.Sprintf(query, coordinates.coordinatesToText(), point)
-
+		query := fmt.Sprintf(`SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))`, coordinates.coordinatesToText(), point)
 		err = db.Get(&validatedEstate, query, estate.ID)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -932,9 +923,8 @@ func postEstateRequestDocument(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	query := `SELECT * FROM estate WHERE id = ?`
-
 	estate := Estate{}
+	query := `SELECT * FROM estate WHERE id = ?`
 	err = db.Get(&estate, query, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
