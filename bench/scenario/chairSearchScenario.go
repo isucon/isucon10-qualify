@@ -83,6 +83,9 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 		if numOfPages == 0 {
 			continue
 		}
+		if numOfPages > parameter.LimitOfChairSearchPageDepth {
+			numOfPages = parameter.LimitOfChairSearchPageDepth
+		}
 
 		for j := 0; j < parameter.NumOfCheckChairSearchPaging; j++ {
 			q.Set("page", strconv.Itoa(rand.Intn(numOfPages)))
@@ -113,6 +116,9 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 			numOfPages = int(cr.Count) / parameter.PerPageOfChairSearch
 			if numOfPages == 0 {
 				break
+			}
+			if numOfPages > parameter.LimitOfChairSearchPageDepth {
+				numOfPages = parameter.LimitOfChairSearchPageDepth
 			}
 		}
 	}

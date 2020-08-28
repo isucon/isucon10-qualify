@@ -7,6 +7,8 @@ const (
 	NumOfSearchEstateInScenario    = 5
 	NumOfCheckChairSearchPaging    = 3
 	NumOfCheckEstateSearchPaging   = 3
+	LimitOfChairSearchPageDepth    = 5
+	LimitOfEstateSearchPageDepth   = 5
 	NumOfCheckChairDetailPage      = 7
 	NumOfCheckEstateDetailPage     = 3
 	PerPageOfChairSearch           = 30

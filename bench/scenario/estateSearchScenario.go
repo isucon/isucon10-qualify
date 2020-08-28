@@ -85,6 +85,9 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 		if numOfPages == 0 {
 			continue
 		}
+		if numOfPages > parameter.LimitOfEstateSearchPageDepth {
+			numOfPages = parameter.LimitOfEstateSearchPageDepth
+		}
 
 		for j := 0; j < parameter.NumOfCheckEstateSearchPaging; j++ {
 			q.Set("page", strconv.Itoa(rand.Intn(numOfPages)))
@@ -115,6 +118,9 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 			numOfPages = int(er.Count) / parameter.PerPageOfEstateSearch
 			if numOfPages == 0 {
 				break
+			}
+			if numOfPages > parameter.LimitOfEstateSearchPageDepth {
+				numOfPages = parameter.LimitOfEstateSearchPageDepth
 			}
 		}
 	}
