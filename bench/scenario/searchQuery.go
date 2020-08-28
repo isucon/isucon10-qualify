@@ -33,37 +33,37 @@ func createRandomChairSearchQuery() (url.Values, error) {
 	q.Set("page", "0")
 
 	for i := 0; i < paramNum; i++ {
-		r := rand.Intn(6)
+		r := rand.Intn(9)
 		if level >= 2 {
-			r = rand.Intn(7)
+			r += rand.Intn(1)
 		}
 
 		switch r {
-		case 0:
+		case 0, 1, 2:
 			priceRangeID := condition.Price.Ranges[rand.Intn(len(condition.Price.Ranges))].ID
 			q.Set("priceRangeId", strconv.FormatInt(priceRangeID, 10))
 
-		case 1:
+		case 3, 4:
 			heightRangeID := condition.Height.Ranges[rand.Intn(len(condition.Height.Ranges))].ID
 			q.Set("heightRangeId", strconv.FormatInt(heightRangeID, 10))
 
-		case 2:
+		case 5:
 			widthRangeID := condition.Width.Ranges[rand.Intn(len(condition.Width.Ranges))].ID
 			q.Set("widthRangeId", strconv.FormatInt(widthRangeID, 10))
 
-		case 3:
+		case 6:
 			depthRangeID := condition.Depth.Ranges[rand.Intn(len(condition.Depth.Ranges))].ID
 			q.Set("depthRangeId", strconv.FormatInt(depthRangeID, 10))
 
-		case 4:
+		case 7:
 			kind := condition.Kind.List[rand.Intn(len(condition.Kind.List))]
 			q.Set("kind", kind)
 
-		case 5:
+		case 8:
 			color := condition.Color.List[rand.Intn(len(condition.Color.List))]
 			q.Set("color", color)
 
-		case 6:
+		case 9:
 			features := strings.Join(randomTakeMany(condition.Feature.List, 1, 3), ",")
 			q.Set("features", features)
 		}
@@ -86,25 +86,25 @@ func createRandomEstateSearchQuery() (url.Values, error) {
 	q.Set("page", "0")
 
 	for i := 0; i < paramNum; i++ {
-		r := rand.Intn(3)
+		r := rand.Intn(5)
 		if level >= 2 {
-			r = rand.Intn(4)
+			r += rand.Intn(1)
 		}
 
 		switch r {
-		case 0:
+		case 0, 1, 2:
 			rentRangeID := condition.Rent.Ranges[rand.Intn(len(condition.Rent.Ranges))].ID
 			q.Set("rentRangeId", strconv.FormatInt(rentRangeID, 10))
 
-		case 1:
+		case 3:
 			doorHeightRangeID := condition.DoorHeight.Ranges[rand.Intn(len(condition.DoorHeight.Ranges))].ID
 			q.Set("doorHeightRangeId", strconv.FormatInt(doorHeightRangeID, 10))
 
-		case 2:
+		case 4:
 			doorWidthRangeID := condition.DoorWidth.Ranges[rand.Intn(len(condition.DoorWidth.Ranges))].ID
 			q.Set("doorWidthRangeId", strconv.FormatInt(doorWidthRangeID, 10))
 
-		case 3:
+		case 5:
 			features := strings.Join(randomTakeMany(condition.Feature.List, 1, 3), ",")
 			q.Set("features", features)
 		}
