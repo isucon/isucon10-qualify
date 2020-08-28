@@ -8,18 +8,18 @@ import (
 )
 
 var browserList []string = []string{
-	"Isuugle Nickel",
-	"Isuilla Icetanuki",
-	"Isuri Web Browser",
-	"Isuternet Explorer",
-	"Isucrosoft Edge",
+	"ISUCON Nickel",
+	"ISUCON Icetanuki",
+	"ISUCON Web Browser",
+	"ISUCON Explorer",
+	"ISUCON Edge",
 }
 
 var suffixList []string = []string{
-	"-mobile",
-	"-bottle",
-	"-alpha",
-	"-beta",
+	" mobile",
+	" bottle",
+	" alpha",
+	" beta",
 	"",
 }
 
@@ -51,48 +51,48 @@ func GenerateBotUserAgent() string {
 	case 0:
 		switch rand.Intn(2) {
 		case 0:
-			return fmt.Sprintf("Isuuglebot-Mobile-%v", uuidStr)
+			return fmt.Sprintf("ISUCONbot-Mobile-%v", uuidStr)
 		default:
-			return fmt.Sprintf("Isuuglebot-%v", uuidStr)
+			return fmt.Sprintf("ISUCONbot-%v", uuidStr)
 		}
 
 	case 1:
-		return fmt.Sprintf("Isuuglebot-Image/%v", uuidStr)
+		return fmt.Sprintf("ISUCONbot-Image/%v", uuidStr)
 
 	case 2:
-		return fmt.Sprintf("Mediapartners-Isuugle-%v", uuidStr)
+		return fmt.Sprintf("Mediapartners-ISUCON-%v", uuidStr)
 
 	case 3:
-		return fmt.Sprintf("%v-IsuhooSlurp", uuidStr)
+		return fmt.Sprintf("%v-ISUCONCoffee", uuidStr)
 
 	case 4:
 		switch rand.Intn(2) {
 		case 0:
-			return fmt.Sprintf("%v-IsuhooFeedSeekerBetaJp", uuidStr)
+			return fmt.Sprintf("%v-ISUCONFeedSeekerBeta", uuidStr)
 		default:
-			return fmt.Sprintf("%v-IsuhooFeedSeekerJp", uuidStr)
+			return fmt.Sprintf("%v-ISUCONFeedSeeker", uuidStr)
 		}
 
 	case 5:
 		switch rand.Intn(2) {
 		case 0:
-			return fmt.Sprintf("crawler (http://listing.isuhoo.co.jp/support/faq/) %v", uuidStr)
+			return fmt.Sprintf("crawler (https://isucon.invalid/support/faq/) %v", uuidStr)
 		default:
-			return fmt.Sprintf("crawler (help.isuhoo.co.jp/help/jp/) %v", uuidStr)
+			return fmt.Sprintf("crawler (https://isucon.invalid/help/jp/) %v", uuidStr)
 		}
 
 	case 6:
-		return fmt.Sprintf("isuingbot-%v", uuidStr)
+		return fmt.Sprintf("isubot-%v", uuidStr)
 
 	case 7:
-		return fmt.Sprintf("Baisuspider-%v", uuidStr)
+		return fmt.Sprintf("Isupider-%v", uuidStr)
 
 	case 8:
 		switch rand.Intn(2) {
 		case 0:
-			return fmt.Sprintf("Baisuspider-image+%v", uuidStr)
+			return fmt.Sprintf("Isupider-image+%v", uuidStr)
 		default:
-			return fmt.Sprintf("Baisuspider+%v", uuidStr)
+			return fmt.Sprintf("Isupider+%v", uuidStr)
 		}
 
 	default:
