@@ -6,6 +6,8 @@ GEM
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
     mysql2 (0.5.3)
+    mysql2-cs-bind (0.0.7)
+      mysql2
     rack (2.2.3)
     rack-protection (2.0.8.1)
       rack
@@ -29,6 +31,7 @@ PLATFORMS
 
 DEPENDENCIES
   mysql2
+  mysql2-cs-bind
   sinatra
   sinatra-contrib
 
