@@ -2,6 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     backports (3.18.2)
+    kgio (2.11.3)
     multi_json (1.15.0)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
@@ -11,6 +12,7 @@ GEM
     rack (2.2.3)
     rack-protection (2.0.8.1)
       rack
+    raindrops (0.19.1)
     ruby2_keywords (0.0.2)
     sinatra (2.0.8.1)
       mustermann (~> 1.0)
@@ -25,6 +27,9 @@ GEM
       sinatra (= 2.0.8.1)
       tilt (~> 2.0)
     tilt (2.0.10)
+    unicorn (5.6.0)
+      kgio (~> 2.6)
+      raindrops (~> 0.7)
 
 PLATFORMS
   ruby
@@ -34,6 +39,7 @@ DEPENDENCIES
   mysql2-cs-bind
   sinatra
   sinatra-contrib
+  unicorn
 
 BUNDLED WITH
    2.1.2
