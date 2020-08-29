@@ -31,6 +31,13 @@ class App < Sinatra::Base
         reconnect: true,
       )
     end
+
+    def capitalize_keys_for_estate(estate_hash)
+      estate_hash.tap do |e|
+        e['doorHeight'] = e.delete('door_height')
+        e['doorWidth'] = e.delete('door_width')
+      end
+    end
   end
 
   post '/initialize' do
@@ -263,6 +270,24 @@ class App < Sinatra::Base
 
   get '/api/chair/search/condition' do
     CHAIR_SEARCH_CONDITION.to_json
+  end
+
+  get '/api/estate/:id' do
+    id =
+      begin
+        Integer(params[:id], 10)
+      rescue ArgumentError => e
+        logger.error "Request parameter \"id\" parse error: #{e.inspect}"
+        halt 400
+      end
+
+    estate = db.xquery('SELECT * FROM estate WHERE id = ?', id).first
+    unless estate
+      logger.info "Requested id's estate not found: #{id}"
+      halt 404
+    end
+
+    capitalize_keys_for_estate(estate).to_json
   end
 
   get '/api/estate/search/condition' do
