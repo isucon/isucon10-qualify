@@ -319,6 +319,37 @@ class App < Sinatra::Base
     status 201
   end
 
+  post '/api/estate/req_doc/:id' do
+    email =
+      begin
+        body_params[:email]
+      rescue JSON::ParserError => e
+        logger.error "post request document failed: #{e.inspect}"
+        halt 400
+      end
+
+    unless email
+      logger.error 'post request document failed: email not found in request body'
+      halt 400
+    end
+
+    id =
+      begin
+        Integer(params[:id], 10)
+      rescue ArgumentError => e
+        logger.error "post request document failed: #{e.inspect}"
+        halt 400
+      end
+
+    estate = db.xquery('SELECT * FROM estate WHERE id = ?', id).first
+    unless estate
+      logger.error "Requested id's estate not found: #{id}"
+      halt 404
+    end
+
+    status 200
+  end
+
   get '/api/estate/search/condition' do
     ESTATE_SEARCH_CONDITION.to_json
   end
