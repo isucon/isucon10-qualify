@@ -272,6 +272,12 @@ class App < Sinatra::Base
     CHAIR_SEARCH_CONDITION.to_json
   end
 
+  get '/api/estate/low_priced' do
+    sql = "SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT #{LIMIT}" # XXX:
+    estates = db.xquery(sql).to_a
+    { estates: estates.map { |e| capitalize_keys_for_estate(e) } }.to_json
+  end
+
   get '/api/estate/:id' do
     id =
       begin
