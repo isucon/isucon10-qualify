@@ -10,7 +10,7 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       libzip-dev \
-      make \
+      less \
       && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

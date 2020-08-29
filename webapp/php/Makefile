@@ -5,6 +5,9 @@ help:
 
 install: \
 	dependencies \
+	build
+
+build: \
 	vendor
 
 dependencies:
