@@ -328,17 +328,20 @@ async fn post_chair(db: web::Data<Pool>, mut payload: Multipart) -> Result<HttpR
 
 #[derive(Debug, Deserialize)]
 struct SearchChairsParams {
-    #[serde(rename = "priceRangeId")]
-    price_range_id: Option<i64>,
-    #[serde(rename = "heightRangeId")]
-    height_range_id: Option<i64>,
-    #[serde(rename = "widthRangeId")]
-    width_range_id: Option<i64>,
-    #[serde(rename = "depthRangeId")]
-    depth_range_id: Option<i64>,
-    kind: Option<String>,
-    color: Option<String>,
-    features: Option<String>,
+    #[serde(rename = "priceRangeId", default)]
+    price_range_id: String,
+    #[serde(rename = "heightRangeId", default)]
+    height_range_id: String,
+    #[serde(rename = "widthRangeId", default)]
+    width_range_id: String,
+    #[serde(rename = "depthRangeId", default)]
+    depth_range_id: String,
+    #[serde(default)]
+    kind: String,
+    #[serde(default)]
+    color: String,
+    #[serde(default)]
+    features: String,
     page: i64,
     #[serde(rename = "perPage")]
     per_page: i64,
@@ -358,8 +361,10 @@ async fn search_chairs(
     let mut conditions = Vec::new();
     let mut params: Vec<mysql::Value> = Vec::new();
 
-    if let Some(price_range_id) = query_params.price_range_id {
-        if let Some(chair_price) = get_range(&chair_search_condition.price, price_range_id) {
+    if !query_params.price_range_id.is_empty() {
+        if let Some(chair_price) =
+            get_range(&chair_search_condition.price, &query_params.price_range_id)
+        {
             if chair_price.min != -1 {
                 conditions.push("price >= ?");
                 params.push(chair_price.min.into());
@@ -371,14 +376,17 @@ async fn search_chairs(
         } else {
             log::info!(
                 "priceRangeID invalid, {} : Unexpected Range ID",
-                price_range_id
+                query_params.price_range_id
             );
             return Ok(HttpResponse::BadRequest().finish());
         }
     }
 
-    if let Some(height_range_id) = query_params.height_range_id {
-        if let Some(chair_height) = get_range(&chair_search_condition.height, height_range_id) {
+    if !query_params.height_range_id.is_empty() {
+        if let Some(chair_height) = get_range(
+            &chair_search_condition.height,
+            &query_params.height_range_id,
+        ) {
             if chair_height.min != -1 {
                 conditions.push("height >= ?");
                 params.push(chair_height.min.into());
@@ -390,14 +398,16 @@ async fn search_chairs(
         } else {
             log::info!(
                 "heightRangeId invalid, {} : Unexpected Range ID",
-                height_range_id
+                query_params.height_range_id
             );
             return Ok(HttpResponse::BadRequest().finish());
         }
     }
 
-    if let Some(width_range_id) = query_params.width_range_id {
-        if let Some(chair_width) = get_range(&chair_search_condition.width, width_range_id) {
+    if !query_params.width_range_id.is_empty() {
+        if let Some(chair_width) =
+            get_range(&chair_search_condition.width, &query_params.width_range_id)
+        {
             if chair_width.min != -1 {
                 conditions.push("width >= ?");
                 params.push(chair_width.min.into());
@@ -409,14 +419,16 @@ async fn search_chairs(
         } else {
             log::info!(
                 "widthRangeId invalid, {} : Unexpected Range ID",
-                width_range_id
+                query_params.width_range_id
             );
             return Ok(HttpResponse::BadRequest().finish());
         }
     }
 
-    if let Some(depth_range_id) = query_params.depth_range_id {
-        if let Some(chair_depth) = get_range(&chair_search_condition.depth, depth_range_id) {
+    if !query_params.depth_range_id.is_empty() {
+        if let Some(chair_depth) =
+            get_range(&chair_search_condition.depth, &query_params.depth_range_id)
+        {
             if chair_depth.min != -1 {
                 conditions.push("depth >= ?");
                 params.push(chair_depth.min.into());
@@ -428,24 +440,24 @@ async fn search_chairs(
         } else {
             log::info!(
                 "depthRangeId invalid, {} : Unexpected Range ID",
-                depth_range_id
+                query_params.depth_range_id
             );
             return Ok(HttpResponse::BadRequest().finish());
         }
     }
 
-    if let Some(kind) = &query_params.kind {
+    if !query_params.kind.is_empty() {
         conditions.push("kind = ?");
-        params.push(kind.into());
+        params.push(query_params.kind.clone().into());
     }
 
-    if let Some(color) = &query_params.color {
+    if !query_params.color.is_empty() {
         conditions.push("color = ?");
-        params.push(color.into());
+        params.push(query_params.color.clone().into());
     }
 
-    if let Some(features) = &query_params.features {
-        for f in features.split(',') {
+    if !query_params.features.is_empty() {
+        for f in query_params.features.split(',') {
             conditions.push("features like concat('%', ?, '%')");
             params.push(f.into());
         }
@@ -489,11 +501,15 @@ async fn search_chairs(
     Ok(HttpResponse::Ok().json(res))
 }
 
-fn get_range(cond: &RangeCondition, range_id: i64) -> Option<&Range> {
-    if range_id < 0 || cond.ranges.len() as i64 <= range_id {
-        None
+fn get_range<'a>(cond: &'a RangeCondition, range_id: &str) -> Option<&'a Range> {
+    if let Some(range_index) = range_id.parse().ok() {
+        if range_index < 0 || cond.ranges.len() as i64 <= range_index {
+            None
+        } else {
+            Some(&cond.ranges[range_index as usize])
+        }
     } else {
-        Some(&cond.ranges[range_id as usize])
+        None
     }
 }
 
@@ -674,13 +690,14 @@ async fn post_estate(
 
 #[derive(Debug, Deserialize)]
 struct SearchEstatesParams {
-    #[serde(rename = "doorHeightRangeId")]
-    door_height_range_id: Option<i64>,
-    #[serde(rename = "doorWidthRangeId")]
-    door_width_range_id: Option<i64>,
-    #[serde(rename = "rentRangeId")]
-    rent_range_id: Option<i64>,
-    features: Option<String>,
+    #[serde(rename = "doorHeightRangeId", default)]
+    door_height_range_id: String,
+    #[serde(rename = "doorWidthRangeId", default)]
+    door_width_range_id: String,
+    #[serde(rename = "rentRangeId", default)]
+    rent_range_id: String,
+    #[serde(default)]
+    features: String,
     page: i64,
     #[serde(rename = "perPage")]
     per_page: i64,
@@ -700,10 +717,11 @@ async fn search_estates(
     let mut conditions = Vec::new();
     let mut params: Vec<mysql::Value> = Vec::new();
 
-    if let Some(door_height_range_id) = query_params.door_height_range_id {
-        if let Some(door_height) =
-            get_range(&estate_search_condition.door_height, door_height_range_id)
-        {
+    if !query_params.door_height_range_id.is_empty() {
+        if let Some(door_height) = get_range(
+            &estate_search_condition.door_height,
+            &query_params.door_height_range_id,
+        ) {
             if door_height.min != -1 {
                 conditions.push("door_height >= ?");
                 params.push(door_height.min.into());
@@ -715,16 +733,17 @@ async fn search_estates(
         } else {
             log::info!(
                 "doorHeightRangeID invalid, {} : Unexpected Range ID",
-                door_height_range_id
+                query_params.door_height_range_id
             );
             return Ok(HttpResponse::BadRequest().finish());
         }
     }
 
-    if let Some(door_width_range_id) = query_params.door_width_range_id {
-        if let Some(door_width) =
-            get_range(&estate_search_condition.door_width, door_width_range_id)
-        {
+    if !query_params.door_width_range_id.is_empty() {
+        if let Some(door_width) = get_range(
+            &estate_search_condition.door_width,
+            &query_params.door_width_range_id,
+        ) {
             if door_width.min != -1 {
                 conditions.push("door_width >= ?");
                 params.push(door_width.min.into());
@@ -736,14 +755,16 @@ async fn search_estates(
         } else {
             log::info!(
                 "doorWidthRangeID invalid, {} : Unexpected Range ID",
-                door_width_range_id
+                query_params.door_width_range_id
             );
             return Ok(HttpResponse::BadRequest().finish());
         }
     }
 
-    if let Some(rent_range_id) = query_params.rent_range_id {
-        if let Some(estate_rent) = get_range(&estate_search_condition.rent, rent_range_id) {
+    if !query_params.rent_range_id.is_empty() {
+        if let Some(estate_rent) =
+            get_range(&estate_search_condition.rent, &query_params.rent_range_id)
+        {
             if estate_rent.min != -1 {
                 conditions.push("rent >= ?");
                 params.push(estate_rent.min.into());
@@ -755,14 +776,14 @@ async fn search_estates(
         } else {
             log::info!(
                 "rentRangeID invalid, {} : Unexpected Range ID",
-                rent_range_id
+                query_params.rent_range_id
             );
             return Ok(HttpResponse::BadRequest().finish());
         }
     }
 
-    if let Some(features) = &query_params.features {
-        for f in features.split(',') {
+    if !query_params.features.is_empty() {
+        for f in query_params.features.split(',') {
             conditions.push("features like concat('%', ?, '%')");
             params.push(f.into());
         }
