@@ -2,6 +2,7 @@ version: "3"
 services:
   api-server:
     build: ./php
+    entrypoint: make run
     volumes:
       - ./fixture:/fixture
       - ./php:/php

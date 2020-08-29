@@ -17,7 +17,7 @@ dependencies:
 	type composer > /dev/null
 
 run:
-	php -S localhost:$(PORT) -t public public/index.php
+	php -S 0.0.0.0:$(PORT) -t public public/index.php
 
 vendor:
 	composer install
