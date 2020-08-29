@@ -511,4 +511,29 @@ class App < Sinatra::Base
   get '/api/estate/search/condition' do
     ESTATE_SEARCH_CONDITION.to_json
   end
+
+  get '/api/recommended_estate/:id' do
+    id =
+      begin
+        Integer(params[:id], 10)
+      rescue ArgumentError => e
+        logger.error "Request parameter \"id\" parse error: #{e.inspect}"
+        halt 400
+      end
+
+    chair = db.xquery('SELECT * FROM chair WHERE id = ?', id).first
+    unless chair
+      logger.error "Requested id's chair not found: #{id}"
+      halt 404
+    end
+
+    w = chair['width']
+    h = chair['height']
+    d = chair['depth']
+
+    sql = "SELECT * FROM estate WHERE (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) ORDER BY popularity DESC, id ASC LIMIT #{LIMIT}" # XXX:
+    estates = db.xquery(sql, w, h, w, d, h, w, h, d, d, w, d, h).to_a
+
+    { estates: estates.map { |e| capitalize_keys_for_estate(e) } }.to_json
+  end
 end
