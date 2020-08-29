@@ -220,6 +220,46 @@ class App < Sinatra::Base
     status 201
   end
 
+  post '/api/chair/buy/:id' do
+    email =
+      begin
+        body_params[:email]
+      rescue JSON::ParserError => e
+        logger.error "post buy chair failed: #{e.inspect}"
+        halt 400
+      end
+
+    unless email
+      logger.error 'post buy chair failed: email not found in request body'
+      halt 400
+    end
+
+    id =
+      begin
+        Integer(params[:id], 10)
+      rescue ArgumentError => e
+        logger.error "post buy chair failed: #{e.inspect}"
+        halt 400
+      end
+
+    db.query('BEGIN')
+    begin
+      chair = db.xquery('SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE', id).first
+      unless chair
+        halt 404
+      end
+      db.xquery('UPDATE chair SET stock = stock - 1 WHERE id = ?', id)
+    rescue => e
+      db.query('ROLLBACK')
+      logger.error("Failed to commit tx: #{e.inspect}")
+      halt 500
+    end
+
+    db.query('COMMIT')
+
+    status 200
+  end
+
   get '/api/chair/search/condition' do
     CHAIR_SEARCH_CONDITION.to_json
   end
