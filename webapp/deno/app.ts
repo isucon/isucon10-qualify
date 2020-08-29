@@ -599,7 +599,7 @@ router.post("/api/chair", async (ctx) => {
 router.post("/api/estate", async (ctx) => {
   try {
     const form = await multiParser(ctx.request.serverRequest);
-    if (!form || !form.chair) {
+    if (!form || !form.estate) {
       ctx.response.status = 400;
       ctx.response.body = "Bad Request";
       return;
