@@ -294,10 +294,11 @@ func initialize(c echo.Context) error {
 
 	for _, p := range paths {
 		sqlFile, _ := filepath.Abs(p)
-		cmdStr := fmt.Sprintf("mysql -h %v -u %v -p%v %v < %v",
+		cmdStr := fmt.Sprintf("mysql -h %v -u %v -p%v -P %v %v < %v",
 			mySQLConnectionData.Host,
 			mySQLConnectionData.User,
 			mySQLConnectionData.Password,
+			mySQLConnectionData.Port,
 			mySQLConnectionData.DBName,
 			sqlFile,
 		)
