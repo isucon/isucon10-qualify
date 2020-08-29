@@ -1,3 +1,4 @@
 public/*
 fixture/*
 !fixture/.gitkeep
+/docker-compose.override.yml

@@ -1,0 +1,7 @@
+version: "3"
+services:
+  api-server:
+    build: ./php
+    volumes:
+      - ./fixture:/fixture
+      - ./php:/php

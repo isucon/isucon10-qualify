@@ -119,11 +119,6 @@ services:
       > /etc/nginx/nginx.conf
       && nginx -g 'daemon off;'"
 
-  php:
-    build: ./php
-    volumes:
-      - ./fixture:/fixture
-
   benchmarker:
     build: ../bench
     volumes:
