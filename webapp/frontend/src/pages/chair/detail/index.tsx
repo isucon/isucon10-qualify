@@ -158,7 +158,7 @@ const ChairDetailPage = () => {
       .then(chair => setChair(chair as Chair))
       .catch(error => { throw error })
 
-    fetch(`/api/estate/low_priced/${id.toString()}`, { mode: 'cors' })
+    fetch(`/api/recommended_estate/${id.toString()}`, { mode: 'cors' })
       .then(async response => await response.json())
       .then(json => setLowPricedEstates(json.estates as Estate[]))
       .catch(error => { throw error })
