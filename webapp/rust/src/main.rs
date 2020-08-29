@@ -502,15 +502,13 @@ async fn search_chairs(
 }
 
 fn get_range<'a>(cond: &'a RangeCondition, range_id: &str) -> Option<&'a Range> {
-    if let Some(range_index) = range_id.parse().ok() {
+    range_id.parse().ok().and_then(|range_index| {
         if range_index < 0 || cond.ranges.len() as i64 <= range_index {
             None
         } else {
             Some(&cond.ranges[range_index as usize])
         }
-    } else {
-        None
-    }
+    })
 }
 
 #[derive(Debug, Serialize)]
