@@ -38,6 +38,10 @@ class App < Sinatra::Base
         e['doorWidth'] = e.delete('door_width')
       end
     end
+
+    def body_params
+      @body_params ||= JSON.parse(request.body.tap(&:rewind).read, symbolize_names: true)
+    end
   end
 
   post '/initialize' do
@@ -373,6 +377,63 @@ class App < Sinatra::Base
     estates = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
 
     { count: count, estates: estates.map { |e| capitalize_keys_for_estate(e) } }.to_json
+  end
+
+  post '/api/estate/nazotte' do
+    coordinates =
+      begin
+        body_params[:coordinates]
+      rescue JSON::ParserError => e
+        logger.error "post search estate nazotte failed: #{e.inspect}"
+        halt 400
+      end
+
+    unless coordinates
+      logger.error "post search estate nazotte failed: coordinates not found"
+      halt 400
+    end
+
+    if !coordinates.is_a?(Array) || coordinates.empty?
+      logger.error "post search estate nazotte failed: coordinates are empty"
+      halt 400
+    end
+
+    longitudes = coordinates.map { |c| c[:longitude] }
+    latitudes = coordinates.map { |c| c[:latitude] }
+    bounding_box = {
+      top_left: {
+        longitude: longitudes.min,
+        latitude: latitudes.min,
+      },
+      bottom_right: {
+        longitude: longitudes.max,
+        latitude: latitudes.max,
+      },
+    }
+
+    sql = 'SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC'
+    estates = db.xquery(sql, bounding_box[:bottom_right][:latitude], bounding_box[:top_left][:latitude], bounding_box[:bottom_right][:longitude], bounding_box[:top_left][:latitude])
+
+    estates_in_polygon = []
+    estates.each do |estate|
+      point = sprintf("'POINT(%f %f)'", estate['latitude'], estate['longitude'])
+      coordinates_to_text = sprintf("'POLYGON((%s))'", coordinates.map { |c| sprintf('%f %f', c[:latitude], c[:longitude]) }.join(','))
+      sql = sprintf(
+        'SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))',
+        coordinates_to_text,
+        point,
+      )
+      e = db.xquery(sql, estate['id']).first
+      if e
+        estates_in_polygon << e
+      end
+    end
+
+    nazotte_estates = estates_in_polygon.take(NAZOTTE_LIMIT)
+    {
+      estates: nazotte_estates.map { |e| capitalize_keys_for_estate(e) },
+      count: nazotte_estates.size,
+    }.to_json
   end
 
   get '/api/estate/:id' do
