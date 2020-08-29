@@ -5,7 +5,7 @@ help:
 
 install: \
 	dependencies \
-	../docker-composer.override.yml
+	../docker-compose.override.yml
 
 dependencies:
 	type docker > /dev/null
