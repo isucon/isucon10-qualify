@@ -296,6 +296,29 @@ class App < Sinatra::Base
     capitalize_keys_for_estate(estate).to_json
   end
 
+  post '/api/estate' do
+    unless params[:estates]
+      logger.error 'Failed to get form file'
+      halt 400
+    end
+
+    db.query('BEGIN')
+    begin
+      CSV.parse(params[:estates][:tempfile].read) do |row|
+        sql = 'INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        db.xquery(sql, *row)
+      end
+    rescue => e
+      db.query('ROLLBACK')
+      logger.error("Failed to commit tx: #{e.inspect}")
+      halt 500
+    end
+
+    db.query('COMMIT')
+
+    status 201
+  end
+
   get '/api/estate/search/condition' do
     ESTATE_SEARCH_CONDITION.to_json
   end
