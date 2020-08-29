@@ -628,7 +628,7 @@ func getRange(cond RangeCondition, rangeID string) (*Range, error) {
 		return nil, err
 	}
 
-	if RangeIndex < 0 && len(cond.Ranges) <= RangeIndex {
+	if RangeIndex < 0 || len(cond.Ranges) <= RangeIndex {
 		return nil, fmt.Errorf("Unexpected Range ID")
 	}
 
