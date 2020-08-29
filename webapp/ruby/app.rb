@@ -41,6 +41,12 @@ class App < Sinatra::Base
     { language: 'ruby' }.to_json
   end
 
+  get '/api/chair/low_priced' do
+    sql = "SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT #{LIMIT}" # XXX:
+    chairs = db.query(sql).to_a
+    { chairs: chairs }.to_json
+  end
+
   get '/api/chair/search' do
     search_queries = []
     query_params = []
