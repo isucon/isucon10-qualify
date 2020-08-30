@@ -571,7 +571,7 @@ async fn buy_chair(
     })
     .await
     .map_err(|e: BlockingDBError| {
-        log::error!("get_low_priced_chair DB execution error : {:?}", e);
+        log::error!("buy_chair DB execution error : {:?}", e);
         HttpResponse::InternalServerError()
     })?;
 
@@ -820,7 +820,7 @@ async fn search_estates(
     })
     .await
     .map_err(|e: BlockingDBError| {
-        log::error!("searchChairs DB execution error : {:?}", e);
+        log::error!("search_estates DB execution error : {:?}", e);
         HttpResponse::InternalServerError()
     })?;
     Ok(HttpResponse::Ok().json(res))
