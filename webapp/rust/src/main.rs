@@ -191,10 +191,11 @@ async fn initialize(
             mysql_connection_env.db_name,
             sql_file.display()
         );
-        let status = std::process::Command::new("bash")
+        let status = tokio::process::Command::new("bash")
             .arg("-c")
             .arg(cmd_str)
             .status()
+            .await
             .map_err(|e| {
                 log::error!("Initialize script {} failed : {:?}", p.display(), e);
                 HttpResponse::InternalServerError()
