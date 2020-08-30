@@ -254,6 +254,7 @@ async fn get_chair_detail(
     path: web::Path<(i64,)>,
 ) -> Result<HttpResponse, AWError> {
     let id = path.0;
+
     let chair: Option<Chair> = web::block(move || {
         let mut conn = db.get().expect("Failed to checkout database connection");
         conn.exec_first("select * from chair where id = ?", (id,))
@@ -263,16 +264,18 @@ async fn get_chair_detail(
         log::error!("Failed to get the chair from id : {}", e);
         HttpResponse::InternalServerError()
     })?;
-    if chair.is_none() {
+
+    if let Some(chair) = chair {
+        if chair.stock <= 0 {
+            log::info!("requested id's chair is sold out : {}", id);
+            Ok(HttpResponse::NotFound().finish())
+        } else {
+            Ok(HttpResponse::Ok().json(chair))
+        }
+    } else {
         log::info!("requested id's chair not found : {}", id);
-        return Ok(HttpResponse::NotFound().finish());
+        Ok(HttpResponse::NotFound().finish())
     }
-    let chair = chair.unwrap();
-    if chair.stock <= 0 {
-        log::info!("requested id's chair is sold out : {}", id);
-        return Ok(HttpResponse::NotFound().finish());
-    }
-    Ok(HttpResponse::Ok().json(chair))
 }
 
 async fn post_chair(db: web::Data<Pool>, mut payload: Multipart) -> Result<HttpResponse, AWError> {
@@ -646,10 +649,7 @@ async fn get_estate_detail(
     }
 }
 
-async fn post_estate(
-    db: web::Data<Pool>,
-    mut payload: actix_multipart::Multipart,
-) -> Result<HttpResponse, AWError> {
+async fn post_estate(db: web::Data<Pool>, mut payload: Multipart) -> Result<HttpResponse, AWError> {
     let mut estates = Vec::new();
     while let Ok(Some(field)) = payload.try_next().await {
         let content_disposition = field.content_disposition().unwrap();
@@ -915,36 +915,30 @@ struct Coordinate {
 
 impl Coordinates {
     fn get_bounding_box(&self) -> BoundingBox {
-        let coordinates = &self.coordinates;
-        let mut bounding_box = BoundingBox {
+        let (min_latitude, max_latitude) = self
+            .coordinates
+            .iter()
+            .map(|c| c.latitude)
+            .fold((f64::NAN, f64::NAN), |(min, max), val| {
+                (min.min(val), max.max(val))
+            });
+        let (min_longitude, max_longitude) = self
+            .coordinates
+            .iter()
+            .map(|c| c.longitude)
+            .fold((f64::NAN, f64::NAN), |(min, max), val| {
+                (min.min(val), max.max(val))
+            });
+        BoundingBox {
             top_left_corner: Coordinate {
-                latitude: coordinates[0].latitude,
-                longitude: coordinates[0].longitude,
+                latitude: min_latitude,
+                longitude: min_longitude,
             },
             bottom_right_corner: Coordinate {
-                latitude: coordinates[0].latitude,
-                longitude: coordinates[0].longitude,
+                latitude: max_latitude,
+                longitude: max_longitude,
             },
-        };
-        for coordinate in coordinates {
-            bounding_box.top_left_corner.latitude = bounding_box
-                .top_left_corner
-                .latitude
-                .min(coordinate.latitude);
-            bounding_box.top_left_corner.longitude = bounding_box
-                .top_left_corner
-                .longitude
-                .min(coordinate.longitude);
-            bounding_box.bottom_right_corner.latitude = bounding_box
-                .bottom_right_corner
-                .latitude
-                .max(coordinate.latitude);
-            bounding_box.bottom_right_corner.longitude = bounding_box
-                .bottom_right_corner
-                .longitude
-                .max(coordinate.longitude);
         }
-        bounding_box
     }
 
     fn coordinates_to_text(&self) -> String {
@@ -968,7 +962,7 @@ async fn search_estate_nazotte(
     coordinates: web::Json<Coordinates>,
 ) -> Result<HttpResponse, AWError> {
     if coordinates.coordinates.is_empty() {
-        return HttpResponse::BadRequest().await;
+        return Ok(HttpResponse::BadRequest().finish());
     }
     let bounding_box = coordinates.get_bounding_box();
 
@@ -996,9 +990,7 @@ async fn search_estate_nazotte(
         HttpResponse::InternalServerError()
     })?;
 
-    if estates.len() > NAZOTTE_LIMIT {
-        estates.truncate(NAZOTTE_LIMIT);
-    }
+    estates.truncate(NAZOTTE_LIMIT);
     Ok(HttpResponse::Ok().json(EstateSearchResponse {
         count: estates.len() as i64,
         estates,
