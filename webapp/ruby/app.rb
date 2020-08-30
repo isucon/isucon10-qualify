@@ -32,7 +32,7 @@ class App < Sinatra::Base
       )
     end
 
-    def capitalize_keys_for_estate(estate_hash)
+    def camelize_keys_for_estate(estate_hash)
       estate_hash.tap do |e|
         e['doorHeight'] = e.delete('door_height')
         e['doorWidth'] = e.delete('door_width')
@@ -279,7 +279,7 @@ class App < Sinatra::Base
   get '/api/estate/low_priced' do
     sql = "SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT #{LIMIT}" # XXX:
     estates = db.xquery(sql).to_a
-    { estates: estates.map { |e| capitalize_keys_for_estate(e) } }.to_json
+    { estates: estates.map { |e| camelize_keys_for_estate(e) } }.to_json
   end
 
   get '/api/estate/search' do
@@ -376,7 +376,7 @@ class App < Sinatra::Base
     count = db.xquery("#{count_prefix}#{search_condition}", query_params).first['count']
     estates = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
 
-    { count: count, estates: estates.map { |e| capitalize_keys_for_estate(e) } }.to_json
+    { count: count, estates: estates.map { |e| camelize_keys_for_estate(e) } }.to_json
   end
 
   post '/api/estate/nazotte' do
@@ -431,7 +431,7 @@ class App < Sinatra::Base
 
     nazotte_estates = estates_in_polygon.take(NAZOTTE_LIMIT)
     {
-      estates: nazotte_estates.map { |e| capitalize_keys_for_estate(e) },
+      estates: nazotte_estates.map { |e| camelize_keys_for_estate(e) },
       count: nazotte_estates.size,
     }.to_json
   end
@@ -451,7 +451,7 @@ class App < Sinatra::Base
       halt 404
     end
 
-    capitalize_keys_for_estate(estate).to_json
+    camelize_keys_for_estate(estate).to_json
   end
 
   post '/api/estate' do
@@ -534,7 +534,7 @@ class App < Sinatra::Base
     sql = "SELECT * FROM estate WHERE (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) ORDER BY popularity DESC, id ASC LIMIT #{LIMIT}" # XXX:
     estates = db.xquery(sql, w, h, w, d, h, w, h, d, d, w, d, h).to_a
 
-    { estates: estates.map { |e| capitalize_keys_for_estate(e) } }.to_json
+    { estates: estates.map { |e| camelize_keys_for_estate(e) } }.to_json
   end
 
   error do
