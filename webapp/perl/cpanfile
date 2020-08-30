@@ -1,0 +1,9 @@
+requires 'Cookie::Baker::XS', '0.11';
+requires 'Kossy', '0.40';
+requires 'DBD::mysql', '4.050';
+requires 'DBIx::Sunny', '0.9992';
+requires 'JSON::XS', '4.02';
+requires 'JSON::Types';
+requires 'Plack::Middleware::Session';
+requires 'Starlet';
+requires 'Text::CSV_XS', '1.44'
