@@ -279,7 +279,7 @@ async fn get_chair_detail(
 }
 
 async fn post_chair(db: web::Data<Pool>, mut payload: Multipart) -> Result<HttpResponse, AWError> {
-    let mut chairs = Vec::new();
+    let mut chairs = None;
     while let Ok(Some(field)) = payload.try_next().await {
         let content_disposition = field.content_disposition().unwrap();
         let name = content_disposition.get_name().unwrap();
@@ -291,15 +291,22 @@ async fn post_chair(db: web::Data<Pool>, mut payload: Multipart) -> Result<HttpR
             let mut reader = csv::ReaderBuilder::new()
                 .has_headers(false)
                 .from_reader(content.as_ref());
+            let mut cs = Vec::new();
             for record in reader.deserialize() {
                 let chair: Chair = record.map_err(|e| {
                     log::error!("failed to read csv: {:?}", e);
                     HttpResponse::InternalServerError()
                 })?;
-                chairs.push(chair);
+                cs.push(chair);
             }
+            chairs = Some(cs);
         }
     }
+    if chairs.is_none() {
+        log::error!("failed to get from file: no chairs given");
+        return Ok(HttpResponse::BadRequest().finish());
+    }
+    let chairs = chairs.unwrap();
 
     web::block(move || {
         let mut conn = db.get().expect("Failed to checkout database connection");
@@ -650,7 +657,7 @@ async fn get_estate_detail(
 }
 
 async fn post_estate(db: web::Data<Pool>, mut payload: Multipart) -> Result<HttpResponse, AWError> {
-    let mut estates = Vec::new();
+    let mut estates = None;
     while let Ok(Some(field)) = payload.try_next().await {
         let content_disposition = field.content_disposition().unwrap();
         let filename = content_disposition.get_filename().unwrap();
@@ -662,15 +669,22 @@ async fn post_estate(db: web::Data<Pool>, mut payload: Multipart) -> Result<Http
             let mut reader = csv::ReaderBuilder::new()
                 .has_headers(false)
                 .from_reader(content.as_ref());
+            let mut es = Vec::new();
             for record in reader.deserialize() {
                 let estate: Estate = record.map_err(|e| {
                     log::error!("failed to read csv: {:?}", e);
                     HttpResponse::InternalServerError()
                 })?;
-                estates.push(estate);
+                es.push(estate);
             }
+            estates = Some(es);
         }
     }
+    if estates.is_none() {
+        log::error!("failed to get from file: no estates given");
+        return Ok(HttpResponse::BadRequest().finish());
+    }
+    let estates = estates.unwrap();
 
     web::block(move || {
         let mut conn = db.get().expect("Failed to checkout database connection");
