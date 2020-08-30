@@ -63,7 +63,10 @@ async fn main() -> std::io::Result<()> {
             .db_name(Some(&mysql_connection_env.db_name))
             .pass(Some(&mysql_connection_env.password)),
     );
-    let pool = r2d2::Pool::new(manager).expect("Failed to create connection pool");
+    let pool = r2d2::Pool::builder()
+        .max_size(10)
+        .build(manager)
+        .expect("Failed to create connection pool");
 
     let mut listenfd = ListenFd::from_env();
     let server = HttpServer::new(move || {
