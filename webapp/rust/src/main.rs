@@ -3,14 +3,11 @@ use actix_web::{middleware, web, App, Error as AWError, HttpResponse, HttpServer
 use bytes::BytesMut;
 use futures::TryStreamExt;
 use listenfd::ListenFd;
-use mysql::prelude::*;
+use mysql_async::{prelude::*, Pool};
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs::File;
 use std::sync::Arc;
-
-type Pool = r2d2::Pool<r2d2_mysql::MysqlConnectionManager>;
-type BlockingDBError = actix_web::error::BlockingError<mysql::Error>;
 
 const LIMIT: i64 = 20;
 const NAZOTTE_LIMIT: usize = 50;
@@ -55,18 +52,18 @@ async fn main() -> std::io::Result<()> {
         Arc::new(serde_json::from_reader(file)?)
     };
 
-    let manager = r2d2_mysql::MysqlConnectionManager::new(
-        mysql::OptsBuilder::new()
-            .ip_or_hostname(Some(&mysql_connection_env.host))
+    let pool = Pool::new(
+        mysql_async::OptsBuilder::default()
+            .ip_or_hostname(&mysql_connection_env.host)
             .tcp_port(mysql_connection_env.port)
             .user(Some(&mysql_connection_env.user))
             .db_name(Some(&mysql_connection_env.db_name))
-            .pass(Some(&mysql_connection_env.password)),
+            .pass(Some(&mysql_connection_env.password))
+            .pool_opts(
+                mysql_async::PoolOpts::default()
+                    .with_constraints(mysql_async::PoolConstraints::new(10, 10).unwrap()),
+            ),
     );
-    let pool = r2d2::Pool::builder()
-        .max_size(10)
-        .build(manager)
-        .expect("Failed to create connection pool");
 
     let mut listenfd = ListenFd::from_env();
     let server = HttpServer::new(move || {
@@ -228,8 +225,8 @@ struct Chair {
 }
 
 impl FromRow for Chair {
-    fn from_row_opt(row: mysql::Row) -> Result<Self, mysql::FromRowError> {
-        fn convert(row: &mysql::Row) -> Result<Chair, ()> {
+    fn from_row_opt(row: mysql_async::Row) -> Result<Self, mysql_async::FromRowError> {
+        fn convert(row: &mysql_async::Row) -> Result<Chair, ()> {
             Ok(Chair {
                 id: row.get("id").ok_or(())?,
                 name: row.get("name").ok_or(())?,
@@ -246,8 +243,13 @@ impl FromRow for Chair {
                 stock: row.get("stock").ok_or(())?,
             })
         }
-        convert(&row).map_err(|_| mysql::FromRowError(row))
+        convert(&row).map_err(|_| mysql_async::FromRowError(row))
     }
+}
+
+fn mysql_error_to_actix_error(e: mysql_async::Error) -> AWError {
+    log::error!("MySQL error: {:?}", e);
+    HttpResponse::InternalServerError().into()
 }
 
 async fn get_chair_detail(
@@ -256,15 +258,11 @@ async fn get_chair_detail(
 ) -> Result<HttpResponse, AWError> {
     let id = path.0;
 
-    let chair: Option<Chair> = web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        conn.exec_first("select * from chair where id = ?", (id,))
-    })
-    .await
-    .map_err(|e| {
-        log::error!("Failed to get the chair from id : {}", e);
-        HttpResponse::InternalServerError()
-    })?;
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
+    let chair: Option<Chair> = conn
+        .exec_first("select * from chair where id = ?", (id,))
+        .await
+        .map_err(mysql_error_to_actix_error)?;
 
     if let Some(chair) = chair {
         if chair.stock <= 0 {
@@ -309,34 +307,30 @@ async fn post_chair(db: web::Data<Pool>, mut payload: Multipart) -> Result<HttpR
     }
     let chairs = chairs.unwrap();
 
-    web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        let mut tx = conn.start_transaction(mysql::TxOpts::default())?;
-        for chair in chairs {
-            let params: Vec<mysql::Value> = vec![
-                chair.id.into(),
-                chair.name.into(),
-                chair.description.into(),
-                chair.thumbnail.into(),
-                chair.price.into(),
-                chair.height.into(),
-                chair.width.into(),
-                chair.depth.into(),
-                chair.color.into(),
-                chair.features.into(),
-                chair.kind.into(),
-                chair.popularity.into(),
-                chair.stock.into(),
-            ];
-            tx.exec_drop("insert into chair (id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params)?;
-        }
-        tx.commit()?;
-        Ok(())
-    })
-    .await.map_err(|e: BlockingDBError| {
-        log::error!("failed to insert/commit chair: {:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
+    let mut tx = conn
+        .start_transaction(mysql_async::TxOpts::default())
+        .await
+        .map_err(mysql_error_to_actix_error)?;
+    for chair in chairs {
+        let params: Vec<mysql_async::Value> = vec![
+            chair.id.into(),
+            chair.name.into(),
+            chair.description.into(),
+            chair.thumbnail.into(),
+            chair.price.into(),
+            chair.height.into(),
+            chair.width.into(),
+            chair.depth.into(),
+            chair.color.into(),
+            chair.features.into(),
+            chair.kind.into(),
+            chair.popularity.into(),
+            chair.stock.into(),
+        ];
+        tx.exec_drop("insert into chair (id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params).await.map_err(mysql_error_to_actix_error)?;
+    }
+    tx.commit().await.map_err(mysql_error_to_actix_error)?;
     Ok(HttpResponse::Created().finish())
 }
 
@@ -373,7 +367,7 @@ async fn search_chairs(
     query_params: web::Query<SearchChairsParams>,
 ) -> Result<HttpResponse, AWError> {
     let mut conditions = Vec::new();
-    let mut params: Vec<mysql::Value> = Vec::new();
+    let mut params: Vec<mysql_async::Value> = Vec::new();
 
     if !query_params.price_range_id.is_empty() {
         if let Some(chair_price) =
@@ -488,31 +482,30 @@ async fn search_chairs(
     let page = query_params.page;
 
     let search_condition = conditions.join(" and ");
-    let res = web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        let row = conn.exec_first(
-            format!("select count(*) from chair where {}", search_condition),
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
+    let row = conn
+        .exec_first(
+            format!("select count(*) from chair where {}", search_condition).as_str(),
             &params,
-        )?;
-        let count = row.map(|(c,)| c).unwrap_or(0);
+        )
+        .await
+        .map_err(mysql_error_to_actix_error)?;
+    let count = row.map(|(c,)| c).unwrap_or(0);
 
-        params.push(per_page.into());
-        params.push((page * per_page).into());
-        let chairs = conn.exec(
+    params.push(per_page.into());
+    params.push((page * per_page).into());
+    let chairs = conn
+        .exec(
             format!(
                 "select * from chair where {} order by popularity desc, id asc limit ? offset ?",
                 search_condition
-            ),
+            )
+            .as_str(),
             &params,
-        )?;
-        Ok(ChairSearchResponse { count, chairs })
-    })
-    .await
-    .map_err(|e: BlockingDBError| {
-        log::error!("searchChairs DB execution error : {:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
-    Ok(HttpResponse::Ok().json(res))
+        )
+        .await
+        .map_err(mysql_error_to_actix_error)?;
+    Ok(HttpResponse::Ok().json(ChairSearchResponse { count, chairs }))
 }
 
 fn get_range<'a>(cond: &'a RangeCondition, range_id: &str) -> Option<&'a Range> {
@@ -531,19 +524,14 @@ struct ChairListResponse {
 }
 
 async fn get_low_priced_chair(db: web::Data<Pool>) -> Result<HttpResponse, AWError> {
-    let chairs = web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        conn.exec(
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
+    let chairs = conn
+        .exec(
             "select * from chair where stock > 0 order by price asc, id asc limit ?",
             (LIMIT,),
         )
-    })
-    .await
-    .map_err(|e| {
-        log::error!("get_low_priced_chair DB execution error : {:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
-
+        .await
+        .map_err(mysql_error_to_actix_error)?;
     Ok(HttpResponse::Ok().json(ChairListResponse { chairs }))
 }
 
@@ -565,28 +553,23 @@ async fn buy_chair(
 ) -> Result<HttpResponse, AWError> {
     let id = path.0;
 
-    let found: bool = web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        let mut tx = conn.start_transaction(mysql::TxOpts::default())?;
-        let row: Option<Chair> = tx.exec_first(
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
+    let mut tx = conn
+        .start_transaction(mysql_async::TxOpts::default())
+        .await
+        .map_err(mysql_error_to_actix_error)?;
+    let row: Option<Chair> = tx
+        .exec_first(
             "select * from chair where id = ? and stock > 0 for update",
             (id,),
-        )?;
-        if row.is_some() {
-            tx.exec_drop("update chair set stock = stock - 1 where id = ?", (id,))?;
-            tx.commit()?;
-            Ok(true)
-        } else {
-            Ok(false)
-        }
-    })
-    .await
-    .map_err(|e: BlockingDBError| {
-        log::error!("buy_chair DB execution error : {:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
-
-    if found {
+        )
+        .await
+        .map_err(mysql_error_to_actix_error)?;
+    if row.is_some() {
+        tx.exec_drop("update chair set stock = stock - 1 where id = ?", (id,))
+            .await
+            .map_err(mysql_error_to_actix_error)?;
+        tx.commit().await.map_err(mysql_error_to_actix_error)?;
         Ok(HttpResponse::Ok().finish())
     } else {
         Ok(HttpResponse::NotFound().finish())
@@ -613,8 +596,8 @@ struct Estate {
 }
 
 impl FromRow for Estate {
-    fn from_row_opt(row: mysql::Row) -> Result<Self, mysql::FromRowError> {
-        fn convert(row: &mysql::Row) -> Result<Estate, ()> {
+    fn from_row_opt(row: mysql_async::Row) -> Result<Self, mysql_async::FromRowError> {
+        fn convert(row: &mysql_async::Row) -> Result<Estate, ()> {
             Ok(Estate {
                 id: row.get("id").ok_or(())?,
                 thumbnail: row.get("thumbnail").ok_or(())?,
@@ -630,7 +613,7 @@ impl FromRow for Estate {
                 popularity: row.get("popularity").ok_or(())?,
             })
         }
-        convert(&row).map_err(|_| mysql::FromRowError(row))
+        convert(&row).map_err(|_| mysql_async::FromRowError(row))
     }
 }
 
@@ -640,15 +623,11 @@ async fn get_estate_detail(
 ) -> Result<HttpResponse, AWError> {
     let id = path.0;
 
-    let estate: Option<Estate> = web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        conn.exec_first("select * from estate where id = ?", (id,))
-    })
-    .await
-    .map_err(|e| {
-        log::error!("Database Execution error : {:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
+    let estate: Option<Estate> = conn
+        .exec_first("select * from estate where id = ?", (id,))
+        .await
+        .map_err(mysql_error_to_actix_error)?;
 
     if let Some(estate) = estate {
         Ok(HttpResponse::Ok().json(estate))
@@ -687,20 +666,15 @@ async fn post_estate(db: web::Data<Pool>, mut payload: Multipart) -> Result<Http
     }
     let estates = estates.unwrap();
 
-    web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        let mut tx = conn.start_transaction(mysql::TxOpts::default())?;
-        for estate in estates {
-            tx.exec_drop("insert into estate (id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (estate.id, estate.name, estate.description, estate.thumbnail, estate.address, estate.latitude, estate.longitude, estate.rent, estate.door_height, estate.door_width, estate.features, estate.popularity))?;
-        }
-        tx.commit()?;
-        Ok(())
-    }).await.map_err(
-        |e: BlockingDBError| {
-            log::error!("failed to insert/commit estate: {:?}", e);
-            HttpResponse::InternalServerError()
-        },
-    )?;
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
+    let mut tx = conn
+        .start_transaction(mysql_async::TxOpts::default())
+        .await
+        .map_err(mysql_error_to_actix_error)?;
+    for estate in estates {
+        tx.exec_drop("insert into estate (id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (estate.id, estate.name, estate.description, estate.thumbnail, estate.address, estate.latitude, estate.longitude, estate.rent, estate.door_height, estate.door_width, estate.features, estate.popularity)).await.map_err(mysql_error_to_actix_error)?;
+    }
+    tx.commit().await.map_err(mysql_error_to_actix_error)?;
     Ok(HttpResponse::Created().finish())
 }
 
@@ -731,7 +705,7 @@ async fn search_estates(
     query_params: web::Query<SearchEstatesParams>,
 ) -> Result<HttpResponse, AWError> {
     let mut conditions = Vec::new();
-    let mut params: Vec<mysql::Value> = Vec::new();
+    let mut params: Vec<mysql_async::Value> = Vec::new();
 
     if !query_params.door_height_range_id.is_empty() {
         if let Some(door_height) = get_range(
@@ -814,31 +788,31 @@ async fn search_estates(
     let page = query_params.page;
 
     let search_condition = conditions.join(" and ");
-    let res = web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        let row = conn.exec_first(
-            format!("select count(*) from estate where {}", search_condition),
-            &params,
-        )?;
-        let count = row.map(|(c,)| c).unwrap_or(0);
 
-        params.push(per_page.into());
-        params.push((page * per_page).into());
-        let estates = conn.exec(
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
+    let row = conn
+        .exec_first(
+            format!("select count(*) from estate where {}", search_condition).as_str(),
+            &params,
+        )
+        .await
+        .map_err(mysql_error_to_actix_error)?;
+    let count = row.map(|(c,)| c).unwrap_or(0);
+
+    params.push(per_page.into());
+    params.push((page * per_page).into());
+    let estates = conn
+        .exec(
             format!(
                 "select * from estate where {} order by popularity desc, id asc limit ? offset ?",
                 search_condition
-            ),
+            )
+            .as_str(),
             &params,
-        )?;
-        Ok(EstateSearchResponse { count, estates })
-    })
-    .await
-    .map_err(|e: BlockingDBError| {
-        log::error!("search_estates DB execution error : {:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
-    Ok(HttpResponse::Ok().json(res))
+        )
+        .await
+        .map_err(mysql_error_to_actix_error)?;
+    Ok(HttpResponse::Ok().json(EstateSearchResponse { count, estates }))
 }
 
 #[derive(Debug, Serialize)]
@@ -847,18 +821,14 @@ struct EstateListResponse {
 }
 
 async fn get_low_priced_estate(db: web::Data<Pool>) -> Result<HttpResponse, AWError> {
-    let estates = web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        conn.exec(
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
+    let estates = conn
+        .exec(
             "select * from estate order by rent asc, id asc limit ?",
             (LIMIT,),
         )
-    })
-    .await
-    .map_err(|e| {
-        log::error!("get_low_priced_estate DB execution error : {:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
+        .await
+        .map_err(mysql_error_to_actix_error)?;
 
     Ok(HttpResponse::Ok().json(EstateListResponse { estates }))
 }
@@ -875,41 +845,35 @@ async fn search_recommended_estate_with_chair(
 ) -> Result<HttpResponse, AWError> {
     let id = path.0;
 
-    let estates = web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        let chair: Option<Chair> = conn.exec_first("select * from chair where id = ?", (id,))?;
-        if let Some(chair) = chair {
-            let w = chair.width;
-            let h = chair.height;
-            let d = chair.depth;
-            let query = "select * from estate where (door_width >= ? and door_height >= ?) or (door_width >= ? and door_height >= ?) or (door_width >= ? and door_height >= ?) or (door_width >= ? and door_height >= ?) or (door_width >= ? and door_height >= ?) or (door_width >= ? and door_height >= ?) order by popularity desc, id asc limit ?";
-            let params: Vec<mysql::Value> = vec![
-                w.into(),
-                h.into(),
-                w.into(),
-                d.into(),
-                h.into(),
-                w.into(),
-                h.into(),
-                d.into(),
-                d.into(),
-                w.into(),
-                d.into(),
-                h.into(),
-                LIMIT.into(),
-            ];
-            Ok(Some(conn.exec(query, params)?))
-        } else {
-            Ok(None)
-        }
-    })
-    .await
-    .map_err(|e: BlockingDBError| {
-        log::error!("Database execution error : {:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
-
-    if let Some(estates) = estates {
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
+    let chair: Option<Chair> = conn
+        .exec_first("select * from chair where id = ?", (id,))
+        .await
+        .map_err(mysql_error_to_actix_error)?;
+    if let Some(chair) = chair {
+        let w = chair.width;
+        let h = chair.height;
+        let d = chair.depth;
+        let query = "select * from estate where (door_width >= ? and door_height >= ?) or (door_width >= ? and door_height >= ?) or (door_width >= ? and door_height >= ?) or (door_width >= ? and door_height >= ?) or (door_width >= ? and door_height >= ?) or (door_width >= ? and door_height >= ?) order by popularity desc, id asc limit ?";
+        let params: Vec<mysql_async::Value> = vec![
+            w.into(),
+            h.into(),
+            w.into(),
+            d.into(),
+            h.into(),
+            w.into(),
+            h.into(),
+            d.into(),
+            d.into(),
+            w.into(),
+            d.into(),
+            h.into(),
+            LIMIT.into(),
+        ];
+        let estates = conn
+            .exec(query, params)
+            .await
+            .map_err(mysql_error_to_actix_error)?;
         Ok(HttpResponse::Ok().json(EstateListResponse { estates }))
     } else {
         log::info!("Requested chair id \"{}\" not found", id);
@@ -981,34 +945,43 @@ async fn search_estate_nazotte(
     }
     let bounding_box = coordinates.get_bounding_box();
 
-    let mut estates = web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        let query = "select * from estate where latitude <= ? and latitude >= ? and longitude <= ? and longitude >= ? order by popularity desc, id asc";
-        let estates_in_bounding_box: Vec<Estate> = conn.exec(query, (bounding_box.bottom_right_corner.latitude, bounding_box.top_left_corner.latitude, bounding_box.bottom_right_corner.longitude, bounding_box.top_left_corner.longitude))?;
-        if estates_in_bounding_box.is_empty() {
-            return Ok(Vec::new());
-        }
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
 
-        let mut estates_in_polygon = Vec::new();
-        for estate in estates_in_bounding_box {
-            let query = format!("select * from estate where id = ? and ST_Contains(ST_PolygonFromText({}), ST_GeomFromText('POINT({} {})'))", coordinates.coordinates_to_text(), estate.latitude, estate.longitude);
-            let validated_estate: Option<Estate> = conn.exec_first(query, (estate.id,))?;
-            if let Some(validated_estate) = validated_estate {
-                estates_in_polygon.push(validated_estate);
-            }
+    let query = "select * from estate where latitude <= ? and latitude >= ? and longitude <= ? and longitude >= ? order by popularity desc, id asc";
+    let estates_in_bounding_box: Vec<Estate> = conn
+        .exec(
+            query,
+            (
+                bounding_box.bottom_right_corner.latitude,
+                bounding_box.top_left_corner.latitude,
+                bounding_box.bottom_right_corner.longitude,
+                bounding_box.top_left_corner.longitude,
+            ),
+        )
+        .await
+        .map_err(mysql_error_to_actix_error)?;
+    if estates_in_bounding_box.is_empty() {
+        return Ok(HttpResponse::Ok().json(EstateSearchResponse {
+            count: 0,
+            estates: estates_in_bounding_box,
+        }));
+    }
+    let mut estates_in_polygon = Vec::new();
+    for estate in estates_in_bounding_box {
+        let query = format!("select * from estate where id = ? and ST_Contains(ST_PolygonFromText({}), ST_GeomFromText('POINT({} {})'))", coordinates.coordinates_to_text(), estate.latitude, estate.longitude);
+        let validated_estate: Option<Estate> = conn
+            .exec_first(query.as_str(), (estate.id,))
+            .await
+            .map_err(mysql_error_to_actix_error)?;
+        if let Some(validated_estate) = validated_estate {
+            estates_in_polygon.push(validated_estate);
         }
-        Ok(estates_in_polygon)
-    })
-    .await
-    .map_err(|e: BlockingDBError| {
-        log::error!("Database execution error : {:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
+    }
 
-    estates.truncate(NAZOTTE_LIMIT);
+    estates_in_polygon.truncate(NAZOTTE_LIMIT);
     Ok(HttpResponse::Ok().json(EstateSearchResponse {
-        count: estates.len() as i64,
-        estates,
+        count: estates_in_polygon.len() as i64,
+        estates: estates_in_polygon,
     }))
 }
 
@@ -1024,15 +997,11 @@ async fn post_estate_request_document(
 ) -> Result<HttpResponse, AWError> {
     let id = path.0;
 
-    let estate: Option<Estate> = web::block(move || {
-        let mut conn = db.get().expect("Failed to checkout database connection");
-        conn.exec_first("select * from estate where id = ?", (id,))
-    })
-    .await
-    .map_err(|e| {
-        log::error!("post_estate_request_document: DB execution error : {:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
+    let mut conn = db.get_conn().await.map_err(mysql_error_to_actix_error)?;
+    let estate: Option<Estate> = conn
+        .exec_first("select * from estate where id = ?", (id,))
+        .await
+        .map_err(mysql_error_to_actix_error)?;
 
     if estate.is_some() {
         Ok(HttpResponse::Ok().finish())
