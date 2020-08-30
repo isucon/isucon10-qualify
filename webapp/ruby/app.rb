@@ -536,4 +536,9 @@ class App < Sinatra::Base
 
     { estates: estates.map { |e| capitalize_keys_for_estate(e) } }.to_json
   end
+
+  error do
+    logger.error env['sinatra.error'].message
+    halt 500
+  end
 end
