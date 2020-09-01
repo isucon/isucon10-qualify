@@ -11,12 +11,13 @@ random.seed(19700101)
 DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_SQL_FILE = "./result/1_DummyEstateData.sql"
 OUTPUT_TXT_FILE = "./result/estate_json.txt"
+VERIFY_DRAFT_FILE = "./result/verify_draft_estate.txt"
 OUTPUT_DRAFT_FILE = "./result/draft_data/estate/{index}.txt"
 OUTPUT_FIXTURE_FILE = "./result/estate_condition.json"
 ESTATE_IMAGE_ORIGIN_DIR = "./origin/estate"
 ESTATE_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/estate"
 ESTATE_DUMMY_IMAGE_NUM = 1000
-RECORD_COUNT = (10 ** 4) * 3
+RECORD_COUNT = (10 ** 4) * 3 - 500
 BULK_INSERT_COUNT = 500
 DOOR_MIN_CENTIMETER = 30
 DOOR_MAX_CENTIMETER = 200
@@ -25,6 +26,7 @@ DOOR_WIDTH_RANGE_SEPARATORS = [80, 110, 150]
 RENT_RANGE_SEPARATORS = [50000, 100000, 150000]
 MIN_POPULARITY = 3000
 MAX_POPULARITY = 1000000
+VERIFY_DRAFT_COUNT = 500
 DRAFT_COUNT_PER_FILE = 500
 DRAFT_FILE_COUNT = 20
 
@@ -181,6 +183,13 @@ if __name__ == '__main__':
             sqlfile.write(sqlCommand)
             txtfile.write("\n".join([dump_estate_to_json_str(estate)
                                      for estate in bulk_list]) + "\n")
+
+    with open(VERIFY_DRAFT_FILE, mode='w', encoding='utf-8') as verify_draft_file:
+        verify_draft_estates = [generate_estate_dummy_data(
+            estate_id + i) for i in range(VERIFY_DRAFT_COUNT)]
+        estate_id += VERIFY_DRAFT_COUNT
+        verify_draft_file.write(
+            "\n".join([dump_estate_to_json_str(estate) for estate in verify_draft_estates]) + "\n")
 
     for i in range(DRAFT_FILE_COUNT):
         with open(OUTPUT_DRAFT_FILE.format(index=i), mode='w', encoding='utf-8') as draft_file:

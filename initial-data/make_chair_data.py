@@ -12,11 +12,12 @@ DESCRIPTION_LINES_FILE = "./description.txt"
 OUTPUT_SQL_FILE = "./result/2_DummyChairData.sql"
 OUTPUT_TXT_FILE = "./result/chair_json.txt"
 OUTPUT_FIXTURE_FILE = "./result/chair_condition.json"
+VERIFY_DRAFT_FILE = "./result/verify_draft_chair.txt"
 OUTPUT_DRAFT_FILE = "./result/draft_data/chair/{index}.txt"
 CHAIR_IMAGE_ORIGIN_DIR = "./origin/chair"
 CHAIR_IMAGE_PUBLIC_DIR = "../webapp/frontend/public/images/chair"
 CHAIR_DUMMY_IMAGE_NUM = 1000
-RECORD_COUNT = (10 ** 4) * 3
+RECORD_COUNT = (10 ** 4) * 3 - 500
 BULK_INSERT_COUNT = 500
 CHAIR_MIN_CENTIMETER = 30
 CHAIR_MAX_CENTIMETER = 200
@@ -26,6 +27,7 @@ HEIGHT_RANGE_SEPARATORS = [80, 110, 150]
 WIDTH_RANGE_SEPARATORS = [80, 110, 150]
 DEPTH_RANGE_SEPARATORS = [80, 110, 150]
 PRICE_RANGE_SEPARATORS = [3000, 6000, 9000, 12000, 15000]
+VERIFY_DRAFT_COUNT = 500
 DRAFT_COUNT_PER_FILE = 500
 DRAFT_FILE_COUNT = 20
 
@@ -236,18 +238,6 @@ if __name__ == "__main__":
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
                 RECORD_COUNT, BULK_INSERT_COUNT))
 
-        CHAIRS_FOR_VERIFY = [
-            # 購入された際に在庫が減ることを検証するためのデータ
-            generate_chair_dummy_data(1, {"stock": 1}),
-        ]
-
-        sqlCommand = f"""INSERT INTO isuumo.chair (id, thumbnail, name, price, height, width, depth, popularity, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['id']}', '{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['popularity']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", CHAIRS_FOR_VERIFY))};"""
-        sqlfile.write(sqlCommand)
-        txtfile.write(
-            "\n".join([dump_chair_to_json_str(chair) for chair in CHAIRS_FOR_VERIFY]) + "\n")
-
-        chair_id += len(CHAIRS_FOR_VERIFY)
-
         for _ in range(RECORD_COUNT // BULK_INSERT_COUNT):
             bulk_list = [generate_chair_dummy_data(
                 chair_id + i) for i in range(BULK_INSERT_COUNT)]
@@ -257,6 +247,15 @@ if __name__ == "__main__":
 
             txtfile.write(
                 "\n".join([dump_chair_to_json_str(chair) for chair in bulk_list]) + "\n")
+
+    with open(VERIFY_DRAFT_FILE, mode='w', encoding='utf-8') as verify_draft_file:
+        verify_draft_chairs = [generate_chair_dummy_data(
+            chair_id + i) for i in range(VERIFY_DRAFT_COUNT)]
+        # 購入された際に在庫が減ることを検証するためのデータ
+        verify_draft_chairs[0]["stock"] = 1
+        chair_id += VERIFY_DRAFT_COUNT
+        verify_draft_file.write(
+            "\n".join([dump_chair_to_json_str(chair) for chair in verify_draft_chairs]) + "\n")
 
     for i in range(DRAFT_FILE_COUNT):
         with open(OUTPUT_DRAFT_FILE.format(index=i), mode='w', encoding='utf-8') as draft_file:
