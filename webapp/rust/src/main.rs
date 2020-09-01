@@ -582,12 +582,12 @@ async fn buy_chair(
 #[derive(Debug, Serialize, Deserialize)]
 struct Estate {
     id: i64,
-    thumbnail: String,
     name: String,
     description: String,
+    thumbnail: String,
+    address: String,
     latitude: f64,
     longitude: f64,
-    address: String,
     rent: i64,
     #[serde(rename = "doorHeight")]
     door_height: i64,
