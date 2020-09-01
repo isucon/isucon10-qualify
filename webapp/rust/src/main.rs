@@ -640,8 +640,8 @@ async fn post_estate(db: web::Data<Pool>, mut payload: Multipart) -> Result<Http
     let mut estates = None;
     while let Ok(Some(field)) = payload.try_next().await {
         let content_disposition = field.content_disposition().unwrap();
-        let filename = content_disposition.get_filename().unwrap();
-        if filename == "estates" {
+        let name = content_disposition.get_name().unwrap();
+        if name == "estates" {
             let content = field
                 .map_ok(|chunk| BytesMut::from(&chunk[..]))
                 .try_concat()
