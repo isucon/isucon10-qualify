@@ -11,10 +11,8 @@ import (
 )
 
 var (
-	chairSearchCondition   *ChairSearchCondition
-	chairFeatureForVerify  *string
-	estateSearchCondition  *EstateSearchCondition
-	estateFeatureForVerify *string
+	chairSearchCondition  *ChairSearchCondition
+	estateSearchCondition *EstateSearchCondition
 )
 
 type Range struct {
@@ -56,12 +54,7 @@ func loadChairSearchCondition(fixtureDir string) error {
 		return err
 	}
 
-	var condition *ChairSearchCondition
-	json.Unmarshal(jsonText, &condition)
-	// condition.Featureの最後の1つはVerify用で該当件数が少ないため、Validationのシナリオ内では使用しない
-	chairFeatureForVerify = &condition.Feature.List[len(condition.Feature.List)-1]
-	condition.Feature.List = condition.Feature.List[:len(condition.Feature.List)-1]
-	chairSearchCondition = condition
+	json.Unmarshal(jsonText, &chairSearchCondition)
 	return nil
 }
 
@@ -70,12 +63,8 @@ func loadEstateSearchCondition(fixtureDir string) error {
 	if err != nil {
 		return err
 	}
-	var condition *EstateSearchCondition
-	json.Unmarshal(jsonText, &condition)
-	// condition.Featureの最後の1つはVerify用で該当件数が少ないため、Validationのシナリオ内では使用しない
-	estateFeatureForVerify = &condition.Feature.List[len(condition.Feature.List)-1]
-	condition.Feature.List = condition.Feature.List[:len(condition.Feature.List)-1]
-	estateSearchCondition = condition
+
+	json.Unmarshal(jsonText, &estateSearchCondition)
 	return nil
 }
 
@@ -86,23 +75,9 @@ func GetChairSearchCondition() (*ChairSearchCondition, error) {
 	return chairSearchCondition, nil
 }
 
-func GetChairFeatureForVerify() (*string, error) {
-	if chairFeatureForVerify == nil {
-		return nil, failure.New(fails.ErrBenchmarker, failure.Message("イスの検索条件が読み込まれていません"))
-	}
-	return chairFeatureForVerify, nil
-}
-
 func GetEstateSearchCondition() (*EstateSearchCondition, error) {
 	if estateSearchCondition == nil {
 		return nil, failure.New(fails.ErrBenchmarker, failure.Message("物件の検索条件が読み込まれていません"))
 	}
 	return estateSearchCondition, nil
-}
-
-func GetEstateFeatureForVerify() (*string, error) {
-	if estateSearchCondition == nil {
-		return nil, failure.New(fails.ErrBenchmarker, failure.Message("物件の検索条件が読み込まれていません"))
-	}
-	return estateFeatureForVerify, nil
 }

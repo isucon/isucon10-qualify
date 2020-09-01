@@ -173,26 +173,6 @@ if __name__ == '__main__':
             raise Exception("The results of RECORD_COUNT and BULK_INSERT_COUNT need to be a divisible number. RECORD_COUNT = {}, BULK_INSERT_COUNT = {}".format(
                 RECORD_COUNT, BULK_INSERT_COUNT))
 
-        ESTATES_FOR_VERIFY = [
-            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (2位 → 1位)
-            generate_estate_dummy_data(1, {
-                "features": ESTATE_FEATURE_FOR_VERIFY,
-                "popularity": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2
-            }),
-            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (1位 → 2位)
-            generate_estate_dummy_data(2, {
-                "features": ESTATE_FEATURE_FOR_VERIFY,
-                "popularity": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2 + 1
-            })
-        ]
-
-        sqlCommand = f"""INSERT INTO isuumo.estate (id, thumbnail, name, latitude, longitude, address, rent, door_height, door_width, popularity, description, features) VALUES {', '.join(map(lambda estate: f"('{estate['id']}', '{estate['thumbnail']}', '{estate['name']}', '{estate['latitude']}' , '{estate['longitude']}', '{estate['address']}', '{estate['rent']}', '{estate['door_height']}', '{estate['door_width']}', '{estate['popularity']}', '{estate['description']}', '{estate['features']}')", ESTATES_FOR_VERIFY))};"""
-        sqlfile.write(sqlCommand)
-        txtfile.write("\n".join([dump_estate_to_json_str(estate)
-                                 for estate in ESTATES_FOR_VERIFY]) + "\n")
-
-        estate_id += len(ESTATES_FOR_VERIFY)
-
         for _ in range(RECORD_COUNT//BULK_INSERT_COUNT):
             bulk_list = [generate_estate_dummy_data(
                 estate_id + i) for i in range(BULK_INSERT_COUNT)]
@@ -228,6 +208,6 @@ if __name__ == '__main__':
                 "ranges": generate_ranges_from_separator(RENT_RANGE_SEPARATORS)
             },
             "feature": {
-                "list": ESTATE_FEATURE_LIST + [ESTATE_FEATURE_FOR_VERIFY]
+                "list": ESTATE_FEATURE_LIST
             }
         }, ensure_ascii=False, indent=2))

@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/morikuni/failure"
@@ -19,7 +18,7 @@ func Verify(ctx context.Context, snapshotsParentsDirPath, fixtureDir string) {
 	verifyWithScenario(ctx, c, fixtureDir)
 }
 
-func verifyChairStock(ctx context.Context, c *client.Client, chairFeatureForVerify string) error {
+func verifyChairStock(ctx context.Context, c *client.Client) error {
 	err := c.BuyChair(ctx, "1")
 	if err != nil {
 		if ctxErr := ctx.Err(); ctxErr != nil {
@@ -47,16 +46,11 @@ func verifyChairStock(ctx context.Context, c *client.Client, chairFeatureForVeri
 }
 
 func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir string) {
-	chairFeatureForVerify, err := asset.GetChairFeatureForVerify()
-	if err != nil {
-		fails.Add(err, fails.ErrorOfVerify)
-	}
-
 	wg := sync.WaitGroup{}
 
 	wg.Add(1)
 	go func() {
-		err := verifyChairStock(ctx, c, *chairFeatureForVerify)
+		err := verifyChairStock(ctx, c)
 		if err != nil {
 			fails.Add(err, fails.ErrorOfVerify)
 		}

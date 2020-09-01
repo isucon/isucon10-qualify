@@ -139,9 +139,8 @@ CHAIR_FEATURE_LIST = [
     "アームなし",
     "オーダーメイド可能",
     "ポリカーボネート製",
+    "フットレスト付き",
 ]
-
-CHAIR_FEATURE_FOR_VERIFY = "フットレスト付き"
 
 CHAIR_KIND_LIST = [
     "ゲーミングチェア",
@@ -239,21 +238,7 @@ if __name__ == "__main__":
 
         CHAIRS_FOR_VERIFY = [
             # 購入された際に在庫が減ることを検証するためのデータ
-            generate_chair_dummy_data(1, {
-                "features": CHAIR_FEATURE_FOR_VERIFY,
-                "stock": 1,
-                "popularity": MIN_VIEW_COUNT
-            }),
-            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (2位 → 1位)
-            generate_chair_dummy_data(2, {
-                "features": CHAIR_FEATURE_FOR_VERIFY,
-                "popularity": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2
-            }),
-            # 2回閲覧された後の検索で、順番が前に行くことを検証するためのデータ (1位 → 2位)
-            generate_chair_dummy_data(3, {
-                "features": CHAIR_FEATURE_FOR_VERIFY,
-                "popularity": (MAX_VIEW_COUNT + MIN_VIEW_COUNT) // 2 + 1
-            })
+            generate_chair_dummy_data(1, {"stock": 1}),
         ]
 
         sqlCommand = f"""INSERT INTO isuumo.chair (id, thumbnail, name, price, height, width, depth, popularity, stock, color, description, features, kind) VALUES {", ".join(map(lambda chair: f"('{chair['id']}', '{chair['thumbnail']}', '{chair['name']}', '{chair['price']}', '{chair['height']}', '{chair['width']}', '{chair['depth']}', '{chair['popularity']}', '{chair['stock']}', '{chair['color']}', '{chair['description']}', '{chair['features']}', '{chair['kind']}')", CHAIRS_FOR_VERIFY))};"""
@@ -307,7 +292,7 @@ if __name__ == "__main__":
                 "list": CHAIR_COLOR_LIST
             },
             "feature": {
-                "list": CHAIR_FEATURE_LIST + [CHAIR_FEATURE_FOR_VERIFY]
+                "list": CHAIR_FEATURE_LIST
             },
             "kind": {
                 "list": CHAIR_KIND_LIST
