@@ -153,11 +153,11 @@ CHAIR_IMAGE_HASH_LIST = [fake.sha256(
     raw_output=False) for _ in range(CHAIR_DUMMY_IMAGE_NUM)]
 
 
-def generate_ranges_from_SEPARATORS(SEPARATORSs):
+def generate_ranges_from_SEPARATORS(separators):
     before = -1
     ranges = []
 
-    for i, SEPARATORS in enumerate(SEPARATORSs + [-1]):
+    for i, SEPARATORS in enumerate(separators + [-1]):
         ranges.append({
             "id": i,
             "min": before,
