@@ -8,4 +8,4 @@ requires 'constant';
 requires 'Cpanel::JSON::XS::Type';
 requires 'Plack::Middleware::Session';
 requires 'Starlet';
-requires 'Text::CSV_XS', '1.44'
+requires 'Text::CSV_XS', '1.44';

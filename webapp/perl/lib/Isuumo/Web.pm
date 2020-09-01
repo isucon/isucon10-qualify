@@ -10,6 +10,7 @@ use HTTP::Status qw/:constants/;
 use Log::Minimal;
 use JSON::MaybeXS;
 use Cpanel::JSON::XS::Type;
+use Text::CSV_XS;
 
 local $Log::Minimal::LOG_LEVEL = "DEBUG";
 
@@ -195,6 +196,46 @@ get '/api/chair/{id}' => sub {
         features    => $chair->{features},
         kind        => $chair->{kind},
     }, Chair)
+};
+
+post '/api/chair' => sub {
+    my ( $self, $c )  = @_;
+
+    my $file = $c->req->uploads->{'chairs'};
+    if (!$file) {
+        critf("failed to get form file");
+        return $self->res_no_content($c, HTTP_BAD_REQUEST);
+    }
+
+    my $fh;
+    if (!open $fh, "<:encoding(utf8)", $file->path) {
+        critf("failed to open form file %s. %s", $file->path, $!);
+        return $self->res_no_content($c, HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    my $csv = Text::CSV_XS->new({binary => 1});
+    my $dbh = $self->dbh;
+    my $txn = $dbh->txn_scope;
+
+    eval {
+        while (my $row = $csv->getline($fh)) {
+            my ($id, $name, $description, $thumbnail, $price, $height, $width, $depth, $color, $features, $kind, $popularity, $stock) = $row->@*;
+            $dbh->query(
+                "INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                $id, $name, $description, $thumbnail, $price, $height, $width, $depth, $color, $features, $kind, $popularity, $stock
+            );
+        }
+        $txn->commit;
+    };
+
+    $fh->close;
+
+    if ($@) {
+        $txn->rollback;
+        critf("failed to commit txn: %s", $@);
+        return $self->res_no_content($c, HTTP_INTERNAL_SERVER_ERROR);
+    }
+    return $self->res_no_content($c, HTTP_CREATED);
 };
 
 
