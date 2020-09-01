@@ -1,6 +1,6 @@
 all: isuumo
 
-isuumo:
+isuumo: app.ts
 	deno bundle app.ts > isuumo
 
 run:
