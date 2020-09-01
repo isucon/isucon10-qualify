@@ -9,7 +9,7 @@ PIDFile=/home/isucon/isucon10-qualify/webapp/nodejs/server.pid
 
 User=isucon
 Group=isucon
-ExecStart=npm start
+ExecStart=/usr/local/node/bin/npm start
 ExecStop=/bin/kill -s QUIT $MAINPID
 
 [Install]
