@@ -8,6 +8,8 @@ use DBIx::Sunny;
 use File::Spec;
 use HTTP::Status qw/:constants/;
 use Log::Minimal;
+use JSON::MaybeXS;
+use Cpanel::JSON::XS::Type;
 
 local $Log::Minimal::LOG_LEVEL = "DEBUG";
 
@@ -18,13 +20,6 @@ our $MYSQL_CONNECTION_DATA = {
     dbname   => $ENV{MYSQL_DATABASE} // 'isuumo',
     password => $ENV{MYSQL_PASS}     // 'isucon',
 };
-
-# send empty body with status code
-sub res_no_content {
-    my ($self, $c, $status) = @_;
-    $c->res->code($status);
-    $c->res;
-}
 
 sub dbh {
     my $self = shift;
@@ -44,6 +39,28 @@ sub dbh {
         });
     };
 }
+
+
+use constant InitializeResponse => {
+    language => JSON_TYPE_STRING
+};
+
+use constant ChairResponse => {
+    id          => JSON_TYPE_INT,
+    name        => JSON_TYPE_STRING,
+    description => JSON_TYPE_STRING,
+    thumbnail   => JSON_TYPE_STRING,
+    price       => JSON_TYPE_INT,
+    height      => JSON_TYPE_INT,
+    width       => JSON_TYPE_INT,
+    depth       => JSON_TYPE_INT,
+    color       => JSON_TYPE_STRING,
+    features    => JSON_TYPE_STRING,
+    kind        => JSON_TYPE_STRING,
+    popularity  => undef,
+    stock       => undef,
+};
+
 
 post '/initialize' => sub {
     my ( $self, $c )  = @_;
@@ -67,9 +84,9 @@ post '/initialize' => sub {
         system(@cmd);
     }
 
-    $c->render_json({
+    $self->res_json($c, {
         language => "perl",
-    });
+    }, InitializeResponse);
 };
 
 get '/api/chair/{id}' => sub {
@@ -89,8 +106,57 @@ get '/api/chair/{id}' => sub {
         return $self->res_no_content($c, HTTP_NOT_FOUND)
     }
 
-    return $c->render_json($chair)
+    return $self->res_json($c, {
+        id          => $chair->{id},
+        name        => $chair->{name},
+        description => $chair->{description},
+        thumbnail   => $chair->{thumbnail},
+        price       => $chair->{price},
+        height      => $chair->{height},
+        width       => $chair->{width},
+        depth       => $chair->{depth},
+        color       => $chair->{color},
+        features    => $chair->{features},
+        kind        => $chair->{kind},
+    }, ChairResponse)
 };
 
+
+# send empty body with status code
+sub res_no_content {
+    my ($self, $c, $status) = @_;
+    $c->res->code($status);
+    $c->res;
+}
+
+# render_json with json spec
+# XXX: $json_specを指定できるようにKossy::Conection#render_jsonを調整
+my $_JSON = JSON::MaybeXS->new()->allow_blessed(1)->convert_blessed(1)->ascii(1);
+sub res_json {
+    my ($self, $c, $obj, $json_spec) = @_;
+
+    # defense from JSON hijacking
+    # Copy from Amon2::Plugin::Web::JSON
+    if ( exists $c->req->env->{'HTTP_X_REQUESTED_WITH'} &&
+         ($c->req->env->{'HTTP_USER_AGENT'}||'') =~ /android/i &&
+         exists $c->req->env->{'HTTP_COOKIE'} &&
+         ($c->req->method||'GET') eq 'GET'
+    ) {
+        $c->halt(403,"Your request is maybe JSON hijacking.\nIf you are not a attacker, please add 'X-Requested-With' header to each request.");
+    }
+
+    my $body = $_JSON->encode($obj, $json_spec);
+    $body = $c->escape_json($body);
+
+    if ( ( $c->req->env->{'HTTP_USER_AGENT'} || '' ) =~ m/Safari/ ) {
+        $body = "\xEF\xBB\xBF" . $body;
+    }
+
+    $c->res->status( 200 );
+    $c->res->content_type('application/json; charset=UTF-8');
+    $c->res->header( 'X-Content-Type-Options' => 'nosniff' ); # defense from XSS
+    $c->res->body( $body );
+    $c->res;
+}
 
 1;
