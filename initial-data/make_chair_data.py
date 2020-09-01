@@ -20,8 +20,8 @@ RECORD_COUNT = (10 ** 4) * 3
 BULK_INSERT_COUNT = 500
 CHAIR_MIN_CENTIMETER = 30
 CHAIR_MAX_CENTIMETER = 200
-MIN_VIEW_COUNT = 3000
-MAX_VIEW_COUNT = 1000000
+MIN_POPULARITY = 3000
+MAX_POPULARITY = 1000000
 HEIGHT_RANGE_SEPARATORS = [80, 110, 150]
 WIDTH_RANGE_SEPARATORS = [80, 110, 150]
 DEPTH_RANGE_SEPARATORS = [80, 110, 150]
@@ -208,7 +208,7 @@ def generate_chair_dummy_data(chair_id, wrap={}):
         "width": random.randint(CHAIR_MIN_CENTIMETER, CHAIR_MAX_CENTIMETER),
         "depth": random.randint(CHAIR_MIN_CENTIMETER, CHAIR_MAX_CENTIMETER),
         "color": fake.word(ext_word_list=CHAIR_COLOR_LIST),
-        "popularity": random.randint(MIN_VIEW_COUNT, MAX_VIEW_COUNT),
+        "popularity": random.randint(MIN_POPULARITY, MAX_POPULARITY),
         "stock": random.randint(1, 10),
         "description": random.choice(desc_lines).strip(),
         "features": ",".join(fake.words(nb=features_length, ext_word_list=CHAIR_FEATURE_LIST, unique=True)),

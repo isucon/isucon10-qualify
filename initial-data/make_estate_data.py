@@ -23,8 +23,8 @@ DOOR_MAX_CENTIMETER = 200
 DOOR_HEIGHT_RANGE_SEPARATORS = [80, 110, 150]
 DOOR_WIDTH_RANGE_SEPARATORS = [80, 110, 150]
 RENT_RANGE_SEPARATORS = [50000, 100000, 150000]
-MIN_VIEW_COUNT = 3000
-MAX_VIEW_COUNT = 1000000
+MIN_POPULARITY = 3000
+MAX_POPULARITY = 1000000
 DRAFT_COUNT_PER_FILE = 500
 DRAFT_FILE_COUNT = 20
 
@@ -147,7 +147,7 @@ def generate_estate_dummy_data(estate_id, wrap={}):
         "rent": random.randint(30000, 200000),
         "door_height": random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER),
         "door_width": random.randint(DOOR_MIN_CENTIMETER, DOOR_MAX_CENTIMETER),
-        "popularity": random.randint(MIN_VIEW_COUNT, MAX_VIEW_COUNT),
+        "popularity": random.randint(MIN_POPULARITY, MAX_POPULARITY),
         "description": random.choice(desc_lines).strip(),
         "features": ','.join(fake.words(nb=feature_length, ext_word_list=ESTATE_FEATURE_LIST, unique=True))
     }
