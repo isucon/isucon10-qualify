@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"net"
 	"os"
-	"path/filepath"
 	"sort"
 	"time"
 
@@ -107,7 +106,7 @@ func main() {
 	log.Print("=== verify ===")
 	// 初期チェック：正しく動いているかどうかを確認する
 	// 明らかにおかしいレスポンスを返しているアプリケーションはさっさと停止させることで、運営側のリソースを使い果たさない・他サービスへの攻撃に利用されるを防ぐ
-	scenario.Verify(context.Background(), filepath.Join(dataDir, "result/verification_data"), fixtureDir)
+	scenario.Verify(context.Background(), dataDir, fixtureDir)
 	eMsgs = fails.GetMsgs()
 	if len(eMsgs) > 0 {
 		log.Print("verify failed")
