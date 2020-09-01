@@ -272,10 +272,13 @@ app.get("/api/chair/:id", async (req, res, next) => {
 app.post("/api/chair/buy/:id", async (req, res, next) => {
   const getConnection = promisify(db.getConnection.bind(db));
   const connection = await getConnection();
+  const beginTransaction = promisify(connection.beginTransaction.bind(connection));
   const query = promisify(connection.query.bind(connection));
+  const commit = promisify(connection.commit.bind(connection));
+  const rollback = promisify(connection.rollback.bind(connection));
   try {
     const id = req.params.id;
-    await connection.beginTransaction();
+    await beginTransaction();
     const [
       chair,
     ] = await query(
@@ -284,17 +287,17 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
     );
     if (chair == null) {
       res.status(404).send("Not Found");
-      await connection.rollback();
+      await rollback();
       return;
     }
     await query("UPDATE chair SET stock = ? WHERE id = ?", [
       chair.stock - 1,
       id,
     ]);
-    await connection.commit();
+    await commit();
     res.json({ ok: true });
   } catch (e) {
-    await connection.rollback();
+    await rollback();
     next(e);
   } finally {
     await connection.release();
@@ -567,9 +570,12 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
 app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
   const getConnection = promisify(db.getConnection.bind(db));
   const connection = await getConnection();
+  const beginTransaction = promisify(connection.beginTransaction.bind(connection));
   const query = promisify(connection.query.bind(connection));
+  const commit = promisify(connection.commit.bind(connection));
+  const rollback = promisify(connection.rollback.bind(connection));
   try {
-    await connection.beginTransaction();
+    await beginTransaction();
     const csv = parse(req.file.buffer, { skip_empty_line: true });
     for (var i = 1; i < csv.length; i++) {
       const items = csv[i];
@@ -578,11 +584,11 @@ app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
         items
       );
     }
-    await connection.commit();
+    await commit();
     res.status(201);
     res.json({ ok: true });
   } catch (e) {
-    await connection.rollback();
+    await rollback();
     next(e);
   } finally {
     await connection.release();
@@ -592,9 +598,12 @@ app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
 app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
   const getConnection = promisify(db.getConnection.bind(db));
   const connection = await getConnection();
+  const beginTransaction = promisify(connection.beginTransaction.bind(connection));
   const query = promisify(connection.query.bind(connection));
+  const commit = promisify(connection.commit.bind(connection));
+  const rollback = promisify(connection.rollback.bind(connection));
   try {
-    await connection.beginTransaction();
+    await beginTransaction();
     const csv = parse(req.file.buffer, { skip_empty_line: true });
     for (var i = 1; i < csv.length; i++) {
       const items = csv[i];
@@ -603,11 +612,11 @@ app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
         items
       );
     }
-    await connection.commit();
+    await commit();
     res.status(201);
     res.json({ ok: true });
   } catch (e) {
-    await connection.rollback();
+    await rollback();
     next(e);
   } finally {
     await connection.release();
