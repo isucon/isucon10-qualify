@@ -40,6 +40,9 @@ impl Default for MySQLConnectionEnv {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    if env::var("RUST_LOG").is_err() {
+        env::set_var("RUST_LOG", "actix_server=info,actix_web=info,isuumo=info");
+    }
     env_logger::init();
 
     let mysql_connection_env = Arc::new(MySQLConnectionEnv::default());
