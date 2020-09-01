@@ -217,9 +217,9 @@ class App < Sinatra::Base
 
     db.query('BEGIN')
     begin
-      CSV.parse(params[:chairs][:tempfile].read) do |row|
+      CSV.parse(params[:chairs][:tempfile].read, skip_blanks: true) do |row|
         sql = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        db.xquery(sql, *row)
+        db.xquery(sql, *row.map(&:to_s))
       end
     rescue => e
       db.query('ROLLBACK')
@@ -462,9 +462,9 @@ class App < Sinatra::Base
 
     db.query('BEGIN')
     begin
-      CSV.parse(params[:estates][:tempfile].read) do |row|
+      CSV.parse(params[:estates][:tempfile].read, skip_blanks: true) do |row|
         sql = 'INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        db.xquery(sql, *row)
+        db.xquery(sql, *row.map(&:to_s))
       end
     rescue => e
       db.query('ROLLBACK')
