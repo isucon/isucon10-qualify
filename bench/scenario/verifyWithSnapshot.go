@@ -23,8 +23,10 @@ import (
 )
 
 const (
+	NumOfVerifyChairDetail                = 3
 	NumOfVerifyChairSearchCondition       = 3
 	NumOfVerifyChairSearch                = 3
+	NumOfVerifyEstateDetail               = 3
 	NumOfVerifyEstateSearchCondition      = 3
 	NumOfVerifyEstateSearch               = 3
 	NumOfVerifyLowPricedChair             = 1
@@ -68,6 +70,46 @@ func loadSnapshotFromFile(filePath string) (*Snapshot, error) {
 	}
 
 	return snapshot, nil
+}
+
+func verifyChairDetail(ctx context.Context, c *client.Client, filePath string) error {
+	snapshot, err := loadSnapshotFromFile(filePath)
+	if err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/id: Snapshotの読み込みに失敗しました"))
+	}
+
+	idx := strings.LastIndex(snapshot.Request.Resource, "/")
+	if idx == -1 || idx == len(snapshot.Request.Resource)-1 {
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: 不正なSnapshotです"))
+	}
+
+	id := string([]rune(snapshot.Request.Resource)[idx+1:])
+	actual, err := c.GetChairDetailFromID(ctx, id)
+
+	switch snapshot.Response.StatusCode {
+	case http.StatusOK:
+		if err != nil {
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+		}
+
+		var expected *asset.Chair
+		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
+		if err != nil {
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: Response BodyのUnmarshalでエラーが発生しました"))
+		}
+
+		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
+			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreChairUnexported))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+		}
+
+	default:
+		if err == nil {
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+		}
+	}
+
+	return nil
 }
 
 func verifyChairSearchCondition(ctx context.Context, c *client.Client, filePath string) error {
@@ -137,6 +179,46 @@ func verifyChairSearch(ctx context.Context, c *client.Client, filePath string) e
 	default:
 		if err == nil {
 			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
+		}
+	}
+
+	return nil
+}
+
+func verifyEstateDetail(ctx context.Context, c *client.Client, filePath string) error {
+	snapshot, err := loadSnapshotFromFile(filePath)
+	if err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/id: Snapshotの読み込みに失敗しました"))
+	}
+
+	idx := strings.LastIndex(snapshot.Request.Resource, "/")
+	if idx == -1 || idx == len(snapshot.Request.Resource)-1 {
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: 不正なSnapshotです"))
+	}
+
+	id := string([]rune(snapshot.Request.Resource)[idx+1:])
+	actual, err := c.GetEstateDetailFromID(ctx, id)
+
+	switch snapshot.Response.StatusCode {
+	case http.StatusOK:
+		if err != nil {
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
+		}
+
+		var expected *asset.Estate
+		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
+		if err != nil {
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: Response BodyのUnmarshalでエラーが発生しました"))
+		}
+
+		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
+			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+		}
+
+	default:
+		if err == nil {
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
 		}
 	}
 
@@ -369,8 +451,27 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsDirPath string) {
 	wg := sync.WaitGroup{}
 
-	snapshotsDirPath := filepath.Join(snapshotsParentsDirPath, "chair_search_condition")
+	snapshotsDirPath := filepath.Join(snapshotsParentsDirPath, "chair_detail")
 	snapshots, err := ioutil.ReadDir(snapshotsDirPath)
+	if err != nil {
+		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: Snapshotディレクトリがありません"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+	} else {
+		for i := 0; i < NumOfVerifyChairDetail; i++ {
+			wg.Add(1)
+			r := rand.Intn(len(snapshots))
+			go func(filePath string) {
+				err := verifyChairDetail(ctx, c, filePath)
+				if err != nil {
+					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+				}
+				wg.Done()
+			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
+		}
+	}
+
+	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "chair_search_condition")
+	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search/condition: Snapshotディレクトリがありません"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
@@ -399,6 +500,25 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			r := rand.Intn(len(snapshots))
 			go func(filePath string) {
 				err := verifyChairSearch(ctx, c, filePath)
+				if err != nil {
+					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+				}
+				wg.Done()
+			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
+		}
+	}
+
+	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "estate_detail")
+	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
+	if err != nil {
+		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: Snapshotディレクトリがありません"))
+		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+	} else {
+		for i := 0; i < NumOfVerifyEstateDetail; i++ {
+			wg.Add(1)
+			r := rand.Intn(len(snapshots))
+			go func(filePath string) {
+				err := verifyEstateDetail(ctx, c, filePath)
 				if err != nil {
 					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
 				}

@@ -13,7 +13,9 @@ import (
 )
 
 const (
+	NumOfChairDetailData                = 100
 	NumOfChairSearchData                = 100
+	NumOfEstateDetailData               = 100
 	NumOfEstateSearchData               = 100
 	NumOfRecommendedEstateWithChairData = 100
 	NumOfEstatesNazotteData             = 100
@@ -89,6 +91,28 @@ func main() {
 
 	MkdirIfNotExists(DestDirectoryPath)
 
+	// chair detail
+	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "chair_detail"))
+	for i := 0; i < NumOfChairDetailData; i++ {
+		wg.Add(1)
+		go func(id int) {
+			req := Request{
+				Method:   "GET",
+				Resource: fmt.Sprintf("/api/chair/%d", id),
+				Query:    "",
+				Body:     "",
+			}
+
+			snapshot := getSnapshotFromRequest(TargetServer, req)
+
+			filename := fmt.Sprintf("%d.json", id)
+			writeSnapshotDataToFile(filepath.Join(DestDirectoryPath, "chair_detail", filename), snapshot)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	log.Println("Done generating verification data of /api/chair/:id")
+
 	// chair search condition
 	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "chair_search_condition"))
 	wg.Add(1)
@@ -128,6 +152,28 @@ func main() {
 	}
 	wg.Wait()
 	log.Println("Done generating verification data of /api/chair/search")
+
+	// estate detail
+	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "estate_detail"))
+	for i := 0; i < NumOfEstateDetailData; i++ {
+		wg.Add(1)
+		go func(id int) {
+			req := Request{
+				Method:   "GET",
+				Resource: fmt.Sprintf("/api/estate/%d", id),
+				Query:    "",
+				Body:     "",
+			}
+
+			snapshot := getSnapshotFromRequest(TargetServer, req)
+
+			filename := fmt.Sprintf("%d.json", id)
+			writeSnapshotDataToFile(filepath.Join(DestDirectoryPath, "estate_detail", filename), snapshot)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	log.Println("Done generating verification data of /api/estate/:id")
 
 	// estate search condition
 	MkdirIfNotExists(filepath.Join(DestDirectoryPath, "estate_search_condition"))
