@@ -45,7 +45,7 @@ use constant InitializeResponse => {
     language => JSON_TYPE_STRING
 };
 
-use constant ChairResponse => {
+use constant Chair => {
     id          => JSON_TYPE_INT,
     name        => JSON_TYPE_STRING,
     description => JSON_TYPE_STRING,
@@ -59,6 +59,82 @@ use constant ChairResponse => {
     kind        => JSON_TYPE_STRING,
     popularity  => undef,
     stock       => undef,
+};
+
+use constant ChairSearchResponse => {
+    count  => JSON_TYPE_INT,
+    chairs => json_type_arrayof(Chair),
+};
+
+use constant ChairListResponse => {
+    chairs => json_type_arrayof(Chair),
+};
+
+# Estate 物件
+use constant Estate => {
+    id          => JSON_TYPE_INT,
+    thumbnail   => JSON_TYPE_STRING,
+    name        => JSON_TYPE_STRING,
+    description => JSON_TYPE_STRING,
+    latitude    => JSON_TYPE_FLOAT,
+    longitude   => JSON_TYPE_FLOAT,
+    address     => JSON_TYPE_STRING,
+    rent        => JSON_TYPE_INT,
+    doorHeight  => JSON_TYPE_INT,
+    doorWidth   => JSON_TYPE_INT,
+    features    => JSON_TYPE_STRING,
+    popularity  => undef,
+};
+
+use constant EstateSearchResponse => {
+    count   => JSON_TYPE_INT,
+    estates => json_type_arrayof(Estate),
+};
+
+use constant EstateListResponse => {
+    estates => json_type_arrayof(Estate),
+};
+
+use constant Coordinate => {
+    latitude    => JSON_TYPE_FLOAT,
+    longitude   => JSON_TYPE_FLOAT,
+};
+
+use constant Coordinates => {
+    coordinates => json_type_arrayof(Coordinate),
+};
+
+use constant Range => {
+    id  => JSON_TYPE_INT,
+    min => JSON_TYPE_INT,
+    max => JSON_TYPE_INT,
+};
+
+use constant RangeCondition => {
+    prefix => JSON_TYPE_STRING,
+    suffix => JSON_TYPE_STRING,
+    ranges => json_type_arrayof(Range),
+};
+
+use constant ListCondition => {
+    list => json_type_arrayof(JSON_TYPE_STRING),
+};
+
+use constant EstateSearchCondition => {
+    doorWidth  => RangeCondition,
+    doorHeight => RangeCondition,
+    rent       => RangeCondition,
+    feature    => ListCondition,
+};
+
+use constant ChairSearchCondition => {
+    width   => RangeCondition,
+    height  => RangeCondition,
+    depth   => RangeCondition,
+    price   => RangeCondition,
+    color   => ListCondition,
+    feature => ListCondition,
+    kind    => ListCondition,
 };
 
 
@@ -118,7 +194,7 @@ get '/api/chair/{id}' => sub {
         color       => $chair->{color},
         features    => $chair->{features},
         kind        => $chair->{kind},
-    }, ChairResponse)
+    }, Chair)
 };
 
 
