@@ -8,7 +8,7 @@ const path = require("path");
 const cp = require("child_process");
 const util = require("util");
 const os = require("os");
-const parse = require('csv-parse/lib/sync');
+const parse = require("csv-parse/lib/sync");
 const camelcaseKeys = require("camelcase-keys");
 const upload = multer();
 const promisify = util.promisify;
@@ -32,15 +32,21 @@ const app = express();
 const db = mysql.createPool(dbinfo);
 app.set("db", db);
 
-app.use(morgan('combined'));
+app.use(morgan("combined"));
 app.use(express.json());
 app.post("/initialize", async (req, res, next) => {
   try {
     const dbdir = path.resolve("..", "mysql", "db");
-    const dbfiles = ["0_Schema.sql", "1_DummyEstateData.sql", "2_DummyChairData.sql"];
+    const dbfiles = [
+      "0_Schema.sql",
+      "1_DummyEstateData.sql",
+      "2_DummyChairData.sql",
+    ];
     const execfiles = dbfiles.map((file) => path.join(dbdir, file));
     for (const execfile of execfiles) {
-      await exec(`mysql -h ${dbinfo.host} -u ${dbinfo.user} -p${dbinfo.password} -P ${dbinfo.port} ${dbinfo.database} < ${execfile}`);
+      await exec(
+        `mysql -h ${dbinfo.host} -u ${dbinfo.user} -p${dbinfo.password} -P ${dbinfo.port} ${dbinfo.database} < ${execfile}`
+      );
     }
     res.json({
       language: "nodejs",
@@ -55,9 +61,12 @@ app.get("/api/estate/low_priced", async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const es = await query("SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?", [LIMIT]);
+    const es = await query(
+      "SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?",
+      [LIMIT]
+    );
     const estates = es.map((estate) => camelcaseKeys(estate));
-    res.json({estates});
+    res.json({ estates });
   } catch (e) {
     next(e);
   } finally {
@@ -70,7 +79,10 @@ app.get("/api/chair/low_priced", async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const cs = await query("SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?", [LIMIT]);
+    const cs = await query(
+      "SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?",
+      [LIMIT]
+    );
     const chairs = cs.map((chair) => camelcaseKeys(chair));
     res.json({ chairs });
   } catch (e) {
@@ -83,7 +95,17 @@ app.get("/api/chair/low_priced", async (req, res, next) => {
 app.get("/api/chair/search", async (req, res, next) => {
   const searchQueries = [];
   const queryParams = [];
-  const {priceRangeId, heightRangeId, widthRangeId, depthRangeId, kind, color, features, page, perPage, } = req.query;
+  const {
+    priceRangeId,
+    heightRangeId,
+    widthRangeId,
+    depthRangeId,
+    kind,
+    color,
+    features,
+    page,
+    perPage,
+  } = req.query;
 
   if (priceRangeId != null) {
     const chairPrice = chairSearchCondition["price"].ranges[priceRangeId];
@@ -182,12 +204,12 @@ app.get("/api/chair/search", async (req, res, next) => {
 
   searchQueries.push("stock > 0");
 
-	if (!page || page != +page) {
+  if (!page || page != +page) {
     res.status(400).send(`page condition invalid ${page}`);
     return;
-	}
+  }
 
-	if (!perPage || perPage != +perPage) {
+  if (!perPage || perPage != +perPage) {
     res.status(400).send("perPage condition invalid");
     return;
   }
@@ -204,9 +226,15 @@ app.get("/api/chair/search", async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const [{count}] = await query(`${countprefix}${searchCondition}`, queryParams);
+    const [{ count }] = await query(
+      `${countprefix}${searchCondition}`,
+      queryParams
+    );
     queryParams.push(perPageNum, perPageNum * pageNum);
-    const chairs = await query(`${sqlprefix}${searchCondition}${limitOffset}`, queryParams);
+    const chairs = await query(
+      `${sqlprefix}${searchCondition}${limitOffset}`,
+      queryParams
+    );
     res.json({
       count,
       chairs: camelcaseKeys(chairs),
@@ -248,13 +276,21 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
     await connection.beginTransaction();
-    const [chair] = await query("SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE", [id]);
+    const [
+      chair,
+    ] = await query(
+      "SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE",
+      [id]
+    );
     if (chair == null) {
       res.status(404).send("Not Found");
       await connection.rollback();
       return;
     }
-    await query("UPDATE chair SET stock = ? WHERE id = ?", [chair.stock-1, id]);
+    await query("UPDATE chair SET stock = ? WHERE id = ?", [
+      chair.stock - 1,
+      id,
+    ]);
     await connection.commit();
     res.json({ ok: true });
   } catch (e) {
@@ -268,10 +304,18 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
 app.get("/api/estate/search", async (req, res, next) => {
   const searchQueries = [];
   const queryParams = [];
-  const {doorHeightRangeId, doorWidthRangeId, rentRangeId, features, page, perPage, } = req.query;
+  const {
+    doorHeightRangeId,
+    doorWidthRangeId,
+    rentRangeId,
+    features,
+    page,
+    perPage,
+  } = req.query;
 
   if (doorHeightRangeId != null) {
-    const doorHeight = estateSearchCondition["doorHeight"].ranges[doorHeightRangeId];
+    const doorHeight =
+      estateSearchCondition["doorHeight"].ranges[doorHeightRangeId];
     if (doorHeight == null) {
       res.status(400).send("doorHeightRangeId invalid");
       return;
@@ -289,7 +333,8 @@ app.get("/api/estate/search", async (req, res, next) => {
   }
 
   if (doorWidthRangeId != null) {
-    const doorWidth = estateSearchCondition["doorWidth"].ranges[doorWidthRangeId];
+    const doorWidth =
+      estateSearchCondition["doorWidth"].ranges[doorWidthRangeId];
     if (doorWidth == null) {
       res.status(400).send("doorWidthRangeId invalid");
       return;
@@ -337,12 +382,12 @@ app.get("/api/estate/search", async (req, res, next) => {
     return;
   }
 
-	if (!page || page != +page) {
+  if (!page || page != +page) {
     res.status(400).send(`page condition invalid ${page}`);
     return;
-	}
+  }
 
-	if (!perPage || perPage != +perPage) {
+  if (!perPage || perPage != +perPage) {
     res.status(400).send("perPage condition invalid");
     return;
   }
@@ -359,9 +404,15 @@ app.get("/api/estate/search", async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const [{count}] = await query(`${countprefix}${searchCondition}`, queryParams);
+    const [{ count }] = await query(
+      `${countprefix}${searchCondition}`,
+      queryParams
+    );
     queryParams.push(perPageNum, perPageNum * pageNum);
-    const estates = await query(`${sqlprefix}${searchCondition}${limitOffset}`, queryParams);
+    const estates = await query(
+      `${sqlprefix}${searchCondition}${limitOffset}`,
+      queryParams
+    );
     res.json({
       count,
       estates: camelcaseKeys(estates),
@@ -416,16 +467,34 @@ app.post("/api/estate/nazotte", async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const estates = await query("SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC", [
-      boundingbox.bottomright.latitude, boundingbox.topleft.latitude, boundingbox.bottomright.longitude, boundingbox.topleft.longitude,
-    ]);
+    const estates = await query(
+      "SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC",
+      [
+        boundingbox.bottomright.latitude,
+        boundingbox.topleft.latitude,
+        boundingbox.bottomright.longitude,
+        boundingbox.topleft.longitude,
+      ]
+    );
 
     const estatesInPolygon = [];
     for (const estate of estates) {
-      const point = util.format("'POINT(%f %f)'", estate.latitude, estate.longitude);
-      const sql = "SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))";
-      const coordinatesToText = util.format("'POLYGON((%s))'", coordinates.map((coordinate) => util.format("%f %f", coordinate.latitude, coordinate.longitude)).join(","));
-      const sqlstr = util.format(sql, coordinatesToText, point)
+      const point = util.format(
+        "'POINT(%f %f)'",
+        estate.latitude,
+        estate.longitude
+      );
+      const sql =
+        "SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))";
+      const coordinatesToText = util.format(
+        "'POLYGON((%s))'",
+        coordinates
+          .map((coordinate) =>
+            util.format("%f %f", coordinate.latitude, coordinate.longitude)
+          )
+          .join(",")
+      );
+      const sqlstr = util.format(sql, coordinatesToText, point);
       const [e] = await query(sqlstr, [estate.id]);
       if (e && Object.keys(e).length > 0) {
         estatesInPolygon.push(e);
@@ -482,9 +551,10 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
     const w = chair.width;
     const h = chair.height;
     const d = chair.depth;
-    const es = await query("SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?", [
-      w, h, w, d, h, w, h, d, d, w, d, h, LIMIT
-    ]);
+    const es = await query(
+      "SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?",
+      [w, h, w, d, h, w, h, d, d, w, d, h, LIMIT]
+    );
     const estates = es.map((estate) => camelcaseKeys(estate));
     res.json({ estates });
   } catch (e) {
@@ -501,9 +571,12 @@ app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
   try {
     await connection.beginTransaction();
     const csv = parse(req.file.buffer, { skip_empty_line: true });
-    for (var i=1;i<csv.length;i++) {
+    for (var i = 1; i < csv.length; i++) {
       const items = csv[i];
-      await query("INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", items);
+      await query(
+        "INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        items
+      );
     }
     await connection.commit();
     res.status(201);
@@ -523,9 +596,12 @@ app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
   try {
     await connection.beginTransaction();
     const csv = parse(req.file.buffer, { skip_empty_line: true });
-    for (var i=1;i<csv.length;i++) {
+    for (var i = 1; i < csv.length; i++) {
       const items = csv[i];
-      await query("INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", items);
+      await query(
+        "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+        items
+      );
     }
     await connection.commit();
     res.status(201);
