@@ -3,6 +3,8 @@ import { Client } from "https://deno.land/x/mysql/mod.ts";
 import { sprintf } from "https://deno.land/std/fmt/printf.ts";
 import { organ } from "https://raw.githubusercontent.com/denjucks/organ/master/mod.ts";
 import { camelCase } from "https://deno.land/x/case/mod.ts";
+import { parse } from "https://deno.land/std/encoding/csv.ts";
+import { multiParser } from "https://deno.land/x/multiparser/mod.ts";
 
 const currentEnv = Deno.env.toObject();
 const decoder = new TextDecoder();
@@ -280,7 +282,7 @@ router.post("/api/chair/buy/:id", async (ctx) => {
         await conn.execute("ROLLBACK");
         return;
       }
-      const chair = result.rows[0]
+      const chair = result.rows[0];
       await conn.execute(
         "UPDATE chair SET stock = ? WHERE id = ?",
         [chair.stock - 1, id],
@@ -567,6 +569,59 @@ router.get("/api/recommended_estate/:id", async (ctx) => {
   }
 });
 
+router.post("/api/chair", async (ctx) => {
+  try {
+    const form = await multiParser(ctx.request.serverRequest);
+    if (!form || !form.chairs) {
+      ctx.response.status = 400;
+      ctx.response.body = "Bad Request";
+      return;
+    }
+    const content = decoder.decode((form.chairs as any).content);
+    const csv = await parse(content);
+    await db.transaction(async (conn) => {
+      for (let i = 1; i < csv.length; i++) {
+        const items = csv[i] as any;
+        await conn.execute(
+          "INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          items,
+        );
+      }
+    });
+    ctx.response.status = 201;
+    ctx.response.body = { ok: true };
+  } catch (e) {
+    ctx.response.status = 500;
+    ctx.response.body = e.toString();
+  }
+});
+
+router.post("/api/estate", async (ctx) => {
+  try {
+    const form = await multiParser(ctx.request.serverRequest);
+    if (!form || !form.estates) {
+      ctx.response.status = 400;
+      ctx.response.body = "Bad Request";
+      return;
+    }
+    const content = decoder.decode((form.estates as any).content);
+    const csv = await parse(content);
+    await db.transaction(async (conn) => {
+      for (let i = 1; i < csv.length; i++) {
+        const items = csv[i] as any;
+        await conn.execute(
+          "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+          items,
+        );
+      }
+    });
+    ctx.response.status = 201;
+    ctx.response.body = { ok: true };
+  } catch (e) {
+    ctx.response.status = 500;
+    ctx.response.body = e.toString();
+  }
+});
 const app = new Application();
 app.use(organ());
 app.use(router.routes());
