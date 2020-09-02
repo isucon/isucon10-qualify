@@ -83,7 +83,7 @@ func verifyChairDetail(ctx context.Context, c *client.Client, filePath string) e
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
 	}
 
-	id := string([]rune(snapshot.Request.Resource)[idx+1:])
+	id := snapshot.Request.Resource[idx+1:]
 	actual, err := c.GetChairDetailFromID(ctx, id)
 
 	switch snapshot.Response.StatusCode {
@@ -196,7 +196,7 @@ func verifyEstateDetail(ctx context.Context, c *client.Client, filePath string) 
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
 	}
 
-	id := string([]rune(snapshot.Request.Resource)[idx+1:])
+	id := snapshot.Request.Resource[idx+1:]
 	actual, err := c.GetEstateDetailFromID(ctx, id)
 
 	switch snapshot.Response.StatusCode {
@@ -376,7 +376,7 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 	if idx == -1 || idx == len(snapshot.Request.Resource)-1 {
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
 	}
-	id, err := strconv.ParseInt(string([]rune(snapshot.Request.Resource)[idx+1:]), 10, 64)
+	id, err := strconv.ParseInt(snapshot.Request.Resource[idx+1:], 10, 64)
 	if err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
 	}
