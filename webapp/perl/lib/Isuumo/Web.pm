@@ -32,6 +32,7 @@ my $ESTATE_SEARCH_CONDITION;
 my $_JSON = JSON::MaybeXS->new()->allow_blessed(1)->convert_blessed(1)->ascii(1);
 
 use constant LIMIT => 20;
+use constant NAZOTTE_LIMIT => 50;
 
 use constant InitializeResponse => {
     language => JSON_TYPE_STRING
@@ -701,6 +702,99 @@ get '/api/recommended_estate/{id:\d+}' => sub {
         } $estates->@* ],
     }, EstateListResponse);
 };
+
+post '/api/estate/nazotte' => sub {
+    my ($self, $c) = @_;
+
+    my @coordinates = $c->req->body_parameters->get_all('coordinates');
+    if (!@coordinates) {
+        return $self->res_no_content($c, HTTP_BAD_REQUEST);
+    }
+
+    my $b = get_bounding_box(\@coordinates);
+
+    my $query = 'SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC';
+
+    my $estates_in_bounding_box = $self->dbh->select_all($query,
+        $b->{bottom_right_corner}{latitude}, $b->{top_left_corner}{latitude}, $b->{bottom_right_corner}{longitude}, $b->{top_left_corner}{longitude});
+
+    if ($estates_in_bounding_box->@* == 0) {
+        infof("select * from estate where latitude ... not found");
+    }
+
+    my $estates_in_polygon;
+    for my $estate ($estates_in_bounding_box->@*) {
+        my $point = sprintf("'POINT(%f %f)'", $estate->{latitude}, $estate->{longitude});
+        my $query = sprintf("SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))", coordinates_to_text(\@coordinates), $point);
+
+        my $validated_estate = $self->dbh->select_row($query, $estate->{id});
+        if ($validated_estate) {
+            push $estates_in_polygon->@* => $validated_estate;
+        }
+    }
+
+    my $estates;
+    if ($estates_in_polygon->@* > NAZOTTE_LIMIT) {
+        $estates = [$estates_in_polygon->@[0.. NAZOTTE_LIMIT - 1]];
+    }
+    else {
+        $estates = $estates_in_polygon;
+    }
+    my $count = $estates->@*;
+
+    return $self->res_json($c, {
+        count   => $count,
+        estates => [map {
+            +{
+                id          => $_->{id},
+                thumbnail   => $_->{thumbnail},
+                name        => $_->{name},
+                description => $_->{description},
+                latitude    => $_->{latitude},
+                longitude   => $_->{longitude},
+                address     => $_->{address},
+                rent        => $_->{rent},
+                doorHeight  => $_->{door_height},
+                doorWidth   => $_->{door_width},
+                features    => $_->{features},
+            }
+        } $estates->@*],
+    }, EstateSearchResponse);
+};
+
+sub get_bounding_box {
+    my ($coordinates) = @_;
+    my $bounding_box = {
+        top_left_corner => undef,
+        bottom_right_corner => undef,
+    };
+    for my $coordinate ($coordinates->@*) {
+        if ($bounding_box->{top_left_corner}{latitude} > $coordinate->{latitude}) {
+            $bounding_box->{top_left_corner}{latitude} = $coordinate->{latitude}
+        }
+        if ($bounding_box->{top_left_corner}{longitude} > $coordinate->{longitude}) {
+            $bounding_box->{top_left_corner}{longitude} = $coordinate->{longitude}
+        }
+
+        if ($bounding_box->{bottom_right_corner}{latitude} < $coordinate->{latitude}) {
+            $bounding_box->{bottom_right_corner}{latitude} = $coordinate->{latitude}
+        }
+        if ($bounding_box->{bottom_right_corner}{latitude} < $coordinate->{latitude}) {
+            $bounding_box->{bottom_right_corner}{longitude} = $coordinate->{longitude}
+        }
+    }
+    return $bounding_box;
+}
+
+sub coordinates_to_text {
+    my ($coordinates) = @_;
+
+    my @points;
+    for my $c ($coordinates->@*) {
+        push @points => sprintf("%f %f", $c->{latitude}, $c->{longitude})
+    }
+    return sprintf("'POLYGON((%s))'", join ",", @points);
+}
 
 
 sub dbh {
