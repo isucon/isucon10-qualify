@@ -486,6 +486,45 @@ get '/api/estate/{id:\d+}' => sub {
     }, Estate)
 };
 
+post '/api/estate' => sub {
+    my ( $self, $c )  = @_;
+
+    my $file = $c->req->uploads->{'estates'};
+    if (!$file) {
+        critf("failed to get form file");
+        return $self->res_no_content($c, HTTP_BAD_REQUEST);
+    }
+
+    my $fh;
+    if (!open $fh, "<:encoding(utf8)", $file->path) {
+        critf("failed to open form file %s. %s", $file->path, $!);
+        return $self->res_no_content($c, HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    my $csv = Text::CSV_XS->new({binary => 1});
+    my $dbh = $self->dbh;
+    my $txn = $dbh->txn_scope;
+
+    eval {
+        while (my $row = $csv->getline($fh)) {
+            my ($id, $name, $description, $thumbnail, $address, $latitude, $longitude, $rent, $door_height, $door_width, $features, $popularity) = $row->@*;
+
+            $dbh->query(
+                "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                $id, $name, $description, $thumbnail, $address, $latitude, $longitude, $rent, $door_height, $door_width, $features, $popularity
+            );
+}
+        $txn->commit;
+    };
+    if ($@) {
+        $txn->rollback;
+        critf("failed to commit txn: %s", $@);
+        return $self->res_no_content($c, HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    $fh->close;
+    return $self->res_no_content($c, HTTP_CREATED);
+};
 
 
 sub dbh {
