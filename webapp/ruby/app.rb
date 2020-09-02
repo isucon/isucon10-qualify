@@ -205,7 +205,7 @@ class App < Sinatra::Base
     end
 
     if chair['stock'] <= 0
-      logger.info("Requested id's chair is sold out: #{id}")
+      logger.info "Requested id's chair is sold out: #{id}"
       halt 404
     end
 
