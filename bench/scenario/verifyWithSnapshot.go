@@ -80,7 +80,7 @@ func verifyChairDetail(ctx context.Context, c *client.Client, filePath string) e
 
 	idx := strings.LastIndex(snapshot.Request.Resource, "/")
 	if idx == -1 || idx == len(snapshot.Request.Resource)-1 {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: 不正なSnapshotです"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
 	}
 
 	id := string([]rune(snapshot.Request.Resource)[idx+1:])
@@ -95,7 +95,7 @@ func verifyChairDetail(ctx context.Context, c *client.Client, filePath string) e
 		var expected *asset.Chair
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
@@ -129,7 +129,7 @@ func verifyChairSearchCondition(ctx context.Context, c *client.Client, filePath 
 		var expected *asset.ChairSearchCondition
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search/condition: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search/condition: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
@@ -168,7 +168,7 @@ func verifyChairSearch(ctx context.Context, c *client.Client, filePath string) e
 		var expected *client.ChairsResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
@@ -193,7 +193,7 @@ func verifyEstateDetail(ctx context.Context, c *client.Client, filePath string) 
 
 	idx := strings.LastIndex(snapshot.Request.Resource, "/")
 	if idx == -1 || idx == len(snapshot.Request.Resource)-1 {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: 不正なSnapshotです"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
 	}
 
 	id := string([]rune(snapshot.Request.Resource)[idx+1:])
@@ -208,7 +208,7 @@ func verifyEstateDetail(ctx context.Context, c *client.Client, filePath string) 
 		var expected *asset.Estate
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
@@ -242,7 +242,7 @@ func verifyEstateSearchCondition(ctx context.Context, c *client.Client, filePath
 		var expected *asset.EstateSearchCondition
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search/condition: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search/condition: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual) {
@@ -281,7 +281,7 @@ func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) 
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
@@ -315,7 +315,7 @@ func verifyLowPricedChair(ctx context.Context, c *client.Client, filePath string
 		var expected *client.ChairsResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/low_priced: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/low_priced: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
@@ -349,7 +349,7 @@ func verifyLowPricedEstate(ctx context.Context, c *client.Client, filePath strin
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/low_priced: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/low_priced: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
@@ -374,11 +374,11 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 
 	idx := strings.LastIndex(snapshot.Request.Resource, "/")
 	if idx == -1 || idx == len(snapshot.Request.Resource)-1 {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
 	}
 	id, err := strconv.ParseInt(string([]rune(snapshot.Request.Resource)[idx+1:]), 10, 64)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
 	}
 
 	actual, err := c.GetRecommendedEstatesFromChair(ctx, id)
@@ -392,7 +392,7 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
@@ -431,7 +431,7 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("POST /api/estate/nazotte: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("POST /api/estate/nazotte: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
