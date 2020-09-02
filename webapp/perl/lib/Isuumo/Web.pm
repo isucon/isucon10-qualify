@@ -459,6 +459,33 @@ get '/api/chair/low_priced' => sub {
     }, ChairListResponse);
 };
 
+get '/api/estate/{id:\d+}' => sub {
+    my ( $self, $c )  = @_;
+
+    my $estate_id = $c->args->{id};
+    my $query = 'SELECT * FROM estate WHERE id = ?';
+    my $estate = $self->dbh->select_row($query, $estate_id);
+
+    if (!$estate) {
+        infof("getEstateDetail estate id not found : %s", $estate_id);
+        return $self->res_no_content($c, HTTP_NOT_FOUND)
+    }
+
+    return $self->res_json($c, {
+        id          => $estate->{id},
+        thumbnail   => $estate->{thumbnail},
+        name        => $estate->{name},
+        description => $estate->{description},
+        latitude    => $estate->{latitude},
+        longitude   => $estate->{longitude},
+        address     => $estate->{address},
+        rent        => $estate->{rent},
+        doorHeight  => $estate->{door_height},
+        doorWidth   => $estate->{door_width},
+        features    => $estate->{features},
+    }, Estate)
+};
+
 
 
 sub dbh {
