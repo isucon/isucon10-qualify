@@ -1,0 +1,63 @@
+- name: Deploy env.sh
+  become: yes
+  become_user: root
+  template:
+    src: "env.j2"
+    dest: "/home/isucon/env.sh"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Deploy sqlfiles
+  become: yes
+  become_user: isucon
+  copy:
+    src: "../files/isucon10q3/webapp/mysql/db/0_Schema.sql"
+    dest: "/home/isucon/isucon10-qualify/webapp/mysql/db/0_Schema.sql"
+    owner: "isucon"
+    group: "isucon"
+    mode: "0777"
+
+- name: deploy sqlfiles
+  become: yes
+  become_user: isucon
+  copy:
+    src: "../files/isucon10q3/webapp/mysql/db/3_index.sql"
+    dest: "/home/isucon/isucon10-qualify/webapp/mysql/db/3_index.sql"
+    owner: "isucon"
+    group: "isucon"
+    mode: "0777"
+
+- name: deploy main.go
+  become: yes
+  become_user: isucon
+  copy:
+    src: "../files/isucon10q3/webapp/go/main.go"
+    dest: "/home/isucon/isucon10-qualify/webapp/go/main.go"
+    owner: "isucon"
+    group: "isucon"
+    mode: "0777"
+
+- name: Build Web Application 
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isucon10-qualify/webapp/go/
+  environment:
+    PATH: "/home/isucon/bin:/home/isucon/.local/bin:/usr/local/node/bin:/usr/local/python/bin:/usr/local/go/bin:/home/isucon/go/bin:/usr/local/bin:/usr/bin:/bin"
+  shell: |
+    make isuumo
+
+- name: Start "isucon-go.service"
+  systemd:
+    daemon_reload: "yes"
+    name: "isucon-go.service"
+    state: "restarted"
+    enabled: "yes"
+
+- name: Start "nginx"
+  systemd:
+    daemon_reload: "yes"
+    name: "nginx"
+    state: "reloaded"
+    enabled: "yes"

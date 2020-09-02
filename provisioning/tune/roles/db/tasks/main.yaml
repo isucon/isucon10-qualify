@@ -1,0 +1,14 @@
+- name: Copy mysqld.conf
+  become: yes
+  become_user: root
+  copy:
+    src: "mysqld.cnf"
+    dest: "/etc/mysql/mysql.conf.d/mysqld.cnf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+- name: Create isucon user on MySQL
+  become: yes
+  become_user: root
+  shell: |
+      mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO isucon@'%' IDENTIFIED BY 'isucon' WITH GRANT OPTION; FLUSH PRIVILEGES;"
