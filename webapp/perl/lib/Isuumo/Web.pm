@@ -664,6 +664,44 @@ get '/api/estate/low_priced' => sub {
     }, EstateListResponse);
 };
 
+get '/api/recommended_estate/{id:\d+}' => sub {
+    my ($self, $c) = @_;
+
+    my $chair_id = $c->args->{id};
+    my $chair_query = "SELECT * FROM chair WHERE id = ?";
+    my $chair = $self->dbh->select_row($chair_query, $chair_id);
+    if (!$chair) {
+        infof("Requested chair id \"%v\" not found", $chair_id);
+        return $self->res_no_content(HTTP_BAD_REQUEST);
+    }
+
+    my $w = $chair->{width};
+    my $h = $chair->{height};
+    my $d = $chair->{depth};
+    my $query = "SELECT * FROM estate WHERE (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) ORDER BY popularity DESC, id ASC LIMIT ?";
+    my $estates = $self->dbh->select_all($query,
+        $w, $h, $w, $d, $h, $w, $h, $d, $d, $w, $d, $h, LIMIT
+    );
+
+    return $self->res_json($c, {
+        estates => [map {
+            +{
+                id          => $_->{id},
+                thumbnail   => $_->{thumbnail},
+                name        => $_->{name},
+                description => $_->{description},
+                latitude    => $_->{latitude},
+                longitude   => $_->{longitude},
+                address     => $_->{address},
+                rent        => $_->{rent},
+                doorHeight  => $_->{door_height},
+                doorWidth   => $_->{door_width},
+                features    => $_->{features},
+            }
+        } $estates->@* ],
+    }, EstateListResponse);
+};
+
 
 sub dbh {
     my $self = shift;
