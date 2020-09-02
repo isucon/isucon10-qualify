@@ -291,7 +291,120 @@ get '/api/chair/search' => sub {
         }
     }
 
-    $self->res_json($c, {}, ChairSearchResponse);
+    if (my $height_range_id = $c->req->parameters->get('heightRangeId')) {
+        my ($chair_height, $err) = get_range($CHAIR_SEARCH_CONDITION->{height}, $height_range_id);
+        if ($err) {
+            infof("heightRangeID invalid, %s : %s", $height_range_id, $err);
+            return $self->res_no_content($c, HTTP_BAD_REQUEST);
+        }
+        if ($chair_height->{min} != -1) {
+            push @conditions => "height >= ?";
+            push @params => $chair_height->{min};
+        }
+        if ($chair_height->{max} != -1) {
+            push @conditions => "height < ?";
+            push @params => $chair_height->{max};
+        }
+    }
+
+    if (my $width_range_id = $c->req->parameters->get('widthRangeId')) {
+        my ($chair_width, $err) = get_range($CHAIR_SEARCH_CONDITION->{width}, $width_range_id);
+        if ($err) {
+            infof("widthRangeID invalid, %s : %s", $width_range_id, $err);
+            return $self->res_no_content($c, HTTP_BAD_REQUEST);
+        }
+        if ($chair_width->{min} != -1) {
+            push @conditions => "width >= ?";
+            push @params => $chair_width->{min};
+        }
+        if ($chair_width->{max} != -1) {
+            push @conditions => "width < ?";
+            push @params => $chair_width->{max};
+        }
+    }
+
+    if (my $depth_range_id = $c->req->parameters->get('depthRangeId')) {
+        my ($chair_depth, $err) = get_range($CHAIR_SEARCH_CONDITION->{depth}, $depth_range_id);
+        if ($err) {
+            infof("depthRangeID invalid, %s : %s", $depth_range_id, $err);
+            return $self->res_no_content($c, HTTP_BAD_REQUEST);
+        }
+        if ($chair_depth->{min} != -1) {
+            push @conditions => "depth >= ?";
+            push @params => $chair_depth->{min};
+        }
+        if ($chair_depth->{max} != -1) {
+            push @conditions => "depth < ?";
+            push @params => $chair_depth->{max};
+        }
+    }
+
+    if (my $kind = $c->req->parameters->get('kind')) {
+        push @conditions => "kind = ?";
+        push @params => $kind;
+    }
+
+    if (my $color = $c->req->parameters->get('color')) {
+        push @conditions => "color = ?";
+        push @params => $color;
+    }
+
+    if (my $features = $c->req->parameters->get('features')) {
+        for my $f (split /,/, $features) {
+            push @conditions => "features LIKE CONCAT('%', ?, '%')";
+            push @params => $features;
+        }
+    }
+
+    if (@conditions == 0) {
+        infof("Search condition not found");
+        return $self->res_no_content($c, HTTP_BAD_REQUEST);
+    }
+
+    push @conditions => "stock > 0";
+
+    my $page = $c->req->parameters->get('page');
+    if ($page !~ /^\d+$/) {
+        infof("Invalid format page parameter : %s", $page);
+        return $self->res_no_content($c, HTTP_BAD_REQUEST);
+    }
+
+    my $per_page = $c->req->parameters->get('perPage');
+    if ($per_page !~ /^\d+$/) {
+        infof("Invalid format per_page parameter : %s", $per_page);
+        return $self->res_no_content($c, HTTP_BAD_REQUEST);
+    }
+
+    my $searchQuery = "SELECT * FROM chair WHERE ";
+    my $countQuery = "SELECT COUNT(*) FROM chair WHERE ";
+    my $searchCondition = join " AND ", @conditions;
+    my $limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
+
+    my $dbh = $self->dbh;
+
+    my $count = $dbh->select_one($countQuery . $searchCondition, @params);
+
+    push @params => $per_page, $page * $per_page;
+    my $chairs = $dbh->select_all($searchQuery . $searchCondition . $limitOffset, @params);
+
+    return $self->res_json($c, {
+        count  => $count,
+        chairs => [map {
+            +{
+                id          => $_->{id},
+                name        => $_->{name},
+                description => $_->{description},
+                thumbnail   => $_->{thumbnail},
+                price       => $_->{price},
+                height      => $_->{height},
+                width       => $_->{width},
+                depth       => $_->{depth},
+                color       => $_->{color},
+                features    => $_->{features},
+                kind        => $_->{kind},
+            }
+        } $chairs->@* ],
+    }, ChairSearchResponse);
 };
 
 
