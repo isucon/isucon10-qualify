@@ -2,6 +2,10 @@ package Isuumo::Web;
 use v5.32;
 use warnings;
 use utf8;
+
+use feature qw(isa);
+no warnings qw(experimental::isa);
+
 use Kossy;
 
 use DBIx::Sunny;
@@ -258,14 +262,13 @@ post '/api/chair' => sub {
         }
         $txn->commit;
     };
-
-    $fh->close;
-
     if ($@) {
         $txn->rollback;
         critf("failed to commit txn: %s", $@);
         return $self->res_no_content($c, HTTP_INTERNAL_SERVER_ERROR);
     }
+
+    $fh->close;
     return $self->res_no_content($c, HTTP_CREATED);
 };
 
@@ -407,6 +410,39 @@ get '/api/chair/search' => sub {
     }, ChairSearchResponse);
 };
 
+
+post '/api/chair/buy/{id:\d+}' => sub {
+    my ($self, $c) = @_;
+
+    my $email = $c->req->body_parameters->{email};
+    if (!$email) {
+        infof("post buy chair failed : email not found in request body");
+        return $self->res_no_content($c, HTTP_BAD_REQUEST);
+    }
+
+    my $chair_id = $c->args->{id};
+    my $dbh = $self->dbh;
+    my $txn = $dbh->txn_scope;
+
+    eval {
+        my $chair = $dbh->select_row("SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE", $chair_id);
+        if (!$chair) {
+            infof("buyChair chair id \"%s\" not found", $chair_id);
+            die $self->res_no_content($c, HTTP_NOT_FOUND);
+        }
+        $dbh->query("UPDATE chair SET stock = stock - 1 WHERE id = ?", $chair_id);
+        $txn->commit;
+    };
+    if ($@) {
+        $txn->rollback;
+        return $@ if $@ isa Plack::Response;
+
+        critf("transaction commit error : %s", $@);
+        return $self->res_no_content($c, HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    return $self->res_no_content($c, HTTP_OK);
+};
 
 # send empty body with status code
 sub res_no_content {
