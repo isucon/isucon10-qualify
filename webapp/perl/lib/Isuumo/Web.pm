@@ -31,25 +31,7 @@ my $ESTATE_SEARCH_CONDITION;
 
 my $_JSON = JSON::MaybeXS->new()->allow_blessed(1)->convert_blessed(1)->ascii(1);
 
-sub dbh {
-    my $self = shift;
-    $self->{_dbh} ||= do {
-        my ($host, $port, $user, $dbname, $password) = $MYSQL_CONNECTION_DATA->@{qw/host port user dbname password/};
-        my $dsn = "dbi:mysql:database=$dbname;host=$host;port=$port";
-        DBIx::Sunny->connect($dsn, $user, $password, {
-            mysql_enable_utf8mb4 => 1,
-            mysql_auto_reconnect => 1,
-            Callbacks => {
-                connected => sub {
-                    my $dbh = shift;
-                    # XXX $dbh->do('SET SESSION sql_mode="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"');
-                    return;
-                },
-            },
-        });
-    };
-}
-
+use constant LIMIT => 20;
 
 use constant InitializeResponse => {
     language => JSON_TYPE_STRING
@@ -448,6 +430,55 @@ get '/api/chair/search/condition' => sub {
     my ($self, $c) = @_;
     return $self->res_json($c, $CHAIR_SEARCH_CONDITION, ChairSearchCondition);
 };
+
+get '/api/chair/low_priced' => sub {
+    my ($self, $c) = @_;
+
+    my $query = "SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?";
+    my $chairs = $self->dbh->select_all($query, LIMIT);
+    if ($chairs->@* == 0) {
+        critf("getLowPricedChair not found");
+    }
+
+    return $self->res_json($c, {
+        chairs => [map {
+            +{
+                id          => $_->{id},
+                name        => $_->{name},
+                description => $_->{description},
+                thumbnail   => $_->{thumbnail},
+                price       => $_->{price},
+                height      => $_->{height},
+                width       => $_->{width},
+                depth       => $_->{depth},
+                color       => $_->{color},
+                features    => $_->{features},
+                kind        => $_->{kind},
+            }
+        } $chairs->@* ],
+    }, ChairListResponse);
+};
+
+
+
+sub dbh {
+    my $self = shift;
+    $self->{_dbh} ||= do {
+        my ($host, $port, $user, $dbname, $password) = $MYSQL_CONNECTION_DATA->@{qw/host port user dbname password/};
+        my $dsn = "dbi:mysql:database=$dbname;host=$host;port=$port";
+        DBIx::Sunny->connect($dsn, $user, $password, {
+            mysql_enable_utf8mb4 => 1,
+            mysql_auto_reconnect => 1,
+            Callbacks => {
+                connected => sub {
+                    my $dbh = shift;
+                    # XXX $dbh->do('SET SESSION sql_mode="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"');
+                    return;
+                },
+            },
+        });
+    };
+}
 
 # send empty body with status code
 sub res_no_content {
