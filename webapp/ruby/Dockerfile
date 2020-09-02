@@ -1,4 +1,4 @@
-FROM ruby:2.7.1-slim
+FROM rubylang/ruby:2.7.0-bionic
 
 RUN apt-get update && \
     apt-get install -y build-essential default-mysql-client default-libmysqlclient-dev && \
