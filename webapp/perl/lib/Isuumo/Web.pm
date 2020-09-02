@@ -762,6 +762,26 @@ post '/api/estate/nazotte' => sub {
     }, EstateSearchResponse);
 };
 
+post '/api/estate/req_doc/{id:\d+}' => sub {
+    my ($self, $c) = @_;
+
+    my $email = $c->req->body_parameters->{email};
+    if (!$email) {
+        infof("post request document failed : email not found in request body");
+        return $self->res_no_content($c, HTTP_BAD_REQUEST);
+    }
+
+    my $estate_id = $c->args->{id};
+    my $query = 'SELECT * FROM estate WHERE id = ?';
+    my $estate = $self->dbh->select_row($query, $estate_id);
+    if (!$estate) {
+        return $self->res_no_content($c, HTTP_NOT_FOUND);
+    }
+
+    return $self->res_no_content($c, HTTP_OK);
+};
+
+
 sub get_bounding_box {
     my ($coordinates) = @_;
     my $bounding_box = {
