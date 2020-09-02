@@ -20,11 +20,11 @@
       "qemuargs": [
         [
           "-m",
-          "4096M"
+          "8192"
         ],
         [
           "-smp",
-          "2"
+          "4,cores=4,threads=1"
         ],
         [
           "-smbios",

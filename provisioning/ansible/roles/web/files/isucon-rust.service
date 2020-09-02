@@ -1,15 +1,15 @@
 [Unit]
-Description=isucon-go
+Description=isucon-rust
 After=syslog.target
 
 [Service]
-WorkingDirectory=/home/isucon/isuumo/webapp/go
+WorkingDirectory=/home/isucon/isuumo/webapp/rust
 EnvironmentFile=/home/isucon/env.sh
 PIDFile=/home/isucon/isuumo/webapp/go/server.pid
 
 User=isucon
 Group=isucon
-ExecStart=/home/isucon/isuumo/webapp/go/isuumo
+ExecStart=/home/isucon/isuumo/webapp/rust/target/release/isuumo
 ExecStop=/bin/kill -s QUIT $MAINPID
 
 [Install]
