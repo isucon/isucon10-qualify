@@ -14,13 +14,18 @@ use Text::CSV_XS;
 
 local $Log::Minimal::LOG_LEVEL = "DEBUG";
 
-our $MYSQL_CONNECTION_DATA = {
+my $MYSQL_CONNECTION_DATA = {
     host     => $ENV{MYSQL_HOST}     // '127.0.0.1',
     port     => $ENV{MYSQL_PORT}     // '3306',
     user     => $ENV{MYSQL_USER}     // 'isucon',
     dbname   => $ENV{MYSQL_DATABASE} // 'isuumo',
     password => $ENV{MYSQL_PASS}     // 'isucon',
 };
+
+my $CHAIR_SEARCH_CONDITION;
+my $ESTATE_SEARCH_CONDITION;
+
+my $_JSON = JSON::MaybeXS->new()->allow_blessed(1)->convert_blessed(1)->ascii(1);
 
 sub dbh {
     my $self = shift;
@@ -139,6 +144,32 @@ use constant ChairSearchCondition => {
 };
 
 
+$CHAIR_SEARCH_CONDITION = do {
+    my $file = File::Spec->catfile("..", "fixture", "chair_condition.json");
+    open my $fh, "<", $file or die "cannot open $file";
+    my $json = do { local $/; <$fh> };
+    $_JSON->decode($json);
+};
+
+$ESTATE_SEARCH_CONDITION = do {
+    my $file = File::Spec->catfile("..", "fixture", "estate_condition.json");
+    open my $fh, "<", $file or die "cannot open $file";
+    my $json = do { local $/; <$fh> };
+    $_JSON->decode($json);
+};
+
+sub get_range {
+    my ($range_condition, $range_id) = @_;
+
+    my $ranges = $range_condition->{ranges};
+
+    if ($range_id < 0 || $ranges->@* <= $range_id) {
+        return undef, "Unexpected Range ID"
+    }
+
+    return $ranges->[$range_id], undef
+}
+
 post '/initialize' => sub {
     my ( $self, $c )  = @_;
 
@@ -166,7 +197,7 @@ post '/initialize' => sub {
     }, InitializeResponse);
 };
 
-get '/api/chair/{id}' => sub {
+get '/api/chair/{id:\d+}' => sub {
     my ( $self, $c )  = @_;
 
     my $chair_id = $c->args->{id};
@@ -238,6 +269,31 @@ post '/api/chair' => sub {
     return $self->res_no_content($c, HTTP_CREATED);
 };
 
+get '/api/chair/search' => sub {
+    my ( $self, $c )  = @_;
+
+    my @conditions;
+    my @params;
+
+    if (my $price_range_id = $c->req->parameters->get('priceRangeId')) {
+        my ($chair_price, $err) = get_range($CHAIR_SEARCH_CONDITION->{price}, $price_range_id);
+        if ($err) {
+            infof("priceRangeID invalid, %s : %s", $price_range_id, $err);
+            return $self->res_no_content($c, HTTP_BAD_REQUEST);
+        }
+        if ($chair_price->{min} != -1) {
+            push @conditions => "price >= ?";
+            push @params => $chair_price->{min};
+        }
+        if ($chair_price->{max} != -1) {
+            push @conditions => "price < ?";
+            push @params => $chair_price->{max};
+        }
+    }
+
+    $self->res_json($c, {}, ChairSearchResponse);
+};
+
 
 # send empty body with status code
 sub res_no_content {
@@ -248,7 +304,6 @@ sub res_no_content {
 
 # render_json with json spec
 # XXX: $json_specを指定できるようにKossy::Conection#render_jsonを調整
-my $_JSON = JSON::MaybeXS->new()->allow_blessed(1)->convert_blessed(1)->ascii(1);
 sub res_json {
     my ($self, $c, $obj, $json_spec) = @_;
 
