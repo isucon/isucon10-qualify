@@ -178,34 +178,25 @@ func checkWorkers(ctx context.Context) {
 	for {
 		select {
 		case level := <-score.LevelUp():
-			cet := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfChairSearchScenario)
-			eet := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateSearchScenario)
-			net := fails.ErrorsForCheck.GetLastErrorTime(fails.ErrorOfEstateNazotteSearchScenario)
-			if time.Since(cet) > parameter.IntervalForCheckWorkers &&
-				time.Since(eet) > parameter.IntervalForCheckWorkers &&
-				time.Since(net) > parameter.IntervalForCheckWorkers {
-				log.Println("負荷レベルが上昇しました。")
-				incWorkers := parameter.ListOfIncWorkers[level]
-				for i := 0; i < incWorkers.ChairSearchWorker; i++ {
-					go runChairSearchWorker(ctx)
-				}
-				for i := 0; i < incWorkers.EstateSearchWorker; i++ {
-					go runEstateSearchWorker(ctx)
-				}
-				for i := 0; i < incWorkers.EstateNazotteSearchWorker; i++ {
-					go runEstateNazotteSearchWorker(ctx)
-				}
-				for i := 0; i < incWorkers.BotWorker; i++ {
-					go runBotWorker(ctx)
-				}
-				for i := 0; i < incWorkers.ChairDraftPostWorker; i++ {
-					go runChairDraftPostWorker(ctx)
-				}
-				for i := 0; i < incWorkers.EstateDraftPostWorker; i++ {
-					go runEstateDraftPostWorker(ctx)
-				}
-			} else {
-				log.Println("シナリオ内でエラーが発生したため負荷レベルを上げられませんでした。")
+			log.Println("負荷レベルが上昇しました。")
+			incWorkers := parameter.ListOfIncWorkers[level]
+			for i := 0; i < incWorkers.ChairSearchWorker; i++ {
+				go runChairSearchWorker(ctx)
+			}
+			for i := 0; i < incWorkers.EstateSearchWorker; i++ {
+				go runEstateSearchWorker(ctx)
+			}
+			for i := 0; i < incWorkers.EstateNazotteSearchWorker; i++ {
+				go runEstateNazotteSearchWorker(ctx)
+			}
+			for i := 0; i < incWorkers.BotWorker; i++ {
+				go runBotWorker(ctx)
+			}
+			for i := 0; i < incWorkers.ChairDraftPostWorker; i++ {
+				go runChairDraftPostWorker(ctx)
+			}
+			for i := 0; i < incWorkers.EstateDraftPostWorker; i++ {
+				go runEstateDraftPostWorker(ctx)
 			}
 		case <-ctx.Done():
 			return

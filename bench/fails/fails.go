@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/morikuni/failure"
 )
@@ -51,8 +50,7 @@ func init() {
 }
 
 type Errors struct {
-	Msgs           []string
-	lastErrorTimes map[ErrorLabel]time.Time
+	Msgs []string
 
 	critical    int
 	application int
@@ -63,17 +61,9 @@ type Errors struct {
 
 func NewErrors() *Errors {
 	msgs := make([]string, 0, 100)
-	times := make(map[ErrorLabel]time.Time)
 	return &Errors{
-		Msgs:           msgs,
-		lastErrorTimes: times,
+		Msgs: msgs,
 	}
-}
-
-func (e *Errors) GetLastErrorTime(label ErrorLabel) time.Time {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-	return e.lastErrorTimes[label]
 }
 
 func (e *Errors) GetMsgs() (msgs []string) {
@@ -104,8 +94,6 @@ func (e *Errors) Add(err error, label ErrorLabel) {
 	defer e.mu.Unlock()
 
 	log.Printf("%+v", err)
-
-	e.lastErrorTimes[label] = time.Now()
 
 	msg, ok := failure.MessageOf(err)
 	code, _ := failure.CodeOf(err)
