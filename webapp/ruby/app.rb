@@ -49,8 +49,7 @@ class App < Sinatra::Base
 
   post '/initialize' do
     unless system('../mysql/db/init.sh')
-      logger.error('Initialize script error')
-      halt 500
+      raise 'Initialize script error'
     end
 
     { language: 'ruby' }.to_json
