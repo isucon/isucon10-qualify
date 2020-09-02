@@ -636,6 +636,34 @@ get '/api/estate/search' => sub {
     }, EstateSearchResponse);
 };
 
+get '/api/estate/low_priced' => sub {
+    my ($self, $c) = @_;
+
+    my $query = "SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?";
+    my $estates = $self->dbh->select_all($query, LIMIT);
+    if ($estates->@* == 0) {
+        critf("getLowPricedEstate not found");
+    }
+
+    return $self->res_json($c, {
+        estates => [map {
+            +{
+                id          => $_->{id},
+                thumbnail   => $_->{thumbnail},
+                name        => $_->{name},
+                description => $_->{description},
+                latitude    => $_->{latitude},
+                longitude   => $_->{longitude},
+                address     => $_->{address},
+                rent        => $_->{rent},
+                doorHeight  => $_->{door_height},
+                doorWidth   => $_->{door_width},
+                features    => $_->{features},
+            }
+        } $estates->@* ],
+    }, EstateListResponse);
+};
+
 
 sub dbh {
     my $self = shift;
