@@ -39,8 +39,11 @@ class App < Sinatra::Base
       end
     end
 
-    def body_params
-      @body_params ||= JSON.parse(request.body.tap(&:rewind).read, symbolize_names: true)
+    def body_json_params
+      @body_json_params ||= JSON.parse(request.body.tap(&:rewind).read, symbolize_names: true)
+    rescue JSON::ParserError => e
+      logger.error "Failed to parse body: #{e.inspect}"
+      halt 400
     end
   end
 
@@ -233,15 +236,7 @@ class App < Sinatra::Base
   end
 
   post '/api/chair/buy/:id' do
-    email =
-      begin
-        body_params[:email]
-      rescue JSON::ParserError => e
-        logger.error "post buy chair failed: #{e.inspect}"
-        halt 400
-      end
-
-    unless email
+    unless body_json_params[:email]
       logger.error 'post buy chair failed: email not found in request body'
       halt 400
     end
@@ -380,13 +375,7 @@ class App < Sinatra::Base
   end
 
   post '/api/estate/nazotte' do
-    coordinates =
-      begin
-        body_params[:coordinates]
-      rescue JSON::ParserError => e
-        logger.error "post search estate nazotte failed: #{e.inspect}"
-        halt 400
-      end
+    coordinates = body_json_params[:coordinates]
 
     unless coordinates
       logger.error "post search estate nazotte failed: coordinates not found"
@@ -478,15 +467,7 @@ class App < Sinatra::Base
   end
 
   post '/api/estate/req_doc/:id' do
-    email =
-      begin
-        body_params[:email]
-      rescue JSON::ParserError => e
-        logger.error "post request document failed: #{e.inspect}"
-        halt 400
-      end
-
-    unless email
+    unless body_json_params[:email]
       logger.error 'post request document failed: email not found in request body'
       halt 400
     end
