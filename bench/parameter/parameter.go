@@ -22,7 +22,6 @@ const (
 	SleepSwingOnBotInterval        = 100 // * time.Millisecond
 	SleepBeforePostDraft           = 500 * time.Millisecond
 	SleepSwingBeforePostDraft      = 100 // * time.Millisecond
-	IntervalForCheckWorkers        = 5 * time.Second
 	ThresholdTimeOfAbandonmentPage = 1000 * time.Millisecond
 	DefaultAPITimeout              = 2000 * time.Millisecond
 	InitializeTimeout              = 30 * time.Second
