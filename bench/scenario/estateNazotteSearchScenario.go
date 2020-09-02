@@ -178,14 +178,14 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if !isChairsOrderedByPrice(chairs.Chairs, t) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
+	if err := checkChairsOrderedByPrice(chairs.Chairs, t); err != nil {
+		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
 
-	if !isEstatesOrderedByRent(estates.Estates) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
+	if err := checkEstatesOrderedByRent(estates.Estates); err != nil {
+		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
@@ -227,8 +227,8 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if !isEstatesInBoundingBox(er.Estates, boundingBox) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/nazotte: レスポンスの内容が不正です"))
+	if err := checkEstatesInBoundingBox(er.Estates, boundingBox); err != nil {
+		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/nazotte: レスポンスの内容が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
