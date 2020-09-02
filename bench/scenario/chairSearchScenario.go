@@ -22,14 +22,14 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if !isChairsOrderedByPrice(chairs.Chairs, t) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
+	if err := checkChairsOrderedByPrice(chairs.Chairs, t); err != nil {
+		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
 
-	if !isEstatesOrderedByRent(estates.Estates) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
+	if err := checkEstatesOrderedByRent(estates.Estates); err != nil {
+		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
@@ -72,8 +72,8 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 			continue
 		}
 
-		if !isChairsOrderedByPopularity(_cr.Chairs, t) {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
+		if err := checkChairsOrderedByPopularity(_cr.Chairs, t); err != nil {
+			err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
@@ -106,8 +106,8 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 				return failure.New(fails.ErrApplication)
 			}
 
-			if !isChairsOrderedByPopularity(cr.Chairs, t) {
-				err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
+			if err := checkChairsOrderedByPopularity(cr.Chairs, t); err != nil {
+				err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
@@ -150,14 +150,14 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 			return nil
 		}
 
-		if !isChairEqualToAsset(chair) {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+		if err := checkChairEqualToAsset(chair); err != nil {
+			err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
 
-		if !isEstatesOrderedByPopularity(er.Estates) {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスの内容が不正です"))
+		if err := checkEstatesOrderedByPopularity(er.Estates); err != nil {
+			err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスの内容が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
@@ -192,8 +192,8 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 			return failure.New(fails.ErrTimeout)
 		}
 
-		if !isEstateEqualToAsset(e) {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
+		if err := checkEstateEqualToAsset(e); err != nil {
+			err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}

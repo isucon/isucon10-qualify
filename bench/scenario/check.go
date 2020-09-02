@@ -1,22 +1,29 @@
 package scenario
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 )
 
-func isEstateEqualToAsset(e *asset.Estate) bool {
+func checkEstateEqualToAsset(e *asset.Estate) error {
 	estate, err := asset.GetEstateFromID(e.ID)
 	if err != nil {
-		return false
+		return err
 	}
-	return estate.Equal(e)
+
+	if !estate.Equal(e) {
+		return fmt.Errorf(cmp.Diff(*estate, *e, ignoreEstateUnexported))
+	}
+
+	return nil
 }
 
-func isEstatesOrderedByRent(e []asset.Estate) bool {
+func checkEstatesOrderedByRent(e []asset.Estate) error {
 	if len(e) == 0 {
-		return true
+		return nil
 	}
 
 	rent := e[0].Rent
@@ -24,108 +31,128 @@ func isEstatesOrderedByRent(e []asset.Estate) bool {
 		r := estate.Rent
 
 		if rent > r {
-			return false
+			return fmt.Errorf("物件が賃料順に並んでいません")
 		}
 		rent = r
 	}
-	return true
+	return nil
 }
 
-func isEstatesOrderedByPopularity(e []asset.Estate) bool {
+func checkEstatesOrderedByPopularity(e []asset.Estate) error {
 	var popularity int64 = -1
 	for i, estate := range e {
 		e, err := asset.GetEstateFromID(estate.ID)
 		if err != nil {
-			return false
+			return err
 		}
 		p := e.GetPopularity()
 		if i > 0 && popularity < p {
-			return false
+			return fmt.Errorf("物件がpopularity順に並んでいません")
 		}
 		popularity = p
 	}
-	return true
+	return nil
 }
 
-func isChairEqualToAsset(c *asset.Chair) bool {
+func checkChairEqualToAsset(c *asset.Chair) error {
 	chair, err := asset.GetChairFromID(c.ID)
 	if err != nil {
-		return false
+		return err
 	}
-	return chair.Equal(c)
+
+	if !chair.Equal(c) {
+		return fmt.Errorf(cmp.Diff(*chair, *c, ignoreChairUnexported))
+	}
+
+	return nil
 }
 
-func isChairSoldOutAt(c *asset.Chair, t time.Time) bool {
+func checkChairInStock(c *asset.Chair, t time.Time) error {
 	if c.GetStock() > 0 {
-		return false
+		return nil
 	}
 
 	soldOutTime := c.GetSoldOutTime()
 	if soldOutTime == nil {
-		return false
+		return nil
 	}
-	return t.After(*soldOutTime)
+
+	if t.After(*soldOutTime) {
+		return fmt.Errorf("イスの在庫がありません")
+	}
+
+	return nil
 }
 
-func isChairsOrderedByPrice(c []asset.Chair, t time.Time) bool {
+func checkChairsOrderedByPrice(c []asset.Chair, t time.Time) error {
 	if len(c) == 0 {
-		return true
+		return nil
 	}
 
 	price := c[0].Price
 	for _, chair := range c {
 		_chair, err := asset.GetChairFromID(chair.ID)
-		if err != nil || isChairSoldOutAt(_chair, t) {
-			return false
+		if err != nil {
+			return err
+		}
+
+		err = checkChairInStock(_chair, t)
+		if err != nil {
+			return err
 		}
 
 		p := _chair.Price
 
 		if price > p {
-			return false
+			return fmt.Errorf("イスが価格順に並んでいません")
 		}
 		price = p
 	}
-	return true
+
+	return nil
 }
 
-func isChairsOrderedByPopularity(c []asset.Chair, t time.Time) bool {
+func checkChairsOrderedByPopularity(c []asset.Chair, t time.Time) error {
 	var popularity int64 = -1
 	for i, chair := range c {
 		_chair, err := asset.GetChairFromID(chair.ID)
 		if err != nil {
-			return false
+			return err
 		}
 
-		if isChairSoldOutAt(_chair, t) {
-			return false
+		err = checkChairInStock(_chair, t)
+		if err != nil {
+			return err
 		}
 
 		p := _chair.GetPopularity()
 
 		if i > 0 && popularity < p {
-			return false
+			return fmt.Errorf("イスがpopularity順に並んでいません")
 		}
 		popularity = p
 	}
-	return true
+
+	return nil
 }
 
-func isEstatesInBoundingBox(estates []asset.Estate, boundingBox [2]point) bool {
+func checkEstatesInBoundingBox(estates []asset.Estate, boundingBox [2]point) error {
 	for _, estate := range estates {
 		e, err := asset.GetEstateFromID(estate.ID)
 		if err != nil || !e.Equal(&estate) {
-			return false
+			return fmt.Errorf(cmp.Diff(estate, *e, ignoreEstateUnexported))
 		}
 
 		if !(boundingBox[0].Latitude <= e.Latitude && boundingBox[1].Latitude >= e.Latitude) {
-			return false
+			return fmt.Errorf("バウンディングボックス外の物件があります: BoundingBox((%v, %v), (%v, %v)), Coordinate(%v, %v)",
+				boundingBox[0].Latitude, boundingBox[0].Longitude, boundingBox[1].Latitude, boundingBox[1].Latitude, e.Latitude, e.Longitude)
 		}
 
 		if !(boundingBox[0].Longitude <= e.Longitude && boundingBox[1].Longitude >= e.Longitude) {
-			return false
+			return fmt.Errorf("バウンディングボックス外の物件があります: BoundingBox((%v, %v), (%v, %v)), Coordinate(%v, %v)",
+				boundingBox[0].Latitude, boundingBox[0].Longitude, boundingBox[1].Latitude, boundingBox[1].Latitude, e.Latitude, e.Longitude)
 		}
 	}
 
-	return true
+	return nil
 }

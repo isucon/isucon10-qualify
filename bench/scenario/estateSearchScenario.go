@@ -23,14 +23,14 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 		return failure.New(fails.ErrApplication)
 	}
 
-	if !isChairsOrderedByPrice(chairs.Chairs, t) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
+	if err := checkChairsOrderedByPrice(chairs.Chairs, t); err != nil {
+		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
 
-	if !isEstatesOrderedByRent(estates.Estates) {
-		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
+	if err := checkEstatesOrderedByRent(estates.Estates); err != nil {
+		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
 		fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
@@ -73,8 +73,8 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 			continue
 		}
 
-		if !isEstatesOrderedByPopularity(_er.Estates) {
-			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスの内容が不正です"))
+		if err := checkEstatesOrderedByPopularity(_er.Estates); err != nil {
+			err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスの内容が不正です"))
 			fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
@@ -108,8 +108,8 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 				return failure.New(fails.ErrApplication)
 			}
 
-			if !isEstatesOrderedByPopularity(er.Estates) {
-				err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスの内容が不正です"))
+			if err := checkEstatesOrderedByPopularity(er.Estates); err != nil {
+				err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスの内容が不正です"))
 				fails.ErrorsForCheck.Add(err, fails.ErrorOfEstateSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
