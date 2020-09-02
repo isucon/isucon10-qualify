@@ -24,18 +24,49 @@ func Verify(ctx context.Context, dataDir, fixtureDir string) {
 }
 
 func verifyPostEstates(ctx context.Context, c *client.Client, estates []asset.Estate) error {
-	err := c.PostEstates(ctx, estates)
+	id := strconv.FormatInt(estates[0].ID, 10)
+	estate, err := c.GetEstateDetailFromID(ctx, id)
+	if err == nil {
+		return failure.Translate(err, fails.ErrApplication, failure.Message("未登録物件の詳細取得のレスポンスが不正です"))
+	}
+
+	err = c.PostEstates(ctx, estates)
 	if err != nil {
-		return err
+		return failure.Translate(err, fails.ErrApplication, failure.Message("物件のCSV入稿に失敗しました"))
+	}
+
+	estate, err = c.GetEstateDetailFromID(ctx, id)
+	if err != nil {
+		return failure.Translate(err, fails.ErrApplication, failure.Message("登録済み物件の詳細取得に失敗しました"))
+	}
+	if estate == nil {
+		return failure.New(fails.ErrApplication, failure.Message("登録済み物件の詳細取得に失敗しました"))
 	}
 
 	return nil
 }
 
 func verifyPostChairs(ctx context.Context, c *client.Client, chairs []asset.Chair) error {
-	err := c.PostChairs(ctx, chairs)
+	id := strconv.FormatInt(chairs[0].ID, 10)
+	chair, err := c.GetChairDetailFromID(ctx, id)
 	if err != nil {
-		return err
+		return failure.Translate(err, fails.ErrApplication, failure.Message("未登録イスの詳細取得のレスポンスが不正です"))
+	}
+	if chair != nil {
+		return failure.New(fails.ErrApplication, failure.Message("未登録イスの詳細取得のレスポンスの内容が不正です"))
+	}
+
+	err = c.PostChairs(ctx, chairs)
+	if err != nil {
+		return failure.Translate(err, fails.ErrApplication, failure.Message("イスのCSV入稿に失敗しました"))
+	}
+
+	chair, err = c.GetChairDetailFromID(ctx, id)
+	if err != nil {
+		return failure.Translate(err, fails.ErrApplication, failure.Message("登録済みイスの詳細取得に失敗しました"))
+	}
+	if chair == nil {
+		return failure.New(fails.ErrApplication, failure.Message("登録済みイスの詳細取得に失敗しました"))
 	}
 
 	return nil
