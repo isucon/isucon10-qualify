@@ -781,6 +781,11 @@ post '/api/estate/req_doc/{id:\d+}' => sub {
     return $self->res_no_content($c, HTTP_OK);
 };
 
+get '/api/estate/search/condition' => sub {
+    my ($self, $c) = @_;
+    return $self->res_json($c, $ESTATE_SEARCH_CONDITION, EstateSearchCondition);
+};
+
 
 sub get_bounding_box {
     my ($coordinates) = @_;
