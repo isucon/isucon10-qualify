@@ -337,7 +337,7 @@ get '/api/chair/search' => sub {
     if (my $features = $c->req->parameters->get('features')) {
         for my $f (split /,/, $features) {
             push @conditions => "features LIKE CONCAT('%', ?, '%')";
-            push @params => $features;
+            push @params => $f;
         }
     }
 
@@ -524,6 +524,116 @@ post '/api/estate' => sub {
 
     $fh->close;
     return $self->res_no_content($c, HTTP_CREATED);
+};
+
+get '/api/estate/search' => sub {
+    my ( $self, $c )  = @_;
+
+    my @conditions;
+    my @params;
+
+    if (my $door_height_range_id = $c->req->parameters->get('doorHeightRangeId')) {
+        my ($door_height, $err) = get_range($ESTATE_SEARCH_CONDITION->{doorHeight}, $door_height_range_id);
+        if ($err) {
+            infof("doorHeightRangeID invalid, %s : %s", $door_height_range_id, $err);
+            return $self->res_no_content($c, HTTP_BAD_REQUEST);
+        }
+        if ($door_height->{min} != -1) {
+            push @conditions => "door_height >= ?";
+            push @params => $door_height->{min};
+        }
+        if ($door_height->{max} != -1) {
+            push @conditions => "door_height < ?";
+            push @params => $door_height->{max};
+        }
+    }
+
+    if (my $door_width_range_id = $c->req->parameters->get('doorWidthRangeId')) {
+        my ($door_width, $err) = get_range($ESTATE_SEARCH_CONDITION->{doorWidth}, $door_width_range_id);
+        if ($err) {
+            infof("doorWidthRangeID invalid, %s : %s", $door_width_range_id, $err);
+            return $self->res_no_content($c, HTTP_BAD_REQUEST);
+        }
+        if ($door_width->{min} != -1) {
+            push @conditions => "door_width >= ?";
+            push @params => $door_width->{min};
+        }
+        if ($door_width->{max} != -1) {
+            push @conditions => "door_width < ?";
+            push @params => $door_width->{max};
+        }
+    }
+
+    if (my $rent_range_id = $c->req->parameters->get('rentRangeId')) {
+        my ($estate_rent, $err) = get_range($ESTATE_SEARCH_CONDITION->{rent}, $rent_range_id);
+        if ($err) {
+            infof("rentRangeID invalid, %s : %s", $rent_range_id, $err);
+            return $self->res_no_content($c, HTTP_BAD_REQUEST);
+        }
+        if ($estate_rent->{min} != -1) {
+            push @conditions => "rent >= ?";
+            push @params => $estate_rent->{min};
+        }
+        if ($estate_rent->{max} != -1) {
+            push @conditions => "rent < ?";
+            push @params => $estate_rent->{max};
+        }
+    }
+
+    if (my $features = $c->req->parameters->get('features')) {
+        for my $f (split /,/, $features) {
+            push @conditions => "features LIKE CONCAT('%', ?, '%')";
+            push @params => $f;
+        }
+    }
+
+    if (@conditions == 0) {
+        infof("searchEstates search condition not found");
+        return $self->res_no_content($c, HTTP_BAD_REQUEST);
+    }
+
+    my $page = $c->req->parameters->get('page');
+    if ($page !~ /^\d+$/) {
+        infof("Invalid format page parameter : %s", $page);
+        return $self->res_no_content($c, HTTP_BAD_REQUEST);
+    }
+
+    my $per_page = $c->req->parameters->get('perPage');
+    if ($per_page !~ /^\d+$/) {
+        infof("Invalid format per_page parameter : %s", $per_page);
+        return $self->res_no_content($c, HTTP_BAD_REQUEST);
+    }
+
+    my $searchQuery = "SELECT * FROM estate WHERE ";
+    my $countQuery = "SELECT COUNT(*) FROM estate WHERE ";
+    my $searchCondition = join " AND ", @conditions;
+    my $limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
+
+    my $dbh = $self->dbh;
+
+    my $count = $dbh->select_one($countQuery . $searchCondition, @params);
+
+    push @params => $per_page, $page * $per_page;
+    my $estates = $dbh->select_all($searchQuery . $searchCondition . $limitOffset, @params);
+
+    return $self->res_json($c, {
+        count   => $count,
+        estates => [map {
+            +{
+                id          => $_->{id},
+                thumbnail   => $_->{thumbnail},
+                name        => $_->{name},
+                description => $_->{description},
+                latitude    => $_->{latitude},
+                longitude   => $_->{longitude},
+                address     => $_->{address},
+                rent        => $_->{rent},
+                doorHeight  => $_->{door_height},
+                doorWidth   => $_->{door_width},
+                features    => $_->{features},
+            }
+        } $estates->@* ],
+    }, EstateSearchResponse);
 };
 
 
