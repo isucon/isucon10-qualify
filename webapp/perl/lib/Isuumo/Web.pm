@@ -29,8 +29,6 @@ my $MYSQL_CONNECTION_DATA = {
 my $CHAIR_SEARCH_CONDITION;
 my $ESTATE_SEARCH_CONDITION;
 
-my $_JSON = JSON::MaybeXS->new()->allow_blessed(1)->convert_blessed(1)->ascii(1);
-
 use constant LIMIT => 20;
 use constant NAZOTTE_LIMIT => 50;
 
@@ -130,6 +128,7 @@ use constant ChairSearchCondition => {
     kind    => ListCondition,
 };
 
+my $_JSON = JSON::MaybeXS->new()->allow_blessed(1)->convert_blessed(1)->ascii(1);
 
 $CHAIR_SEARCH_CONDITION = do {
     my $file = File::Spec->catfile("..", "fixture", "chair_condition.json");
@@ -145,20 +144,34 @@ $ESTATE_SEARCH_CONDITION = do {
     $_JSON->decode($json);
 };
 
-sub get_range {
-    my ($range_condition, $range_id) = @_;
 
-    my $ranges = $range_condition->{ranges};
 
-    if ($range_id < 0 || $ranges->@* <= $range_id) {
-        return undef, "Unexpected Range ID"
-    }
+# Initialize
+post '/initialize' => \&initialize;
 
-    return $ranges->[$range_id], undef
-}
+# Chair Handler
+get  '/api/chair/{id:\d+}'         => \&get_chair_detail;
+post '/api/chair'                  => \&post_chair;
+get  '/api/chair/search'           => \&search_chairs;
+get  '/api/chair/low_priced'       => \&get_low_priced_chair;
+get  '/api/chair/search/condition' => \&get_chair_search_condition;
+post '/api/chair/buy/{id:\d+}'     => \&buy_chair;
 
-post '/initialize' => sub {
-    my ( $self, $c )  = @_;
+# Estate Handler
+get  '/api/estate/{id:\d+}'             => \&get_estate_detail;
+post '/api/estate'                      => \&post_estate;
+get  '/api/estate/search'               => \&search_estates;
+get  '/api/estate/low_priced'           => \&get_low_priced_estate;
+post '/api/estate/req_doc/{id:\d+}'     => \&post_estate_request_document;
+post '/api/estate/nazotte'              => \&search_estate_nazotte;
+get  '/api/estate/search/condition'     => \&get_estate_search_condition;
+get  '/api/recommended_estate/{id:\d+}' => \&search_recommended_estate_with_chair;
+
+
+
+
+sub initialize {
+    my ($self, $c)  = @_;
 
     my $sql_dir = File::Spec->catdir($self->root_dir, "..", "mysql", "db");
     my @paths = (
@@ -184,8 +197,8 @@ post '/initialize' => sub {
     }, InitializeResponse);
 };
 
-get '/api/chair/{id:\d+}' => sub {
-    my ( $self, $c )  = @_;
+sub get_chair_detail {
+    my ($self, $c)  = @_;
 
     my $chair_id = $c->args->{id};
     my $query = 'SELECT * FROM chair WHERE id = ?';
@@ -216,8 +229,8 @@ get '/api/chair/{id:\d+}' => sub {
     }, Chair)
 };
 
-post '/api/chair' => sub {
-    my ( $self, $c )  = @_;
+sub post_chair {
+    my ($self, $c)  = @_;
 
     my $file = $c->req->uploads->{'chairs'};
     if (!$file) {
@@ -255,8 +268,8 @@ post '/api/chair' => sub {
     return $self->res_no_content($c, HTTP_CREATED);
 };
 
-get '/api/chair/search' => sub {
-    my ( $self, $c )  = @_;
+sub search_chairs {
+    my ($self, $c)  = @_;
 
     my @conditions;
     my @params;
@@ -393,8 +406,7 @@ get '/api/chair/search' => sub {
     }, ChairSearchResponse);
 };
 
-
-post '/api/chair/buy/{id:\d+}' => sub {
+sub buy_chair {
     my ($self, $c) = @_;
 
     my $email = $c->req->body_parameters->{email};
@@ -427,12 +439,12 @@ post '/api/chair/buy/{id:\d+}' => sub {
     return $self->res_no_content($c, HTTP_OK);
 };
 
-get '/api/chair/search/condition' => sub {
+sub get_chair_search_condition {
     my ($self, $c) = @_;
     return $self->res_json($c, $CHAIR_SEARCH_CONDITION, ChairSearchCondition);
 };
 
-get '/api/chair/low_priced' => sub {
+sub get_low_priced_chair {
     my ($self, $c) = @_;
 
     my $query = "SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?";
@@ -460,8 +472,8 @@ get '/api/chair/low_priced' => sub {
     }, ChairListResponse);
 };
 
-get '/api/estate/{id:\d+}' => sub {
-    my ( $self, $c )  = @_;
+sub get_estate_detail {
+    my ($self, $c)  = @_;
 
     my $estate_id = $c->args->{id};
     my $query = 'SELECT * FROM estate WHERE id = ?';
@@ -487,8 +499,8 @@ get '/api/estate/{id:\d+}' => sub {
     }, Estate)
 };
 
-post '/api/estate' => sub {
-    my ( $self, $c )  = @_;
+sub post_estate {
+    my ($self, $c)  = @_;
 
     my $file = $c->req->uploads->{'estates'};
     if (!$file) {
@@ -527,8 +539,8 @@ post '/api/estate' => sub {
     return $self->res_no_content($c, HTTP_CREATED);
 };
 
-get '/api/estate/search' => sub {
-    my ( $self, $c )  = @_;
+sub search_estates {
+    my ($self, $c)  = @_;
 
     my @conditions;
     my @params;
@@ -637,7 +649,7 @@ get '/api/estate/search' => sub {
     }, EstateSearchResponse);
 };
 
-get '/api/estate/low_priced' => sub {
+sub get_low_priced_estate {
     my ($self, $c) = @_;
 
     my $query = "SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?";
@@ -665,7 +677,7 @@ get '/api/estate/low_priced' => sub {
     }, EstateListResponse);
 };
 
-get '/api/recommended_estate/{id:\d+}' => sub {
+sub search_recommended_estate_with_chair {
     my ($self, $c) = @_;
 
     my $chair_id = $c->args->{id};
@@ -703,7 +715,7 @@ get '/api/recommended_estate/{id:\d+}' => sub {
     }, EstateListResponse);
 };
 
-post '/api/estate/nazotte' => sub {
+sub search_estate_nazotte {
     my ($self, $c) = @_;
 
     my @coordinates = $c->req->body_parameters->get_all('coordinates');
@@ -762,7 +774,7 @@ post '/api/estate/nazotte' => sub {
     }, EstateSearchResponse);
 };
 
-post '/api/estate/req_doc/{id:\d+}' => sub {
+sub post_estate_request_document {
     my ($self, $c) = @_;
 
     my $email = $c->req->body_parameters->{email};
@@ -781,10 +793,12 @@ post '/api/estate/req_doc/{id:\d+}' => sub {
     return $self->res_no_content($c, HTTP_OK);
 };
 
-get '/api/estate/search/condition' => sub {
+sub get_estate_search_condition {
     my ($self, $c) = @_;
     return $self->res_json($c, $ESTATE_SEARCH_CONDITION, EstateSearchCondition);
 };
+
+
 
 
 sub get_bounding_box {
@@ -820,6 +834,18 @@ sub coordinates_to_text {
     }
     return sprintf("'POLYGON((%s))'", join ",", @points);
 }
+
+sub get_range {
+    my ($range_condition, $range_id) = @_;
+
+    my $ranges = $range_condition->{ranges};
+
+    if ($range_id < 0 || $ranges->@* <= $range_id) {
+        return undef, "Unexpected Range ID"
+    }
+    return $ranges->[$range_id], undef
+}
+
 
 
 sub dbh {
