@@ -150,14 +150,14 @@ use constant ChairSearchCondition => {
 
 $CHAIR_SEARCH_CONDITION = do {
     my $file = File::Spec->catfile("..", "fixture", "chair_condition.json");
-    open my $fh, "<", $file or die "cannot open $file";
+    open my $fh, "<:encoding(utf8)", $file or die "cannot open $file";
     my $json = do { local $/; <$fh> };
     $_JSON->decode($json);
 };
 
 $ESTATE_SEARCH_CONDITION = do {
     my $file = File::Spec->catfile("..", "fixture", "estate_condition.json");
-    open my $fh, "<", $file or die "cannot open $file";
+    open my $fh, "<:encoding(utf8)", $file or die "cannot open $file";
     my $json = do { local $/; <$fh> };
     $_JSON->decode($json);
 };
@@ -442,6 +442,11 @@ post '/api/chair/buy/{id:\d+}' => sub {
     }
 
     return $self->res_no_content($c, HTTP_OK);
+};
+
+get '/api/chair/search/condition' => sub {
+    my ($self, $c) = @_;
+    return $self->res_json($c, $CHAIR_SEARCH_CONDITION, ChairSearchCondition);
 };
 
 # send empty body with status code
