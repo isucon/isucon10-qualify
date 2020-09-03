@@ -144,7 +144,7 @@ class App < Sinatra::Base
 
     if params[:color] && params[:color].size > 0
       search_queries << 'color = ?'
-      query_params << params[:kind]
+      query_params << params[:color]
     end
 
     if params[:features] && params[:features].size > 0
