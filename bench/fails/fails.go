@@ -38,49 +38,34 @@ const (
 )
 
 var (
-	// ErrorsForCheck is 基本的にはこっちを使う
-	ErrorsForCheck *Errors
-	// ErrorsForFinal is 最後のFinal Checkで使う。これをしないとcontext.Canceledのエラーが混ざる
-	ErrorsForFinal *Errors
-)
-
-func init() {
-	ErrorsForCheck = NewErrors()
-	ErrorsForFinal = NewErrors()
-}
-
-type Errors struct {
-	Msgs []string
+	msgs []string
 
 	critical    int
 	application int
 	trivial     int
 
 	mu sync.RWMutex
+)
+
+func init() {
+	msgs = make([]string, 0, 100)
 }
 
-func NewErrors() *Errors {
-	msgs := make([]string, 0, 100)
-	return &Errors{
-		Msgs: msgs,
-	}
+func GetMsgs() (msgs []string) {
+	mu.RLock()
+	defer mu.RUnlock()
+
+	return msgs[:]
 }
 
-func (e *Errors) GetMsgs() (msgs []string) {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
+func Get() (msgs []string, critical, application, trivial int) {
+	mu.RLock()
+	defer mu.RUnlock()
 
-	return e.Msgs[:]
+	return msgs[:], critical, application, trivial
 }
 
-func (e *Errors) Get() (msgs []string, critical, application, trivial int) {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	return e.Msgs[:], e.critical, e.application, e.trivial
-}
-
-func (e *Errors) Add(err error, label ErrorLabel) {
+func Add(err error, label ErrorLabel) {
 	if err == nil {
 		return
 	}
@@ -90,8 +75,8 @@ func (e *Errors) Add(err error, label ErrorLabel) {
 		return
 	}
 
-	e.mu.Lock()
-	defer e.mu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
 	log.Printf("%+v", err)
 
@@ -102,26 +87,26 @@ func (e *Errors) Add(err error, label ErrorLabel) {
 		switch code {
 		case ErrCritical:
 			msg += " (critical error)"
-			e.critical++
+			critical++
 		case ErrTimeout:
 			msg += "（タイムアウトしました）"
-			e.trivial++
+			trivial++
 		case ErrTemporary:
 			msg += "（一時的なエラー）"
-			e.trivial++
+			trivial++
 		case ErrApplication:
-			e.application++
+			application++
 		case ErrBenchmarker:
-			e.Msgs = append(e.Msgs, "運営に連絡してください")
+			msgs = append(msgs, "運営に連絡してください")
 			return
 		default:
-			e.application++
+			application++
 		}
 
-		e.Msgs = append(e.Msgs, msg)
+		msgs = append(msgs, msg)
 	} else {
 		// 想定外のエラーなのでcritical扱いにしておく
-		e.critical++
-		e.Msgs = append(e.Msgs, "運営に連絡してください")
+		critical++
+		msgs = append(msgs, "運営に連絡してください")
 	}
 }

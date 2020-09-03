@@ -71,7 +71,7 @@ func main() {
 
 	// 初期データの準備
 	asset.Initialize(context.Background(), dataDir, fixtureDir)
-	eMsgs := fails.ErrorsForCheck.GetMsgs()
+	eMsgs := fails.GetMsgs()
 	if len(eMsgs) > 0 {
 		log.Print("asset initialize failed")
 
@@ -89,7 +89,7 @@ func main() {
 	log.Print("=== initialize ===")
 	// 初期化：/initialize にリクエストを送ることで、外部リソースのURLを指定する・DBのデータを初期データのみにする
 	initRes := scenario.Initialize(context.Background())
-	eMsgs = fails.ErrorsForCheck.GetMsgs()
+	eMsgs = fails.GetMsgs()
 	if len(eMsgs) > 0 {
 		log.Print("initialize failed")
 
@@ -108,7 +108,7 @@ func main() {
 	// 初期チェック：正しく動いているかどうかを確認する
 	// 明らかにおかしいレスポンスを返しているアプリケーションはさっさと停止させることで、運営側のリソースを使い果たさない・他サービスへの攻撃に利用されるを防ぐ
 	scenario.Verify(context.Background(), filepath.Join(dataDir, "result/verification_data"), fixtureDir)
-	eMsgs = fails.ErrorsForCheck.GetMsgs()
+	eMsgs = fails.GetMsgs()
 	if len(eMsgs) > 0 {
 		log.Print("verify failed")
 		output := Output{
@@ -132,7 +132,7 @@ func main() {
 	log.Printf("最終的な負荷レベル: %d", score.GetLevel())
 
 	// context.Canceledのエラーは直後に取れば基本的には入ってこない
-	eMsgs, cCnt, aCnt, _ := fails.ErrorsForCheck.Get()
+	eMsgs, cCnt, aCnt, _ := fails.Get()
 	// critical errorは1つでもあれば、application errorは10回以上で失格
 	if cCnt > 0 || aCnt >= 10 {
 		log.Print("cause error!")

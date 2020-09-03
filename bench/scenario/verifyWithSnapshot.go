@@ -455,7 +455,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err := ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyChairDetail; i++ {
 			wg.Add(1)
@@ -463,7 +463,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyChairDetail(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -474,7 +474,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search/condition: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyChairSearchCondition; i++ {
 			wg.Add(1)
@@ -482,7 +482,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyChairSearchCondition(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -493,7 +493,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyChairSearch; i++ {
 			wg.Add(1)
@@ -501,7 +501,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyChairSearch(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -512,7 +512,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyEstateDetail; i++ {
 			wg.Add(1)
@@ -520,7 +520,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyEstateDetail(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -531,7 +531,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search/condition: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyEstateSearchCondition; i++ {
 			wg.Add(1)
@@ -539,7 +539,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyEstateSearchCondition(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -550,7 +550,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyEstateSearch; i++ {
 			wg.Add(1)
@@ -558,7 +558,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyEstateSearch(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -569,7 +569,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/low_priced: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyLowPricedChair; i++ {
 			wg.Add(1)
@@ -577,7 +577,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyLowPricedChair(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -588,7 +588,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/low_priced: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyLowPricedEstate; i++ {
 			wg.Add(1)
@@ -596,7 +596,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyLowPricedEstate(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -607,7 +607,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyRecommendedEstateWithChair; i++ {
 			wg.Add(1)
@@ -615,7 +615,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyRecommendedEstateWithChair(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -626,7 +626,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("POST /api/estate/nazotte: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyEstateNazotte; i++ {
 			wg.Add(1)
@@ -634,7 +634,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyEstateNazotte(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))

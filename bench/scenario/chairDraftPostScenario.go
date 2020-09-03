@@ -11,6 +11,6 @@ import (
 func chairDraftPostScenario(ctx context.Context, c *client.Client, filePath string) {
 	err := c.PostChairs(ctx, filePath)
 	if err != nil {
-		fails.ErrorsForCheck.Add(failure.Translate(err, fails.ErrCritical), fails.ErrorOfChairDraftPostScenario)
+		fails.Add(failure.Translate(err, fails.ErrCritical), fails.ErrorOfChairDraftPostScenario)
 	}
 }
