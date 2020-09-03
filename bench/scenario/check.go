@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
@@ -34,6 +35,35 @@ func checkEstatesOrderedByRent(e []asset.Estate) error {
 			return fmt.Errorf("物件が賃料順に並んでいません")
 		}
 		rent = r
+	}
+	return nil
+}
+
+func checkRecommendedEstates(estates []asset.Estate, chair *asset.Chair) error {
+	lengths := [3]int64{chair.Width, chair.Height, chair.Depth}
+	sort.Slice(lengths[:], func(i, j int) bool { return lengths[i] < lengths[j] })
+	firstMin, secondMin := lengths[0], lengths[1]
+
+	var popularity int64 = -1
+	for i, estate := range estates {
+		estate, err := asset.GetEstateFromID(estate.ID)
+		if err != nil {
+			return err
+		}
+
+		shorterDoorLen, longerDoorLen := estate.DoorWidth, estate.DoorHeight
+		if shorterDoorLen > longerDoorLen {
+			shorterDoorLen, longerDoorLen = longerDoorLen, shorterDoorLen
+		}
+		if firstMin > shorterDoorLen || secondMin > longerDoorLen {
+			return fmt.Errorf("イスがドアを通過できない物件がおすすめされています")
+		}
+
+		p := estate.GetPopularity()
+		if i > 0 && popularity < p {
+			return fmt.Errorf("物件がpopularity順に並んでいません")
+		}
+		popularity = p
 	}
 	return nil
 }
