@@ -2,7 +2,7 @@
   become: yes
   become_user: root
   apt:
-    name: 
+    name:
     - libssl-dev
     - libreadline-dev
     - gcc
@@ -10,6 +10,7 @@
     - libffi-dev
     - zlib1g-dev
     - unzip
+    - pkgconf
     update_cache: yes
 
 - name: install xbuild
@@ -45,7 +46,7 @@
   become_user: isucon
   blockinfile:
     marker: "# {mark} ANSIBLE MANAGED BLOCK Node"
-    path: *bash_aliases 
+    path: *bash_aliases
     content: |
       export PATH=/usr/local/node/bin:$PATH
 
