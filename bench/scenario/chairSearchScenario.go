@@ -156,7 +156,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 			return failure.New(fails.ErrApplication)
 		}
 
-		if err := checkEstatesOrderedByPopularity(er.Estates); err != nil {
+		if err := checkRecommendedEstates(er.Estates, chair); err != nil {
 			err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスの内容が不正です"))
 			fails.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
