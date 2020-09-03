@@ -24,10 +24,10 @@ import (
 
 const (
 	NumOfVerifyChairDetail                = 5
-	NumOfVerifyChairSearchCondition       = 5
+	NumOfVerifyChairSearchCondition       = 1
 	NumOfVerifyChairSearch                = 5
 	NumOfVerifyEstateDetail               = 5
-	NumOfVerifyEstateSearchCondition      = 5
+	NumOfVerifyEstateSearchCondition      = 1
 	NumOfVerifyEstateSearch               = 5
 	NumOfVerifyLowPricedChair             = 1
 	NumOfVerifyLowPricedEstate            = 1
