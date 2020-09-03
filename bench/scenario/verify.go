@@ -49,7 +49,7 @@ func verifyChairStock(ctx context.Context, c *client.Client, chairFeatureForVeri
 func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir string) {
 	chairFeatureForVerify, err := asset.GetChairFeatureForVerify()
 	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	}
 
 	wg := sync.WaitGroup{}
@@ -58,7 +58,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir string
 	go func() {
 		err := verifyChairStock(ctx, c, *chairFeatureForVerify)
 		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+			fails.Add(err, fails.ErrorOfVerify)
 		}
 		wg.Done()
 	}()

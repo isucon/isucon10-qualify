@@ -18,19 +18,19 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	t := time.Now()
 	chairs, estates, err := c.AccessTopPage(ctx)
 	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		fails.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
 
 	if err := checkChairsOrderedByPrice(chairs.Chairs, t); err != nil {
 		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		fails.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
 
 	if err := checkEstatesOrderedByRent(estates.Estates); err != nil {
 		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		fails.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
 
@@ -41,7 +41,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	t = time.Now()
 	err = c.AccessChairSearchPage(ctx)
 	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		fails.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
 	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
@@ -53,14 +53,14 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	for i := 0; i < parameter.NumOfSearchChairInScenario; i++ {
 		q, err := createRandomChairSearchQuery()
 		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			fails.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
 
 		t = time.Now()
 		_cr, err := c.SearchChairsWithQuery(ctx, q)
 		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			fails.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
 
@@ -74,7 +74,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 
 		if err := checkChairsOrderedByPopularity(_cr.Chairs, t); err != nil {
 			err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			fails.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
 
@@ -93,7 +93,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 			t := time.Now()
 			_cr, err := c.SearchChairsWithQuery(ctx, q)
 			if err != nil {
-				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+				fails.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
 
@@ -102,13 +102,13 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 			}
 
 			if len(_cr.Chairs) == 0 {
-				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+				fails.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
 
 			if err := checkChairsOrderedByPopularity(cr.Chairs, t); err != nil {
 				err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
-				fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+				fails.Add(err, fails.ErrorOfChairSearchScenario)
 				return failure.New(fails.ErrApplication)
 			}
 
@@ -138,7 +138,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 		chair, er, err = c.AccessChairDetailPage(ctx, targetID)
 
 		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			fails.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
 
@@ -152,13 +152,13 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 
 		if err := checkChairEqualToAsset(chair); err != nil {
 			err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			fails.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
 
 		if err := checkEstatesOrderedByPopularity(er.Estates); err != nil {
 			err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスの内容が不正です"))
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			fails.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
 	}
@@ -171,7 +171,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	err = c.BuyChair(ctx, strconv.FormatInt(targetID, 10))
 	if err != nil {
 		if _chair, err := asset.GetChairFromID(targetID); err != nil || _chair.GetStock() > 0 {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			fails.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
 	}
@@ -184,7 +184,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 		t = time.Now()
 		e, err := c.AccessEstateDetailPage(ctx, targetID)
 		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			fails.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
 
@@ -194,7 +194,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 
 		if err := checkEstateEqualToAsset(e); err != nil {
 			err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+			fails.Add(err, fails.ErrorOfChairSearchScenario)
 			return failure.New(fails.ErrApplication)
 		}
 	}
@@ -207,7 +207,7 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 	err = c.RequestEstateDocument(ctx, strconv.FormatInt(targetID, 10))
 
 	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfChairSearchScenario)
+		fails.Add(err, fails.ErrorOfChairSearchScenario)
 		return failure.New(fails.ErrApplication)
 	}
 

@@ -11,6 +11,6 @@ import (
 func estateDraftPostScenario(ctx context.Context, c *client.Client, filePath string) {
 	err := c.PostEstates(ctx, filePath)
 	if err != nil {
-		fails.ErrorsForCheck.Add(failure.Translate(err, fails.ErrCritical), fails.ErrorOfEstateDraftPostScenario)
+		fails.Add(failure.Translate(err, fails.ErrCritical), fails.ErrorOfEstateDraftPostScenario)
 	}
 }

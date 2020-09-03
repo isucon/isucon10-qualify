@@ -44,7 +44,7 @@ func (c *Client) AccessChairDetailPage(ctx context.Context, id int64) (*asset.Ch
 	eg, childCtx := errgroup.WithContext(ctx)
 
 	var (
-		chair *asset.Chair
+		chair   *asset.Chair
 		estates *EstatesResponse
 	)
 

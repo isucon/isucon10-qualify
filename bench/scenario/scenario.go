@@ -18,7 +18,7 @@ func Initialize(ctx context.Context) *client.InitializeResponse {
 
 	res, err := initialize(ctx)
 	if err != nil {
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfInitialize)
+		fails.Add(err, fails.ErrorOfInitialize)
 	}
 	return res
 }
