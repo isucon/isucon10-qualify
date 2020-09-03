@@ -27,5 +27,9 @@ func Validation(ctx context.Context) {
 	cancelCtx, cancel := context.WithTimeout(ctx, parameter.LoadTimeout)
 	defer cancel()
 	go Load(cancelCtx)
-	<-cancelCtx.Done()
+
+	select {
+	case <-fails.Fail():
+	case <-cancelCtx.Done():
+	}
 }

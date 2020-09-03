@@ -44,11 +44,14 @@ var (
 	application int
 	trivial     int
 
+	failChan chan bool
+
 	mu sync.RWMutex
 )
 
 func init() {
 	msgs = make([]string, 0, 100)
+	failChan = make(chan bool, 1)
 }
 
 func GetMsgs() (msgs []string) {
@@ -58,10 +61,9 @@ func GetMsgs() (msgs []string) {
 	return msgs[:]
 }
 
-func Get() (msgs []string, critical, application, trivial int) {
+func Get() ([]string, int, int, int) {
 	mu.RLock()
 	defer mu.RUnlock()
-
 	return msgs[:], critical, application, trivial
 }
 
@@ -109,4 +111,13 @@ func Add(err error, label ErrorLabel) {
 		critical++
 		msgs = append(msgs, "運営に連絡してください")
 	}
+
+	if critical > 0 || application >= 10 {
+		log.Printf("%v, %v", critical, application)
+		failChan <- true
+	}
+}
+
+func Fail() chan bool {
+	return failChan
 }

@@ -123,6 +123,8 @@ func chairSearchScenario(ctx context.Context, c *client.Client) error {
 		}
 	}
 
+	fails.Add(failure.New(fails.ErrCritical, failure.Message("qwertyuiop")), fails.ErrorOfChairSearchScenario)
+
 	if cr == nil || len(cr.Chairs) == 0 {
 		return nil
 	}
