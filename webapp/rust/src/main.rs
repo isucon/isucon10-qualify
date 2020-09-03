@@ -282,8 +282,45 @@ async fn get_chair_detail(
     }
 }
 
+#[derive(Debug, Deserialize)]
+struct CSVChair {
+    id: i64,
+    name: String,
+    description: String,
+    thumbnail: String,
+    price: i64,
+    height: i64,
+    width: i64,
+    depth: i64,
+    color: String,
+    features: String,
+    kind: String,
+    popularity: i64,
+    stock: i64,
+}
+
+impl Into<Chair> for CSVChair {
+    fn into(self) -> Chair {
+        Chair {
+            id: self.id,
+            name: self.name,
+            description: self.description,
+            thumbnail: self.thumbnail,
+            price: self.price,
+            height: self.height,
+            width: self.width,
+            depth: self.depth,
+            color: self.color,
+            features: self.features,
+            kind: self.kind,
+            popularity: self.popularity,
+            stock: self.stock,
+        }
+    }
+}
+
 async fn post_chair(db: web::Data<Pool>, mut payload: Multipart) -> Result<HttpResponse, AWError> {
-    let mut chairs = None;
+    let mut chairs: Option<Vec<Chair>> = None;
     while let Ok(Some(field)) = payload.try_next().await {
         let content_disposition = field.content_disposition().unwrap();
         let name = content_disposition.get_name().unwrap();
@@ -297,11 +334,11 @@ async fn post_chair(db: web::Data<Pool>, mut payload: Multipart) -> Result<HttpR
                 .from_reader(content.as_ref());
             let mut cs = Vec::new();
             for record in reader.deserialize() {
-                let chair: Chair = record.map_err(|e| {
+                let chair: CSVChair = record.map_err(|e| {
                     log::error!("failed to read csv: {:?}", e);
                     HttpResponse::InternalServerError()
                 })?;
-                cs.push(chair);
+                cs.push(chair.into());
             }
             chairs = Some(cs);
         }
@@ -641,8 +678,43 @@ async fn get_estate_detail(
     }
 }
 
+#[derive(Debug, Deserialize)]
+struct CSVEstate {
+    id: i64,
+    name: String,
+    description: String,
+    thumbnail: String,
+    address: String,
+    latitude: f64,
+    longitude: f64,
+    rent: i64,
+    door_height: i64,
+    door_width: i64,
+    features: String,
+    popularity: i64,
+}
+
+impl Into<Estate> for CSVEstate {
+    fn into(self) -> Estate {
+        Estate {
+            id: self.id,
+            name: self.name,
+            description: self.description,
+            thumbnail: self.thumbnail,
+            address: self.address,
+            latitude: self.latitude,
+            longitude: self.longitude,
+            rent: self.rent,
+            door_height: self.door_height,
+            door_width: self.door_width,
+            features: self.features,
+            popularity: self.popularity,
+        }
+    }
+}
+
 async fn post_estate(db: web::Data<Pool>, mut payload: Multipart) -> Result<HttpResponse, AWError> {
-    let mut estates = None;
+    let mut estates: Option<Vec<Estate>> = None;
     while let Ok(Some(field)) = payload.try_next().await {
         let content_disposition = field.content_disposition().unwrap();
         let name = content_disposition.get_name().unwrap();
@@ -656,11 +728,11 @@ async fn post_estate(db: web::Data<Pool>, mut payload: Multipart) -> Result<Http
                 .from_reader(content.as_ref());
             let mut es = Vec::new();
             for record in reader.deserialize() {
-                let estate: Estate = record.map_err(|e| {
+                let estate: CSVEstate = record.map_err(|e| {
                     log::error!("failed to read csv: {:?}", e);
                     HttpResponse::InternalServerError()
                 })?;
-                es.push(estate);
+                es.push(estate.into());
             }
             estates = Some(es);
         }
