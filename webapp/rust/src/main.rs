@@ -223,7 +223,9 @@ struct Chair {
     color: String,
     features: String,
     kind: String,
+    #[serde(skip)]
     popularity: i64,
+    #[serde(skip)]
     stock: i64,
 }
 
