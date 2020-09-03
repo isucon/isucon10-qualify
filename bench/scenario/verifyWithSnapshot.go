@@ -23,16 +23,16 @@ import (
 )
 
 const (
-	NumOfVerifyChairDetail                = 3
-	NumOfVerifyChairSearchCondition       = 3
-	NumOfVerifyChairSearch                = 3
-	NumOfVerifyEstateDetail               = 3
-	NumOfVerifyEstateSearchCondition      = 3
-	NumOfVerifyEstateSearch               = 3
+	NumOfVerifyChairDetail                = 5
+	NumOfVerifyChairSearchCondition       = 5
+	NumOfVerifyChairSearch                = 5
+	NumOfVerifyEstateDetail               = 5
+	NumOfVerifyEstateSearchCondition      = 5
+	NumOfVerifyEstateSearch               = 5
 	NumOfVerifyLowPricedChair             = 1
 	NumOfVerifyLowPricedEstate            = 1
-	NumOfVerifyRecommendedEstateWithChair = 3
-	NumOfVerifyEstateNazotte              = 3
+	NumOfVerifyRecommendedEstateWithChair = 5
+	NumOfVerifyEstateNazotte              = 5
 )
 
 var (
