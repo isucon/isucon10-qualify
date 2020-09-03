@@ -37,6 +37,24 @@
     owner: "isucon"
     group: "isucon"
     mode: "0777"
+- name: deploy go.mod
+  become: yes
+  become_user: isucon
+  copy:
+    src: "../files/isucon10q3/webapp/go/go.mod"
+    dest: "/home/isucon/isucon10-qualify/webapp/go/go.mod"
+    owner: "isucon"
+    group: "isucon"
+    mode: "0777"
+- name: deploy main.go
+  become: yes
+  become_user: isucon
+  copy:
+    src: "../files/isucon10q3/webapp/go/go.sum"
+    dest: "/home/isucon/isucon10-qualify/webapp/go/go.sum"
+    owner: "isucon"
+    group: "isucon"
+    mode: "0777"
 
 - name: Build Web Application 
   become: yes

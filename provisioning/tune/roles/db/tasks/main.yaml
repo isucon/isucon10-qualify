@@ -12,3 +12,10 @@
   become_user: root
   shell: |
       mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO isucon@'%' IDENTIFIED BY 'isucon' WITH GRANT OPTION; FLUSH PRIVILEGES;"
+
+- name: Restart "mysql"
+  systemd:
+    daemon_reload: "yes"
+    name: "mysql"
+    state: "restarted"
+    enabled: "yes"
