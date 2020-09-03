@@ -88,10 +88,9 @@ ESTATE_FEATURE_LIST = [
     "楽器相談可",
     "フローリング",
     "オール電化",
-    "TVモニタ付きインタホン"
+    "TVモニタ付きインタホン",
+    "デザイナーズ物件"
 ]
-
-ESTATE_FEATURE_FOR_VERIFY = "デザイナーズ物件"
 
 ESTATE_IMAGE_HASH_LIST = [fake.sha256(
     raw_output=False) for _ in range(ESTATE_DUMMY_IMAGE_NUM)]
