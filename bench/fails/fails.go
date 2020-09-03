@@ -54,7 +54,7 @@ func init() {
 	failChan = make(chan bool, 1)
 }
 
-func GetMsgs() (msgs []string) {
+func GetMsgs() ([]string) {
 	mu.RLock()
 	defer mu.RUnlock()
 
