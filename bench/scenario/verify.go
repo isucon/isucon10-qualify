@@ -141,7 +141,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir, snaps
 	})
 
 	if err := eg.Wait(); err != nil {
-		fails.ErrorsForCheck.Add(failure.Translate(err, fails.ErrBenchmarker), fails.ErrorOfVerify)
+		fails.Add(failure.Translate(err, fails.ErrBenchmarker), fails.ErrorOfVerify)
 		return
 	}
 
@@ -151,7 +151,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir, snaps
 		defer wg.Done()
 		err := verifyPostEstates(ctx, c, estates)
 		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+			fails.Add(err, fails.ErrorOfVerify)
 		}
 	}()
 
@@ -160,7 +160,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir, snaps
 		defer wg.Done()
 		err := verifyPostChairs(ctx, c, chairs)
 		if err != nil {
-			fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+			fails.Add(err, fails.ErrorOfVerify)
 		}
 	}()
 
