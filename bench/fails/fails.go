@@ -113,7 +113,6 @@ func Add(err error, label ErrorLabel) {
 	}
 
 	if critical > 0 || application >= 10 {
-		log.Printf("%v, %v", critical, application)
 		failChan <- true
 	}
 }
