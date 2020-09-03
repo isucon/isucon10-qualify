@@ -3,16 +3,16 @@ package parameter
 import "time"
 
 const (
-	NumOfSearchChairInScenario     = 5
-	NumOfSearchEstateInScenario    = 5
-	NumOfCheckChairSearchPaging    = 3
-	NumOfCheckEstateSearchPaging   = 3
+	NumOfSearchChairInScenario     = 2
+	NumOfSearchEstateInScenario    = 2
+	NumOfCheckChairSearchPaging    = 2
+	NumOfCheckEstateSearchPaging   = 2
 	LimitOfChairSearchPageDepth    = 5
 	LimitOfEstateSearchPageDepth   = 5
-	NumOfCheckChairDetailPage      = 7
-	NumOfCheckEstateDetailPage     = 3
-	PerPageOfChairSearch           = 30
-	PerPageOfEstateSearch          = 30
+	NumOfCheckChairDetailPage      = 2
+	NumOfCheckEstateDetailPage     = 2
+	PerPageOfChairSearch           = 25
+	PerPageOfEstateSearch          = 25
 	MaxLengthOfNazotteResponse     = 50
 	SleepTimeOnFailScenario        = 1500 * time.Millisecond
 	SleepSwingOnFailScenario       = 500 // * time.Millisecond
@@ -30,11 +30,9 @@ const (
 )
 
 var BoundaryOfLevel []int64 = []int64{
-	400, 800, 1200, 1600, 2000,
-	2400, 2800, 3200, 3600, 4000,
-	4400, 4800, 5200, 5600, 6000,
-	6400, 6800, 7200, 7600, 8000,
-	8400, 8800, 9200, 9600, 10000,
+	300, 600, 800, 900, 1000,
+	1100, 1200, 1300, 1450, 1600,
+	1800, 2000,
 }
 
 type incWorkers struct {
@@ -49,44 +47,44 @@ type incWorkers struct {
 // IncListOfWorkers 前のレベルとのWorkerの個数の差分を保持するList
 var ListOfIncWorkers = []incWorkers{
 	{ // level 00
-		ChairSearchWorker:         1,
-		EstateSearchWorker:        1,
-		EstateNazotteSearchWorker: 1,
-		BotWorker:                 1,
+		ChairSearchWorker:         3,
+		EstateSearchWorker:        3,
+		EstateNazotteSearchWorker: 0,
+		BotWorker:                 0,
 		ChairDraftPostWorker:      0,
 		EstateDraftPostWorker:     0,
 	},
 	{ // level 01
-		ChairSearchWorker:         1,
-		EstateSearchWorker:        1,
-		EstateNazotteSearchWorker: 1,
-		BotWorker:                 1,
+		ChairSearchWorker:         0,
+		EstateSearchWorker:        0,
+		EstateNazotteSearchWorker: 3,
+		BotWorker:                 0,
 		ChairDraftPostWorker:      0,
 		EstateDraftPostWorker:     0,
 	},
 	{ // level 02
-		ChairSearchWorker:         1,
-		EstateSearchWorker:        1,
-		EstateNazotteSearchWorker: 1,
-		BotWorker:                 1,
-		ChairDraftPostWorker:      0,
-		EstateDraftPostWorker:     0,
+		ChairSearchWorker:         0,
+		EstateSearchWorker:        0,
+		EstateNazotteSearchWorker: 0,
+		BotWorker:                 5,
+		ChairDraftPostWorker:      1,
+		EstateDraftPostWorker:     1,
 	},
 	{ // level 03
 		ChairSearchWorker:         1,
 		EstateSearchWorker:        1,
 		EstateNazotteSearchWorker: 1,
 		BotWorker:                 1,
-		ChairDraftPostWorker:      0,
-		EstateDraftPostWorker:     0,
+		ChairDraftPostWorker:      1,
+		EstateDraftPostWorker:     1,
 	},
 	{ // level 04
 		ChairSearchWorker:         1,
 		EstateSearchWorker:        1,
 		EstateNazotteSearchWorker: 1,
 		BotWorker:                 1,
-		ChairDraftPostWorker:      0,
-		EstateDraftPostWorker:     0,
+		ChairDraftPostWorker:      1,
+		EstateDraftPostWorker:     1,
 	},
 	{ // level 05
 		ChairSearchWorker:         1,
@@ -137,70 +135,6 @@ var ListOfIncWorkers = []incWorkers{
 		EstateDraftPostWorker:     1,
 	},
 	{ // level 11
-		ChairSearchWorker:         1,
-		EstateSearchWorker:        1,
-		EstateNazotteSearchWorker: 1,
-		BotWorker:                 1,
-		ChairDraftPostWorker:      1,
-		EstateDraftPostWorker:     1,
-	},
-	{ // level 12
-		ChairSearchWorker:         1,
-		EstateSearchWorker:        1,
-		EstateNazotteSearchWorker: 1,
-		BotWorker:                 1,
-		ChairDraftPostWorker:      1,
-		EstateDraftPostWorker:     1,
-	},
-	{ // level 13
-		ChairSearchWorker:         1,
-		EstateSearchWorker:        1,
-		EstateNazotteSearchWorker: 1,
-		BotWorker:                 1,
-		ChairDraftPostWorker:      1,
-		EstateDraftPostWorker:     1,
-	},
-	{ // level 14
-		ChairSearchWorker:         1,
-		EstateSearchWorker:        1,
-		EstateNazotteSearchWorker: 1,
-		BotWorker:                 1,
-		ChairDraftPostWorker:      1,
-		EstateDraftPostWorker:     1,
-	},
-	{ // level 15
-		ChairSearchWorker:         1,
-		EstateSearchWorker:        1,
-		EstateNazotteSearchWorker: 1,
-		BotWorker:                 1,
-		ChairDraftPostWorker:      1,
-		EstateDraftPostWorker:     1,
-	},
-	{ // level 16
-		ChairSearchWorker:         1,
-		EstateSearchWorker:        1,
-		EstateNazotteSearchWorker: 1,
-		BotWorker:                 1,
-		ChairDraftPostWorker:      1,
-		EstateDraftPostWorker:     1,
-	},
-	{ // level 17
-		ChairSearchWorker:         1,
-		EstateSearchWorker:        1,
-		EstateNazotteSearchWorker: 1,
-		BotWorker:                 1,
-		ChairDraftPostWorker:      1,
-		EstateDraftPostWorker:     1,
-	},
-	{ // level 18
-		ChairSearchWorker:         1,
-		EstateSearchWorker:        1,
-		EstateNazotteSearchWorker: 1,
-		BotWorker:                 1,
-		ChairDraftPostWorker:      1,
-		EstateDraftPostWorker:     1,
-	},
-	{ // level 19
 		ChairSearchWorker:         1,
 		EstateSearchWorker:        1,
 		EstateNazotteSearchWorker: 1,
