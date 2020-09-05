@@ -61,11 +61,7 @@ async fn main() -> std::io::Result<()> {
             .tcp_port(mysql_connection_env.port)
             .user(Some(&mysql_connection_env.user))
             .db_name(Some(&mysql_connection_env.db_name))
-            .pass(Some(&mysql_connection_env.password))
-            .pool_opts(
-                mysql_async::PoolOpts::default()
-                    .with_constraints(mysql_async::PoolConstraints::new(10, 10).unwrap()),
-            ),
+            .pass(Some(&mysql_connection_env.password)),
     );
 
     let mut listenfd = ListenFd::from_env();
