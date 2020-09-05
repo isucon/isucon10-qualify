@@ -284,7 +284,45 @@ def post_estate_req_doc(estate_id):
 
 @app.route("/api/estate/nazotte", methods=["POST"])
 def post_estate_nazotte():
-    raise NotImplementedError()  # TODO
+    if "coordinates" not in flask.request.json:
+        raise BadRequest()
+    coordinates = flask.request.json["coordinates"]
+    if len(coordinates) == 0:
+        raise BadRequest()
+    longitudes = [c["longitude"] for c in coordinates]
+    latitude = [c["latitude"] for c in coordinates]
+    bounding_box = {
+        "top_left_corner": {"longitude": min(longitudes), "latitude": min(latitude)},
+        "bottom_right_corner": {"longitude": max(longitudes), "latitude": max(latitude)},
+    }
+    estates = select_all(
+        (
+            "SELECT * FROM estate"
+            " WHERE latitude <= %s AND latitude >= %s AND longitude <= %s AND longitude >= %s"
+            " ORDER BY popularity DESC, id ASC"
+        ),
+        (
+            bounding_box["bottom_right_corner"]["latitude"],
+            bounding_box["top_left_corner"]["latitude"],
+            bounding_box["bottom_right_corner"]["longitude"],
+            bounding_box["top_left_corner"]["longitude"],
+        ),
+    )
+    estates_in_polygon = []
+    for estate in estates:
+        query = f"SELECT * FROM estate WHERE id = %s AND ST_Contains(ST_PolygonFromText('POLYGON(({','.join(['%s %s'] * len(coordinates))}))'), ST_GeomFromText('POINT(%s %s)'))"
+        params = [estate["id"]]
+        params += sum([[c["latitude"], c["longitude"]] for c in coordinates], [])
+        params += [estate["latitude"], estate["longitude"]]
+        if select_row(query, params):
+            estates_in_polygon.append(estate)
+    results = {"estates": []}
+    for i, estate in enumerate(estates_in_polygon):
+        if i >= NAZOTTE_LIMIT:
+            break
+        results["estates"].append(camelize(estate))
+    results["count"] = len(results["estates"])
+    return results
 
 
 @app.route("/api/estate/<int:estate_id>", methods=["GET"])
