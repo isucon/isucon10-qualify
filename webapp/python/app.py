@@ -1,6 +1,7 @@
 from os import getenv
 import json
 import subprocess
+import csv
 import flask
 from werkzeug.exceptions import BadRequest, NotFound
 from mysql.connector.pooling import MySQLConnectionPool
@@ -164,10 +165,10 @@ def get_chair_search_condition():
 
 @app.route("/api/chair/<int:chair_id>", methods=["GET"])
 def get_chair(chair_id):
-    rows = select_all("SELECT * FROM chair WHERE id = %s", (chair_id,))
-    if len(rows) == 0 or rows[0]["stock"] <= 0:
+    chair = select_row("SELECT * FROM chair WHERE id = %s", (chair_id,))
+    if chair is None or chair["stock"] <= 0:
         raise NotFound()
-    return camelize(rows[0])
+    return camelize(chair)
 
 
 @app.route("/api/chair/buy/<int:chair_id>", methods=["POST"])
@@ -317,12 +318,44 @@ def get_recommended_estate(chair_id):
 
 @app.route("/api/chair", methods=["POST"])
 def post_chair():
-    raise NotImplementedError()  # TODO
+    if "chairs" not in flask.request.files:
+        raise BadRequest()
+    records = csv.reader(flask.request.files["chairs"])
+    cnx = cnxpool.get_connection()
+    try:
+        cnx.start_transaction()
+        cur = cnx.cursor()
+        for record in records:
+            query = "INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            cur.execute(query, record)
+        cnx.commit()
+        return {"ok": True}, 201
+    except Exception as e:
+        cnx.rollback()
+        raise e
+    finally:
+        cnx.close()
 
 
 @app.route("/api/estate", methods=["POST"])
 def post_estate():
-    raise NotImplementedError()  # TODO
+    if "estates" not in flask.request.files:
+        raise BadRequest()
+    records = csv.reader(flask.request.files["estates"])
+    cnx = cnxpool.get_connection()
+    try:
+        cnx.start_transaction()
+        cur = cnx.cursor()
+        for record in records:
+            query = "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            cur.execute(query, record)
+        cnx.commit()
+        return {"ok": True}, 201
+    except Exception as e:
+        cnx.rollback()
+        raise e
+    finally:
+        cnx.close()
 
 
 if __name__ == "__main__":
