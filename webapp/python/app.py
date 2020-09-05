@@ -3,7 +3,7 @@ import json
 import subprocess
 import flask
 from mysql.connector.pooling import MySQLConnectionPool
-import humps
+from humps import camelize
 
 LIMIT = 20
 NAZOTTE_LIMIT = 50
@@ -40,13 +40,13 @@ def post_initialize():
 @app.route("/api/estate/low_priced", methods=["GET"])
 def get_estate_low_priced():
     rows = select_query("SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT %s", (LIMIT,))
-    return {"estates": humps.camelize(rows)}
+    return {"estates": camelize(rows)}
 
 
 @app.route("/api/chair/low_priced", methods=["GET"])
 def get_chair_low_priced():
     rows = select_query("SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT %s", (LIMIT,))
-    return {"chairs": humps.camelize(rows)}
+    return {"chairs": camelize(rows)}
 
 
 @app.route("/api/chair/search", methods=["GET"])
@@ -136,7 +136,7 @@ def get_chair_search():
     query = f"SELECT * FROM chair WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
     chairs = select_query(query, query_params + [per_page, per_page * page])
 
-    return {"count": count, "chairs": humps.camelize(chairs)}
+    return {"count": count, "chairs": camelize(chairs)}
 
 
 @app.route("/api/chair/search/condition", methods=["GET"])
@@ -146,7 +146,10 @@ def get_chair_search_condition():
 
 @app.route("/api/chair/<int:chair_id>", methods=["GET"])
 def get_chair(chair_id):
-    raise NotImplementedError()  # TODO
+    rows = select_query("SELECT * FROM chair WHERE id = %s", (chair_id,))
+    if len(rows) == 0 or rows[0]["stock"] <= 0:
+        return abort(404, "Not Found")
+    return camelize(rows[0])
 
 
 @app.route("/api/chair/buy/<int:chair_id>", methods=["POST"])
