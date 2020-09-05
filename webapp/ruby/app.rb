@@ -226,10 +226,10 @@ class App < Sinatra::Base
     rescue => e
       db.query('ROLLBACK')
       logger.error("Failed to commit tx: #{e.inspect}")
-      halt 500
+      raise
+    ensure
+      db.query('COMMIT')
     end
-
-    db.query('COMMIT')
 
     status 201
   end
@@ -258,10 +258,10 @@ class App < Sinatra::Base
     rescue => e
       db.query('ROLLBACK')
       logger.error("Failed to commit tx: #{e.inspect}")
-      halt 500
+      raise
+    ensure
+      db.query('COMMIT')
     end
-
-    db.query('COMMIT')
 
     status 200
   end
@@ -457,10 +457,10 @@ class App < Sinatra::Base
     rescue => e
       db.query('ROLLBACK')
       logger.error("Failed to commit tx: #{e.inspect}")
-      halt 500
+      raise
+    ensure
+      db.query('COMMIT')
     end
-
-    db.query('COMMIT')
 
     status 201
   end
