@@ -1,4 +1,5 @@
 from os import getenv
+import subprocess
 import flask
 from mysql.connector.pooling import MySQLConnectionPool
 
@@ -24,7 +25,8 @@ def select_query(query, dictionary=True):
 
 @app.route("/initialize", methods=["POST"])
 def post_initialize():
-    raise NotImplementedError()  # TODO
+    subprocess.call("../mysql/db/init.sh")
+    return {"language": "python"}
 
 
 @app.route("/api/estate/low_priced", methods=["GET"])
@@ -64,7 +66,7 @@ def get_estate_search():
 
 @app.route("/api/estate/search/condition", methods=["GET"])
 def get_estate_search_condition():
-    raise NotImplementedError()  # TODO
+    return {}
 
 
 @app.route("/api/estate/req_doc/<int:estate_id>", methods=["POST"])
@@ -98,4 +100,4 @@ def post_estate():
 
 
 if __name__ == "__main__":
-    app.run(port=getenv("SERVER_PORT", 1323), debug=True, threaded=True)
+    app.run(host="0.0.0.0", port=getenv("SERVER_PORT", 1323), debug=True, threaded=True)
