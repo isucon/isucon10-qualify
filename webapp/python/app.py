@@ -291,11 +291,9 @@ def get_estate(estate_id):
     estate = select_row("SELECT * FROM estate WHERE id = %s", (estate_id,))
     if estate is None:
         raise NotFound()
-    return {"estate": camelize(estate)}
+    return camelize(estate)
 
 
-# low_priced の方のエンドポイントはフロントエンドのバグ (URL 間違い) に対応するためのエイリアス (TODO フロントエンドが直ったら消す)
-@app.route("/api/estate/low_priced/<int:chair_id>", methods=["GET"])
 @app.route("/api/recommended_estate/<int:chair_id>", methods=["GET"])
 def get_recommended_estate(chair_id):
     chair = select_row("SELECT * FROM chair WHERE id = %s", (chair_id,))
