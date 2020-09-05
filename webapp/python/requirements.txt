@@ -1,2 +1,3 @@
 Flask==1.1.2
 mysql-connector-python==8.0.21
+pyhumps==1.6.1

@@ -2,6 +2,10 @@ from os import getenv
 import subprocess
 import flask
 from mysql.connector.pooling import MySQLConnectionPool
+import humps
+
+LIMIT = 20
+NAZOTTE_LIMIT = 50
 
 app = flask.Flask(__name__)
 
@@ -13,11 +17,11 @@ cnxpool = MySQLConnectionPool(
 )
 
 
-def select_query(query, dictionary=True):
+def select_query(query, *args, dictionary=True):
     cnx = cnxpool.get_connection()
     try:
         cur = cnx.cursor(dictionary=dictionary)
-        cur.execute(query)
+        cur.execute(query, *args)
         return cur.fetchall()
     finally:
         cnx.close()
@@ -31,12 +35,14 @@ def post_initialize():
 
 @app.route("/api/estate/low_priced", methods=["GET"])
 def get_estate_low_priced():
-    raise NotImplementedError()  # TODO
+    rows = select_query("SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT %s", (LIMIT,))
+    return {"estates": humps.camelize(rows)}
 
 
 @app.route("/api/chair/low_priced", methods=["GET"])
 def get_chair_low_priced():
-    raise NotImplementedError()  # TODO
+    rows = select_query("SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT %s", (LIMIT,))
+    return {"chairs": humps.camelize(rows)}
 
 
 @app.route("/api/chair/search", methods=["GET"])
