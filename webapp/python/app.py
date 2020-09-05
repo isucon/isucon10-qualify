@@ -266,7 +266,7 @@ def get_estate_search():
     query = f"SELECT * FROM estate WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
     chairs = select_all(query, params + [per_page, per_page * page])
 
-    return {"count": count, "chairs": camelize(chairs)}
+    return {"count": count, "estates": camelize(chairs)}
 
 
 @app.route("/api/estate/search/condition", methods=["GET"])
