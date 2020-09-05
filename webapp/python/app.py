@@ -54,70 +54,82 @@ def get_chair_low_priced():
 def get_chair_search():
     args = flask.request.args
 
-    search_queries = []
-    query_params = []
+    conditions = []
+    params = []
 
     if args.get("priceRangeId"):
-        chair_price = chair_search_condition["price"]["ranges"][args.get("priceRangeId")]
-        if chair_price is None:
+        for _range in chair_search_condition["price"]["ranges"]:
+            if _range["id"] == int(args.get("priceRangeId")):
+                price = _range
+                break
+        else:
             raise BadRequest("priceRangeID invalid")
-        if chair_price["min"] != -1:
-            search_queries.append("price >= %s")
-            query_params.append(chair_price["min"])
-        if chair_price["min"] != -1:
-            search_queries.append("price < %s")
-            query_params.append(chair_price["max"])
+        if price["min"] != -1:
+            conditions.append("price >= %s")
+            params.append(price["min"])
+        if price["min"] != -1:
+            conditions.append("price < %s")
+            params.append(price["max"])
 
     if args.get("heightRangeId"):
-        chair_height = chair_search_condition["height"][args.get("heightRangeId")]
-        if chair_height is None:
+        for _range in chair_search_condition["height"]["ranges"]:
+            if _range["id"] == int(args.get("heightRangeId")):
+                height = _range
+                break
+        else:
             raise BadRequest("heightRangeId invalid")
-        if chair_height["min"] != -1:
-            search_queries.append("height >= %s")
-            query_params.append(chair_height["min"])
-        if chair_height["min"] != -1:
-            search_queries.append("height < %s")
-            query_params.append(chair_height["max"])
+        if height["min"] != -1:
+            conditions.append("height >= %s")
+            params.append(height["min"])
+        if height["min"] != -1:
+            conditions.append("height < %s")
+            params.append(height["max"])
 
     if args.get("widthRangeId"):
-        chair_width = chair_search_condition["width"][args.get("widthRangeId")]
-        if chair_width is None:
+        for _range in chair_search_condition["width"]["ranges"]:
+            if _range["id"] == int(args.get("widthRangeId")):
+                width = _range
+                break
+        else:
             raise BadRequest("widthRangeId invalid")
-        if chair_width["min"] != -1:
-            search_queries.append("width >= %s")
-            query_params.append(chair_width["min"])
-        if chair_width["min"] != -1:
-            search_queries.append("width < %s")
-            query_params.append(chair_width["max"])
+        if width["min"] != -1:
+            conditions.append("width >= %s")
+            params.append(width["min"])
+        if width["min"] != -1:
+            conditions.append("width < %s")
+            params.append(width["max"])
 
     if args.get("depthRangeId"):
-        chair_width = chair_search_condition["depth"][args.get("depthRangeId")]
-        if chair_depth is None:
+        for _range in chair_search_condition["depth"]["ranges"]:
+            if _range["id"] == int(args.get("depthRangeId")):
+                depth = _range
+                break
+        else:
             raise BadRequest("depthRangeId invalid")
-        if chair_depth["min"] != -1:
-            search_queries.append("depth >= %s")
-            query_params.append(chair_depth["min"])
-        if chair_depth["min"] != -1:
-            search_queries.append("depth < %s")
-            query_params.append(chair_depth["max"])
+        if depth["min"] != -1:
+            conditions.append("depth >= %s")
+            params.append(depth["min"])
+        if depth["min"] != -1:
+            conditions.append("depth < %s")
+            params.append(depth["max"])
 
     if args.get("kind"):
-        search_queries.append("kind = %s")
-        query_params.append(args.get("kind"))
+        conditions.append("kind = %s")
+        params.append(args.get("kind"))
 
     if args.get("color"):
-        search_queries.append("color = %s")
-        query_params.append(args.get("color"))
+        conditions.append("color = %s")
+        params.append(args.get("color"))
 
     if args.get("features"):
         for feature_confition in args.get("features").split(","):
-            search_queries.append("features LIKE CONCAT('%', %s, '%')")
-            query_params.append(feature_confition)
+            conditions.append("features LIKE CONCAT('%', %s, '%')")
+            params.append(feature_confition)
 
-    if len(search_queries) == 0:
+    if len(conditions) == 0:
         raise BadRequest("Search condition not found")
 
-    search_queries.append("stock > 0")
+    conditions.append("stock > 0")
 
     try:
         page = int(args.get("page"))
@@ -129,13 +141,13 @@ def get_chair_search():
     except (TypeError, ValueError):
         raise BadRequest("Invalid format perPage parameter")
 
-    search_condition = " AND ".join(search_queries)
+    search_condition = " AND ".join(conditions)
 
     query = f"SELECT COUNT(*) as count FROM chair WHERE {search_condition}"
-    count = select_query(query, query_params)[0]["count"]
+    count = select_query(query, params)[0]["count"]
 
     query = f"SELECT * FROM chair WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
-    chairs = select_query(query, query_params + [per_page, per_page * page])
+    chairs = select_query(query, params + [per_page, per_page * page])
 
     return {"count": count, "chairs": camelize(chairs)}
 
@@ -175,7 +187,80 @@ def post_chair_buy(chair_id):
 
 @app.route("/api/estate/search", methods=["GET"])
 def get_estate_search():
-    raise NotImplementedError()  # TODO
+    args = flask.request.args
+
+    conditions = []
+    params = []
+
+    if args.get("doorHeightRangeId"):
+        for _range in estate_search_condition["doorHeight"]["ranges"]:
+            if _range["id"] == int(args.get("doorHeightRangeId")):
+                door_height = _range
+                break
+        else:
+            raise BadRequest("doorHeightRangeId invalid")
+        if door_height["min"] != -1:
+            conditions.append("door_height >= %s")
+            params.append(door_height["min"])
+        if door_height["min"] != -1:
+            conditions.append("door_height < %s")
+            params.append(door_height["max"])
+
+    if args.get("doorWidthRangeId"):
+        for _range in estate_search_condition["doorWidth"]["ranges"]:
+            if _range["id"] == int(args.get("doorWidthRangeId")):
+                door_width = _range
+                break
+        else:
+            raise BadRequest("doorWidthRangeId invalid")
+        if door_width["min"] != -1:
+            conditions.append("door_width >= %s")
+            params.append(door_width["min"])
+        if door_width["min"] != -1:
+            conditions.append("door_width < %s")
+            params.append(door_width["max"])
+
+    if args.get("rentRangeId"):
+        for _range in estate_search_condition["rent"]["ranges"]:
+            if _range["id"] == int(args.get("rentRangeId")):
+                rent = _range
+                break
+        else:
+            raise BadRequest("rentRangeId invalid")
+        if rent["min"] != -1:
+            conditions.append("rent >= %s")
+            params.append(rent["min"])
+        if rent["min"] != -1:
+            conditions.append("rent < %s")
+            params.append(rent["max"])
+
+    if args.get("features"):
+        for feature_confition in args.get("features").split(","):
+            conditions.append("features LIKE CONCAT('%', %s, '%')")
+            params.append(feature_confition)
+
+    if len(conditions) == 0:
+        raise BadRequest("Search condition not found")
+
+    try:
+        page = int(args.get("page"))
+    except (TypeError, ValueError):
+        raise BadRequest("Invalid format page parameter")
+
+    try:
+        per_page = int(args.get("perPage"))
+    except (TypeError, ValueError):
+        raise BadRequest("Invalid format perPage parameter")
+
+    search_condition = " AND ".join(conditions)
+
+    query = f"SELECT COUNT(*) as count FROM estate WHERE {search_condition}"
+    count = select_query(query, params)[0]["count"]
+
+    query = f"SELECT * FROM estate WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
+    chairs = select_query(query, params + [per_page, per_page * page])
+
+    return {"count": count, "chairs": camelize(chairs)}
 
 
 @app.route("/api/estate/search/condition", methods=["GET"])
