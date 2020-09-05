@@ -22,7 +22,7 @@ cnxpool = MySQLConnectionPool(
 )
 
 
-def select_query(query, *args, dictionary=True):
+def select_all(query, *args, dictionary=True):
     cnx = cnxpool.get_connection()
     try:
         cur = cnx.cursor(dictionary=dictionary)
@@ -30,6 +30,11 @@ def select_query(query, *args, dictionary=True):
         return cur.fetchall()
     finally:
         cnx.close()
+
+
+def select_row(*args, **kwargs):
+    rows = select_all(*args, **kwargs)
+    return rows[0] if len(rows) > 0 else None
 
 
 @app.route("/initialize", methods=["POST"])
@@ -40,13 +45,13 @@ def post_initialize():
 
 @app.route("/api/estate/low_priced", methods=["GET"])
 def get_estate_low_priced():
-    rows = select_query("SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT %s", (LIMIT,))
+    rows = select_all("SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT %s", (LIMIT,))
     return {"estates": camelize(rows)}
 
 
 @app.route("/api/chair/low_priced", methods=["GET"])
 def get_chair_low_priced():
-    rows = select_query("SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT %s", (LIMIT,))
+    rows = select_all("SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT %s", (LIMIT,))
     return {"chairs": camelize(rows)}
 
 
@@ -144,10 +149,10 @@ def get_chair_search():
     search_condition = " AND ".join(conditions)
 
     query = f"SELECT COUNT(*) as count FROM chair WHERE {search_condition}"
-    count = select_query(query, params)[0]["count"]
+    count = select_row(query, params)["count"]
 
     query = f"SELECT * FROM chair WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
-    chairs = select_query(query, params + [per_page, per_page * page])
+    chairs = select_all(query, params + [per_page, per_page * page])
 
     return {"count": count, "chairs": camelize(chairs)}
 
@@ -159,7 +164,7 @@ def get_chair_search_condition():
 
 @app.route("/api/chair/<int:chair_id>", methods=["GET"])
 def get_chair(chair_id):
-    rows = select_query("SELECT * FROM chair WHERE id = %s", (chair_id,))
+    rows = select_all("SELECT * FROM chair WHERE id = %s", (chair_id,))
     if len(rows) == 0 or rows[0]["stock"] <= 0:
         raise NotFound()
     return camelize(rows[0])
@@ -172,8 +177,8 @@ def post_chair_buy(chair_id):
         cnx.start_transaction()
         cur = cnx.cursor(dictionary=True)
         cur.execute("SELECT * FROM chair WHERE id = %s AND stock > 0 FOR UPDATE", (chair_id,))
-        chair = cur.fetch_row()
-        if chair_id is None:
+        chair = cur.fetchone()
+        if chair is None:
             raise NotFound()
         cur.execute("UPDATE chair SET stock = %s WHERE id = %s", (chair["stock"] - 1, chair_id))
         cnx.commit()
@@ -255,10 +260,10 @@ def get_estate_search():
     search_condition = " AND ".join(conditions)
 
     query = f"SELECT COUNT(*) as count FROM estate WHERE {search_condition}"
-    count = select_query(query, params)[0]["count"]
+    count = select_row(query, params)["count"]
 
     query = f"SELECT * FROM estate WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
-    chairs = select_query(query, params + [per_page, per_page * page])
+    chairs = select_all(query, params + [per_page, per_page * page])
 
     return {"count": count, "chairs": camelize(chairs)}
 
@@ -283,9 +288,27 @@ def get_estate(estate_id):
     raise NotImplementedError()  # TODO
 
 
-@app.route("/api/recommended_estate/<int:estate_id>", methods=["GET"])
-def get_recommended_estate(estate_id):
-    raise NotImplementedError()  # TODO
+# low_priced の方のエンドポイントはフロントエンドのバグ (URL 間違い) に対応するためのエイリアス (TODO フロントエンドが直ったら消す)
+@app.route("/api/estate/low_priced/<int:chair_id>", methods=["GET"])
+@app.route("/api/recommended_estate/<int:chair_id>", methods=["GET"])
+def get_recommended_estate(chair_id):
+    chair = select_row("SELECT * FROM chair WHERE id = %s", (chair_id,))
+    if chair is None:
+        raise BadRequest(f"Invalid format searchRecommendedEstateWithChair id : {chair_id}")
+    w, h, d = chair["width"], chair["height"], chair["depth"]
+    query = (
+        "SELECT * FROM estate"
+        " WHERE (door_width >= %s AND door_height >= %s)"
+        "    OR (door_width >= %s AND door_height >= %s)"
+        "    OR (door_width >= %s AND door_height >= %s)"
+        "    OR (door_width >= %s AND door_height >= %s)"
+        "    OR (door_width >= %s AND door_height >= %s)"
+        "    OR (door_width >= %s AND door_height >= %s)"
+        " ORDER BY popularity DESC, id ASC"
+        " LIMIT %s"
+    )
+    estates = select_all(query, (w, h, w, d, h, w, h, d, d, w, d, h, LIMIT))
+    return {"estates": camelize(estates)}
 
 
 @app.route("/api/chair", methods=["POST"])
