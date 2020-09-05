@@ -275,7 +275,10 @@ def get_estate_search_condition():
 
 @app.route("/api/estate/req_doc/<int:estate_id>", methods=["POST"])
 def post_estate_req_doc(estate_id):
-    raise NotImplementedError()  # TODO
+    estate = select_row("SELECT * FROM estate WHERE id = %s", (estate_id,))
+    if estate is None:
+        raise NotFound()
+    return {"ok": True}
 
 
 @app.route("/api/estate/nazotte", methods=["POST"])
@@ -285,7 +288,10 @@ def post_estate_nazotte():
 
 @app.route("/api/estate/<int:estate_id>", methods=["GET"])
 def get_estate(estate_id):
-    raise NotImplementedError()  # TODO
+    estate = select_row("SELECT * FROM estate WHERE id = %s", (estate_id,))
+    if estate is None:
+        raise NotFound()
+    return {"estate": camelize(estate)}
 
 
 # low_priced の方のエンドポイントはフロントエンドのバグ (URL 間違い) に対応するためのエイリアス (TODO フロントエンドが直ったら消す)
