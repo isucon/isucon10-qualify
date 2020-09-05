@@ -2,6 +2,7 @@ from os import getenv
 import json
 import subprocess
 import flask
+from werkzeug.exceptions import BadRequest, NotFound
 from mysql.connector.pooling import MySQLConnectionPool
 from humps import camelize
 
@@ -59,7 +60,7 @@ def get_chair_search():
     if args.get("priceRangeId"):
         chair_price = chair_search_condition["price"]["ranges"][args.get("priceRangeId")]
         if chair_price is None:
-            return abort(400, "priceRangeID invalid")
+            raise BadRequest("priceRangeID invalid")
         if chair_price["min"] != -1:
             search_queries.append("price >= %s")
             query_params.append(chair_price["min"])
@@ -70,7 +71,7 @@ def get_chair_search():
     if args.get("heightRangeId"):
         chair_height = chair_search_condition["height"][args.get("heightRangeId")]
         if chair_height is None:
-            return abort(400, "heightRangeId invalid")
+            raise BadRequest("heightRangeId invalid")
         if chair_height["min"] != -1:
             search_queries.append("height >= %s")
             query_params.append(chair_height["min"])
@@ -81,7 +82,7 @@ def get_chair_search():
     if args.get("widthRangeId"):
         chair_width = chair_search_condition["width"][args.get("widthRangeId")]
         if chair_width is None:
-            return abort(400, "widthRangeId invalid")
+            raise BadRequest("widthRangeId invalid")
         if chair_width["min"] != -1:
             search_queries.append("width >= %s")
             query_params.append(chair_width["min"])
@@ -92,7 +93,7 @@ def get_chair_search():
     if args.get("depthRangeId"):
         chair_width = chair_search_condition["depth"][args.get("depthRangeId")]
         if chair_depth is None:
-            return abort(400, "depthRangeId invalid")
+            raise BadRequest("depthRangeId invalid")
         if chair_depth["min"] != -1:
             search_queries.append("depth >= %s")
             query_params.append(chair_depth["min"])
@@ -114,19 +115,19 @@ def get_chair_search():
             query_params.append(feature_confition)
 
     if len(search_queries) == 0:
-        return abort(400, "Search condition not found")
+        raise BadRequest("Search condition not found")
 
     search_queries.append("stock > 0")
 
     try:
         page = int(args.get("page"))
     except (TypeError, ValueError):
-        return abort(400, "Invalid format page parameter")
+        raise BadRequest("Invalid format page parameter")
 
     try:
         per_page = int(args.get("perPage"))
     except (TypeError, ValueError):
-        return abort(400, "Invalid format perPage parameter")
+        raise BadRequest("Invalid format perPage parameter")
 
     search_condition = " AND ".join(search_queries)
 
@@ -148,13 +149,28 @@ def get_chair_search_condition():
 def get_chair(chair_id):
     rows = select_query("SELECT * FROM chair WHERE id = %s", (chair_id,))
     if len(rows) == 0 or rows[0]["stock"] <= 0:
-        return abort(404, "Not Found")
+        raise NotFound()
     return camelize(rows[0])
 
 
 @app.route("/api/chair/buy/<int:chair_id>", methods=["POST"])
 def post_chair_buy(chair_id):
-    raise NotImplementedError()  # TODO
+    cnx = cnxpool.get_connection()
+    try:
+        cnx.start_transaction()
+        cur = cnx.cursor(dictionary=True)
+        cur.execute("SELECT * FROM chair WHERE id = %s AND stock > 0 FOR UPDATE", (chair_id,))
+        chair = cur.fetch_row()
+        if chair_id is None:
+            raise NotFound()
+        cur.execute("UPDATE chair SET stock = %s WHERE id = %s", (chair["stock"] - 1, chair_id))
+        cnx.commit()
+        return {"ok": True}
+    except Exception as e:
+        cnx.rollback()
+        raise e
+    finally:
+        cnx.close()
 
 
 @app.route("/api/estate/search", methods=["GET"])
