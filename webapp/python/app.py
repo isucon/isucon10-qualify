@@ -22,5 +22,80 @@ def select_query(query, dictionary=True):
         cnx.close()
 
 
+@app.route("/initialize", methods=["POST"])
+def post_initialize():
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/estate/low_priced", methods=["GET"])
+def get_estate_low_priced():
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/chair/low_priced", methods=["GET"])
+def get_chair_low_priced():
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/chair/search", methods=["GET"])
+def get_chair_search():
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/chair/search/condition", methods=["GET"])
+def get_chair_search_condition():
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/chair/<int:chair_id>", methods=["GET"])
+def get_chair(chair_id):
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/chair/buy/<int:chair_id>", methods=["POST"])
+def post_chair_buy(chair_id):
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/estate/search", methods=["GET"])
+def get_estate_search():
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/estate/search/condition", methods=["GET"])
+def get_estate_search_condition():
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/estate/req_doc/<int:estate_id>", methods=["POST"])
+def post_estate_req_doc(estate_id):
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/estate/nazotte", methods=["POST"])
+def post_estate_nazotte():
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/estate/<int:estate_id>", methods=["GET"])
+def get_estate(estate_id):
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/recommended_estate/<int:estate_id>", methods=["GET"])
+def get_recommended_estate(estate_id):
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/chair", methods=["POST"])
+def post_chair():
+    raise NotImplementedError()  # TODO
+
+
+@app.route("/api/estate", methods=["POST"])
+def post_estate():
+    raise NotImplementedError()  # TODO
+
+
 if __name__ == "__main__":
     app.run(port=getenv("SERVER_PORT", 1323), debug=True, threaded=True)
