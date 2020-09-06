@@ -155,15 +155,15 @@ post '/api/chair'                  => \&post_chair;
 get  '/api/chair/search'           => \&search_chairs;
 get  '/api/chair/low_priced'       => \&get_low_priced_chair;
 get  '/api/chair/search/condition' => \&get_chair_search_condition;
-post '/api/chair/buy/{id:\d+}'     => \&buy_chair;
+post '/api/chair/buy/{id:\d+}'     => [qw/allow_json_request/] => \&buy_chair;
 
 # Estate Handler
 get  '/api/estate/{id:\d+}'             => \&get_estate_detail;
 post '/api/estate'                      => \&post_estate;
 get  '/api/estate/search'               => \&search_estates;
 get  '/api/estate/low_priced'           => \&get_low_priced_estate;
-post '/api/estate/req_doc/{id:\d+}'     => \&post_estate_request_document;
-post '/api/estate/nazotte'              => \&search_estate_nazotte;
+post '/api/estate/req_doc/{id:\d+}'     => [qw/allow_json_request/] => \&post_estate_request_document;
+post '/api/estate/nazotte'              => [qw/allow_json_request/] => \&search_estate_nazotte;
 get  '/api/estate/search/condition'     => \&get_estate_search_condition;
 get  '/api/recommended_estate/{id:\d+}' => \&search_recommended_estate_with_chair;
 
@@ -831,6 +831,14 @@ sub get_range {
 }
 
 
+filter 'allow_json_request' => sub {
+    my $app = shift;
+    return sub {
+        my ($self, $c) = @_;
+        $c->env->{'kossy.request.parse_json_body'} = 1;
+        $app->($self, $c);
+    };
+};
 
 sub dbh {
     my $self = shift;
@@ -854,6 +862,8 @@ sub dbh {
 # send empty body with status code
 sub res_no_content {
     my ($self, $c, $status) = @_;
+    $c->res->headers->remove_content_headers;
+    $c->res->content_length(0);
     $c->res->code($status);
     $c->res;
 }
