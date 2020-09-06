@@ -702,26 +702,25 @@ sub search_recommended_estate_with_chair {
 sub search_estate_nazotte {
     my ($self, $c) = @_;
 
-    my @coordinates = $c->req->body_parameters->get_all('coordinates');
-    if (!@coordinates) {
+    my $coordinates = $c->req->body_parameters_raw->{coordinates};
+    if (!$coordinates->@*) {
         return $self->res_no_content($c, HTTP_BAD_REQUEST);
     }
 
-    my $b = get_bounding_box(\@coordinates);
-
+    my $box = get_bounding_box($coordinates);
     my $query = 'SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC';
 
     my $estates_in_bounding_box = $self->dbh->select_all($query,
-        $b->{bottom_right_corner}{latitude}, $b->{top_left_corner}{latitude}, $b->{bottom_right_corner}{longitude}, $b->{top_left_corner}{longitude});
+        $box->{bottom_right_corner}{latitude}, $box->{top_left_corner}{latitude}, $box->{bottom_right_corner}{longitude}, $box->{top_left_corner}{longitude});
 
     if ($estates_in_bounding_box->@* == 0) {
         infof("select * from estate where latitude ... not found");
     }
 
-    my $estates_in_polygon;
+    my $estates_in_polygon = [];
     for my $estate ($estates_in_bounding_box->@*) {
         my $point = sprintf("'POINT(%f %f)'", $estate->{latitude}, $estate->{longitude});
-        my $query = sprintf("SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))", coordinates_to_text(\@coordinates), $point);
+        my $query = sprintf("SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))", coordinates_to_text($coordinates), $point);
 
         my $validated_estate = $self->dbh->select_row($query, $estate->{id});
         if ($validated_estate) {
@@ -788,9 +787,16 @@ sub get_estate_search_condition {
 sub get_bounding_box {
     my ($coordinates) = @_;
     my $bounding_box = {
-        top_left_corner => undef,
-        bottom_right_corner => undef,
+        top_left_corner => {
+            latitude => $coordinates->[0]->{latitude},
+            longitude => $coordinates->[0]->{longitude},
+        },,
+        bottom_right_corner => {
+            latitude => $coordinates->[0]->{latitude},
+            longitude => $coordinates->[0]->{longitude},
+        }
     };
+
     for my $coordinate ($coordinates->@*) {
         if ($bounding_box->{top_left_corner}{latitude} > $coordinate->{latitude}) {
             $bounding_box->{top_left_corner}{latitude} = $coordinate->{latitude}
@@ -802,7 +808,7 @@ sub get_bounding_box {
         if ($bounding_box->{bottom_right_corner}{latitude} < $coordinate->{latitude}) {
             $bounding_box->{bottom_right_corner}{latitude} = $coordinate->{latitude}
         }
-        if ($bounding_box->{bottom_right_corner}{latitude} < $coordinate->{latitude}) {
+        if ($bounding_box->{bottom_right_corner}{longitude} < $coordinate->{longitude}) {
             $bounding_box->{bottom_right_corner}{longitude} = $coordinate->{longitude}
         }
     }
