@@ -173,24 +173,8 @@ get  '/api/recommended_estate/{id:\d+}' => \&search_recommended_estate_with_chai
 sub initialize {
     my ($self, $c)  = @_;
 
-    my $sql_dir = File::Spec->catdir($self->root_dir, "..", "mysql", "db");
-    my @paths = (
-        File::Spec->catfile($sql_dir, "0_Schema.sql"),
-        File::Spec->catfile($sql_dir, "1_DummyEstateData.sql"),
-        File::Spec->catfile($sql_dir, "2_DummyChairData.sql"),
-    );
-
-    for my $p (@paths) {
-        my @cmd = ('mysql',
-            '-h', $MYSQL_CONNECTION_DATA->{host},
-            '-u', $MYSQL_CONNECTION_DATA->{user},
-            "-p$MYSQL_CONNECTION_DATA->{password}",
-            '-P', $MYSQL_CONNECTION_DATA->{port},
-                  $MYSQL_CONNECTION_DATA->{dbname},
-            '<',  $p);
-
-        system(@cmd);
-    }
+    my $cmd = File::Spec->catfile($self->root_dir, '..', 'mysql', 'db', 'init.sh');
+    system($cmd);
 
     $self->res_json($c, {
         language => "perl",
