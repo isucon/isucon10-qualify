@@ -103,6 +103,14 @@ func verifyChairDetail(ctx context.Context, c *client.Client, filePath string) e
 			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
+	case http.StatusNotFound:
+		if actual != nil {
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+		}
+		if err != nil {
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+		}
+
 	default:
 		if err == nil {
 			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
