@@ -258,7 +258,8 @@ sub search_chairs {
     my @conditions;
     my @params;
 
-    if (my $price_range_id = $c->req->parameters->get('priceRangeId')) {
+    if (exists $c->req->parameters->{priceRangeId}) {
+        my $price_range_id = $c->req->parameters->{priceRangeId};
         my ($chair_price, $err) = get_range($CHAIR_SEARCH_CONDITION->{price}, $price_range_id);
         if ($err) {
             infof("priceRangeID invalid, %s : %s", $price_range_id, $err);
@@ -274,7 +275,8 @@ sub search_chairs {
         }
     }
 
-    if (my $height_range_id = $c->req->parameters->get('heightRangeId')) {
+    if (exists $c->req->parameters->{heightRangeId}) {
+        my $height_range_id = $c->req->parameters->{heightRangeId};
         my ($chair_height, $err) = get_range($CHAIR_SEARCH_CONDITION->{height}, $height_range_id);
         if ($err) {
             infof("heightRangeID invalid, %s : %s", $height_range_id, $err);
@@ -290,7 +292,8 @@ sub search_chairs {
         }
     }
 
-    if (my $width_range_id = $c->req->parameters->get('widthRangeId')) {
+    if (exists $c->req->parameters->{widthRangeId}) {
+        my $width_range_id = $c->req->parameters->{widthRangeId};
         my ($chair_width, $err) = get_range($CHAIR_SEARCH_CONDITION->{width}, $width_range_id);
         if ($err) {
             infof("widthRangeID invalid, %s : %s", $width_range_id, $err);
@@ -306,7 +309,8 @@ sub search_chairs {
         }
     }
 
-    if (my $depth_range_id = $c->req->parameters->get('depthRangeId')) {
+    if (exists $c->req->parameters->{depthRangeId}) {
+        my $depth_range_id = $c->req->parameters->{depthRangeId};
         my ($chair_depth, $err) = get_range($CHAIR_SEARCH_CONDITION->{depth}, $depth_range_id);
         if ($err) {
             infof("depthRangeID invalid, %s : %s", $depth_range_id, $err);
@@ -529,7 +533,8 @@ sub search_estates {
     my @conditions;
     my @params;
 
-    if (my $door_height_range_id = $c->req->parameters->get('doorHeightRangeId')) {
+    if (exists $c->req->parameters->{doorHeightRangeId}) {
+        my $door_height_range_id = $c->req->parameters->{doorHeightRangeId};
         my ($door_height, $err) = get_range($ESTATE_SEARCH_CONDITION->{doorHeight}, $door_height_range_id);
         if ($err) {
             infof("doorHeightRangeID invalid, %s : %s", $door_height_range_id, $err);
@@ -545,7 +550,8 @@ sub search_estates {
         }
     }
 
-    if (my $door_width_range_id = $c->req->parameters->get('doorWidthRangeId')) {
+    if (exists $c->req->parameters->{doorWidthRangeId}) {
+        my $door_width_range_id = $c->req->parameters->{doorWidthRangeId};
         my ($door_width, $err) = get_range($ESTATE_SEARCH_CONDITION->{doorWidth}, $door_width_range_id);
         if ($err) {
             infof("doorWidthRangeID invalid, %s : %s", $door_width_range_id, $err);
@@ -561,7 +567,8 @@ sub search_estates {
         }
     }
 
-    if (my $rent_range_id = $c->req->parameters->get('rentRangeId')) {
+    if (exists $c->req->parameters->{rentRangeId}) {
+        my $rent_range_id = $c->req->parameters->{rentRangeId};
         my ($estate_rent, $err) = get_range($ESTATE_SEARCH_CONDITION->{rent}, $rent_range_id);
         if ($err) {
             infof("rentRangeID invalid, %s : %s", $rent_range_id, $err);
