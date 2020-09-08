@@ -509,12 +509,11 @@ sub post_estate {
     eval {
         while (my $row = $csv->getline($fh)) {
             my ($id, $name, $description, $thumbnail, $address, $latitude, $longitude, $rent, $door_height, $door_width, $features, $popularity) = $row->@*;
-
             $dbh->query(
                 "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                 $id, $name, $description, $thumbnail, $address, $latitude, $longitude, $rent, $door_height, $door_width, $features, $popularity
             );
-}
+        }
         $txn->commit;
     };
     if ($@) {
