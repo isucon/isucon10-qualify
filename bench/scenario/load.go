@@ -138,7 +138,7 @@ func runBotWorker(ctx context.Context) {
 }
 
 func runChairDraftPostWorker(ctx context.Context) {
-	c := client.NewClient(false)
+	c := client.NewClientForDraft()
 
 	r := rand.Intn(parameter.SleepSwingBeforePostDraft) - parameter.SleepSwingBeforePostDraft*0.5
 	s := parameter.SleepBeforePostDraft + time.Duration(r)*time.Millisecond
@@ -157,7 +157,7 @@ func runChairDraftPostWorker(ctx context.Context) {
 }
 
 func runEstateDraftPostWorker(ctx context.Context) {
-	c := client.NewClient(false)
+	c := client.NewClientForDraft()
 
 	r := rand.Intn(parameter.SleepSwingBeforePostDraft) - parameter.SleepSwingBeforePostDraft*0.5
 	s := parameter.SleepBeforePostDraft + time.Duration(r)*time.Millisecond
