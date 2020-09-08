@@ -23,7 +23,7 @@
   become_user: isucon
   copy:
     src: "../files/isucon10q3/webapp/mysql/db/3_index.sql"
-    dest: "/home/isucon/isucon10-qualify/webapp/mysql/db/3_index.sql"
+    dest: "/home/isucon/isucon10-qualify/webapp/mysql/db/3_Index.sql"
     owner: "isucon"
     group: "isucon"
     mode: "0777"
