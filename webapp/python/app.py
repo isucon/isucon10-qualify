@@ -296,27 +296,36 @@ def post_estate_nazotte():
         "top_left_corner": {"longitude": min(longitudes), "latitude": min(latitude)},
         "bottom_right_corner": {"longitude": max(longitudes), "latitude": max(latitude)},
     }
-    estates = select_all(
-        (
-            "SELECT * FROM estate"
-            " WHERE latitude <= %s AND latitude >= %s AND longitude <= %s AND longitude >= %s"
-            " ORDER BY popularity DESC, id ASC"
-        ),
-        (
-            bounding_box["bottom_right_corner"]["latitude"],
-            bounding_box["top_left_corner"]["latitude"],
-            bounding_box["bottom_right_corner"]["longitude"],
-            bounding_box["top_left_corner"]["longitude"],
-        ),
-    )
-    estates_in_polygon = []
-    for estate in estates:
-        query = f"SELECT * FROM estate WHERE id = %s AND ST_Contains(ST_PolygonFromText('POLYGON(({','.join(['%s %s'] * len(coordinates))}))'), ST_GeomFromText('POINT(%s %s)'))"
-        params = [estate["id"]]
-        params += sum([[c["latitude"], c["longitude"]] for c in coordinates], [])
-        params += [estate["latitude"], estate["longitude"]]
-        if select_row(query, params):
-            estates_in_polygon.append(estate)
+
+    cnx = mysql.connector.connect(**mysql_connection_env)
+    try:
+        cur = cnx.cursor(dictionary=dictionary)
+        cur.execute(
+            (
+                "SELECT * FROM estate"
+                " WHERE latitude <= %s AND latitude >= %s AND longitude <= %s AND longitude >= %s"
+                " ORDER BY popularity DESC, id ASC"
+            ),
+            (
+                bounding_box["bottom_right_corner"]["latitude"],
+                bounding_box["top_left_corner"]["latitude"],
+                bounding_box["bottom_right_corner"]["longitude"],
+                bounding_box["top_left_corner"]["longitude"],
+            ),
+        )
+        estates = cur.fetchall()
+        estates_in_polygon = []
+        for estate in estates:
+            query = f"SELECT * FROM estate WHERE id = %s AND ST_Contains(ST_PolygonFromText('POLYGON(({','.join(['%s %s'] * len(coordinates))}))'), ST_GeomFromText('POINT(%s %s)'))"
+            params = [estate["id"]]
+            params += sum([[c["latitude"], c["longitude"]] for c in coordinates], [])
+            params += [estate["latitude"], estate["longitude"]]
+            cur.execute(query, params)
+            if len(cur.fetchall()) > 0:
+                estates_in_polygon.append(estate)
+    finally:
+        cnx.close()
+
     results = {"estates": []}
     for i, estate in enumerate(estates_in_polygon):
         if i >= NAZOTTE_LIMIT:
