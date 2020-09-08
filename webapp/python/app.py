@@ -4,7 +4,7 @@ import subprocess
 import csv
 import flask
 from werkzeug.exceptions import BadRequest, NotFound
-from mysql.connector.pooling import MySQLConnectionPool
+import mysql.connector
 from humps import camelize
 
 LIMIT = 20
@@ -15,17 +15,17 @@ estate_search_condition = json.load(open("../fixture/estate_condition.json", "r"
 
 app = flask.Flask(__name__)
 
-cnxpool = MySQLConnectionPool(
-    host=getenv("MYSQL_HOST", "127.0.0.1"),
-    port=getenv("MYSQL_PORT", 3306),
-    user=getenv("MYSQL_USER", "isucon"),
-    password=getenv("MYSQL_PASS", "isucon"),
-    database=getenv("MYSQL_DBNAME", "isuumo"),
-)
+mysql_connection_env = {
+    "host": getenv("MYSQL_HOST", "127.0.0.1"),
+    "port": getenv("MYSQL_PORT", 3306),
+    "user": getenv("MYSQL_USER", "isucon"),
+    "password": getenv("MYSQL_PASS", "isucon"),
+    "database": getenv("MYSQL_DBNAME", "isuumo"),
+}
 
 
 def select_all(query, *args, dictionary=True):
-    cnx = cnxpool.get_connection()
+    cnx = mysql.connector.connect(**mysql_connection_env)
     try:
         cur = cnx.cursor(dictionary=dictionary)
         cur.execute(query, *args)
@@ -174,7 +174,7 @@ def get_chair(chair_id):
 
 @app.route("/api/chair/buy/<int:chair_id>", methods=["POST"])
 def post_chair_buy(chair_id):
-    cnx = cnxpool.get_connection()
+    cnx = mysql.connector.connect(**mysql_connection_env)
     try:
         cnx.start_transaction()
         cur = cnx.cursor(dictionary=True)
@@ -360,7 +360,7 @@ def post_chair():
     if "chairs" not in flask.request.files:
         raise BadRequest()
     records = csv.reader(flask.request.files["chairs"])
-    cnx = cnxpool.get_connection()
+    cnx = mysql.connector.connect(**mysql_connection_env)
     try:
         cnx.start_transaction()
         cur = cnx.cursor()
@@ -381,7 +381,7 @@ def post_estate():
     if "estates" not in flask.request.files:
         raise BadRequest()
     records = csv.reader(flask.request.files["estates"])
-    cnx = cnxpool.get_connection()
+    cnx = mysql.connector.connect(**mysql_connection_env)
     try:
         cnx.start_transaction()
         cur = cnx.cursor()
