@@ -178,6 +178,7 @@
     mode: "0644"
   with_items:
     - isucon-go.service
+    - isucon-python.service
 
 - name: Start "isucon-go.service"
   systemd:
