@@ -1,3 +1,9 @@
+- name: Restart "mysql"
+  systemd:
+    daemon_reload: "yes"
+    name: "mysql"
+    state: "restarted"
+    enabled: "yes"
 - name: Copy mysqld.conf
   become: yes
   become_user: root
