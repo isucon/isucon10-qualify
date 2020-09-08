@@ -21,13 +21,23 @@ class App < Sinatra::Base
   set :add_charset, ['application/json']
 
   helpers do
-    def db
-      Thread.current[:db] ||= Mysql2::Client.new(
+    def db_info
+      {
         host: ENV.fetch('MYSQL_HOST', '127.0.0.1'),
         port: ENV.fetch('MYSQL_PORT', '3306'),
         username: ENV.fetch('MYSQL_USER', 'isucon'),
         password: ENV.fetch('MYSQL_PASS', 'isucon'),
         database: ENV.fetch('MYSQL_DBNAME', 'isuumo'),
+      }
+    end
+
+    def db
+      Thread.current[:db] ||= Mysql2::Client.new(
+        host: db_info[:host],
+        port: db_info[:port],
+        username: db_info[:username],
+        password: db_info[:password],
+        database: db_info[:database],
         reconnect: true,
       )
     end
@@ -48,8 +58,14 @@ class App < Sinatra::Base
   end
 
   post '/initialize' do
-    unless system('../mysql/db/init.sh')
-      raise 'Initialize script error'
+    sql_dir = Pathname.new('../mysql/db')
+    %w[0_Schema.sql 1_DummyEstateData.sql 2_DummyChairData.sql].each do |sql|
+      sql_path = sql_dir.join(sql)
+      cmd = ['mysql', '-h', db_info[:host], '-u', db_info[:username], "-p#{db_info[:password]}", '-P', db_info[:port], db_info[:database]]
+      IO.popen(cmd, 'w') do |io|
+        io.puts File.read(sql_path)
+        io.close
+      end
     end
 
     { language: 'ruby' }.to_json
