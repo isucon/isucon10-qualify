@@ -9,7 +9,7 @@ import (
 var (
 	score     int64 = 0
 	level     int64 = 0
-	maxLevel  int64 = int64(len(parameter.BoundaryOfLevel))
+	maxLevel  int64 = int64(len(parameter.BoundaryOfLevel)) - 1
 	levelChan chan int64
 	mu        sync.RWMutex
 )
