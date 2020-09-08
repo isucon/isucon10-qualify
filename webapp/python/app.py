@@ -292,10 +292,10 @@ def post_estate_nazotte():
     if len(coordinates) == 0:
         raise BadRequest()
     longitudes = [c["longitude"] for c in coordinates]
-    latitude = [c["latitude"] for c in coordinates]
+    latitudes = [c["latitude"] for c in coordinates]
     bounding_box = {
-        "top_left_corner": {"longitude": min(longitudes), "latitude": min(latitude)},
-        "bottom_right_corner": {"longitude": max(longitudes), "latitude": max(latitude)},
+        "top_left_corner": {"longitude": min(longitudes), "latitude": min(latitudes)},
+        "bottom_right_corner": {"longitude": max(longitudes), "latitude": max(latitudes)},
     }
 
     cnx = mysql.connector.connect(**mysql_connection_env)
