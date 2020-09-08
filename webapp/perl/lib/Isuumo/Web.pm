@@ -885,16 +885,6 @@ sub res_no_content {
 sub res_json {
     my ($self, $c, $obj, $json_spec) = @_;
 
-    # defense from JSON hijacking
-    # Copy from Amon2::Plugin::Web::JSON
-    if ( exists $c->req->env->{'HTTP_X_REQUESTED_WITH'} &&
-         ($c->req->env->{'HTTP_USER_AGENT'}||'') =~ /android/i &&
-         exists $c->req->env->{'HTTP_COOKIE'} &&
-         ($c->req->method||'GET') eq 'GET'
-    ) {
-        $c->halt(403,"Your request is maybe JSON hijacking.\nIf you are not a attacker, please add 'X-Requested-With' header to each request.");
-    }
-
     my $body = $_JSON->encode($obj, $json_spec);
     $body = $c->escape_json($body);
 
