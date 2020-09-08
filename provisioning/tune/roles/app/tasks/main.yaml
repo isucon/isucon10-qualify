@@ -8,7 +8,7 @@
     group: "root"
     mode: "0644"
 
-- name: Deploy sqlfiles
+- name: Deploy schema sqlfiles
   become: yes
   become_user: isucon
   copy:
@@ -18,7 +18,7 @@
     group: "isucon"
     mode: "0777"
 
-- name: deploy sqlfiles
+- name: Deploy index sqlfiles
   become: yes
   become_user: isucon
   copy:
@@ -28,7 +28,7 @@
     group: "isucon"
     mode: "0777"
 
-- name: deploy main.go
+- name: Deploy main.go
   become: yes
   become_user: isucon
   copy:
@@ -37,7 +37,7 @@
     owner: "isucon"
     group: "isucon"
     mode: "0777"
-- name: deploy go.mod
+- name: Deploy go.mod
   become: yes
   become_user: isucon
   copy:
@@ -46,7 +46,7 @@
     owner: "isucon"
     group: "isucon"
     mode: "0777"
-- name: deploy main.go
+- name: Deploy go.sum
   become: yes
   become_user: isucon
   copy:
