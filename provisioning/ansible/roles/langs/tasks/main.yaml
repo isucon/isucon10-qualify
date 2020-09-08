@@ -82,7 +82,7 @@
 - name: Install perl v5.32.0
   become: yes
   become_user: root
-  command: /tmp/xbuild/perl-install 5.32.0 /home/isucon/local/perl -Duselongdouble
+  command: /tmp/xbuild/perl-install 5.32.0 /home/isucon/local/perl -- -Duselongdouble -j 4
 
 - name: Add PATH for perl 
   become: yes
