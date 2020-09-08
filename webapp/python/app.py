@@ -74,7 +74,7 @@ def get_chair_search():
         if price["min"] != -1:
             conditions.append("price >= %s")
             params.append(price["min"])
-        if price["min"] != -1:
+        if price["max"] != -1:
             conditions.append("price < %s")
             params.append(price["max"])
 
@@ -88,7 +88,7 @@ def get_chair_search():
         if height["min"] != -1:
             conditions.append("height >= %s")
             params.append(height["min"])
-        if height["min"] != -1:
+        if height["max"] != -1:
             conditions.append("height < %s")
             params.append(height["max"])
 
@@ -102,7 +102,7 @@ def get_chair_search():
         if width["min"] != -1:
             conditions.append("width >= %s")
             params.append(width["min"])
-        if width["min"] != -1:
+        if width["max"] != -1:
             conditions.append("width < %s")
             params.append(width["max"])
 
@@ -116,7 +116,7 @@ def get_chair_search():
         if depth["min"] != -1:
             conditions.append("depth >= %s")
             params.append(depth["min"])
-        if depth["min"] != -1:
+        if depth["max"] != -1:
             conditions.append("depth < %s")
             params.append(depth["max"])
 
@@ -209,7 +209,7 @@ def get_estate_search():
         if door_height["min"] != -1:
             conditions.append("door_height >= %s")
             params.append(door_height["min"])
-        if door_height["min"] != -1:
+        if door_height["max"] != -1:
             conditions.append("door_height < %s")
             params.append(door_height["max"])
 
@@ -223,7 +223,7 @@ def get_estate_search():
         if door_width["min"] != -1:
             conditions.append("door_width >= %s")
             params.append(door_width["min"])
-        if door_width["min"] != -1:
+        if door_width["max"] != -1:
             conditions.append("door_width < %s")
             params.append(door_width["max"])
 
@@ -237,7 +237,7 @@ def get_estate_search():
         if rent["min"] != -1:
             conditions.append("rent >= %s")
             params.append(rent["min"])
-        if rent["min"] != -1:
+        if rent["max"] != -1:
             conditions.append("rent < %s")
             params.append(rent["max"])
 
