@@ -16,10 +16,11 @@ estate_search_condition = json.load(open("../fixture/estate_condition.json", "r"
 app = flask.Flask(__name__)
 
 cnxpool = MySQLConnectionPool(
-    user=getenv("MYSQL_USER"),
-    password=getenv("MYSQL_PASSWORD"),
-    host=getenv("MYSQL_HOST"),
-    database=getenv("MYSQL_DATABASE"),
+    host=getenv("MYSQL_HOST", "127.0.0.1"),
+    port=getenv("MYSQL_PORT", 3306),
+    user=getenv("MYSQL_USER", "isucon"),
+    password=getenv("MYSQL_PASS", "isucon"),
+    database=getenv("MYSQL_DBNAME", "isuumo"),
 )
 
 
