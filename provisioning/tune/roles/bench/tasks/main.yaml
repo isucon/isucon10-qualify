@@ -1,0 +1,19 @@
+- name: Deploy score.go
+  become: yes
+  become_user: isucon
+  copy:
+    src: "../files/score.go"
+    dest: "/home/isucon/isucon10-qualify/bench/score/score.go"
+    owner: "isucon"
+    group: "isucon"
+    mode: "0777"
+- name: Build Web Application 
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isucon10-qualify/bench
+  environment:
+    PATH: "/home/isucon/bin:/home/isucon/.local/bin:/usr/local/node/bin:/usr/local/python/bin:/usr/local/go/bin:/home/isucon/go/bin:/usr/local/bin:/usr/bin:/bin"
+  shell: |
+    make
+
