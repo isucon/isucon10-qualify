@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
-	"fmt"
 	"strconv"
 )
 
@@ -64,7 +63,6 @@ func (e *Estate) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &je)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
