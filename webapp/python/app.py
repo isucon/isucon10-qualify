@@ -1,6 +1,7 @@
 from os import getenv
 import json
 import subprocess
+from io import StringIO
 import csv
 import flask
 from werkzeug.exceptions import BadRequest, NotFound
@@ -368,7 +369,7 @@ def get_recommended_estate(chair_id):
 def post_chair():
     if "chairs" not in flask.request.files:
         raise BadRequest()
-    records = csv.reader(flask.request.files["chairs"])
+    records = csv.reader(StringIO(flask.request.files["chairs"].read().decode()))
     cnx = mysql.connector.connect(**mysql_connection_env)
     try:
         cnx.start_transaction()
@@ -389,7 +390,7 @@ def post_chair():
 def post_estate():
     if "estates" not in flask.request.files:
         raise BadRequest()
-    records = csv.reader(flask.request.files["estates"])
+    records = csv.reader(StringIO(flask.request.files["estates"].read().decode()))
     cnx = mysql.connector.connect(**mysql_connection_env)
     try:
         cnx.start_transaction()
