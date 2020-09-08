@@ -299,7 +299,7 @@ def post_estate_nazotte():
 
     cnx = mysql.connector.connect(**mysql_connection_env)
     try:
-        cur = cnx.cursor(dictionary=dictionary)
+        cur = cnx.cursor(dictionary=True)
         cur.execute(
             (
                 "SELECT * FROM estate"
