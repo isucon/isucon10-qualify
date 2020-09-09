@@ -239,12 +239,12 @@ class App < Sinatra::Base
         sql = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         db.xquery(sql, *row.map(&:to_s))
       end
+      db.query('COMMIT')
     rescue => e
-      db.query('ROLLBACK')
       logger.error("Failed to commit tx: #{e.inspect}")
       raise
     ensure
-      db.query('COMMIT')
+      db.query('ROLLBACK')
     end
 
     status 201
@@ -271,12 +271,12 @@ class App < Sinatra::Base
         halt 404
       end
       db.xquery('UPDATE chair SET stock = stock - 1 WHERE id = ?', id)
+      db.query('COMMIT')
     rescue => e
-      db.query('ROLLBACK')
       logger.error("Failed to commit tx: #{e.inspect}")
       raise
     ensure
-      db.query('COMMIT')
+      db.query('ROLLBACK')
     end
 
     status 200
@@ -470,12 +470,12 @@ class App < Sinatra::Base
         sql = 'INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         db.xquery(sql, *row.map(&:to_s))
       end
+      db.query('COMMIT')
     rescue => e
-      db.query('ROLLBACK')
       logger.error("Failed to commit tx: #{e.inspect}")
       raise
     ensure
-      db.query('COMMIT')
+      db.query('ROLLBACK')
     end
 
     status 201
