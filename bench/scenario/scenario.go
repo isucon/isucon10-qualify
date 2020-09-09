@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"context"
+	"time"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
@@ -29,9 +30,16 @@ func Validation(ctx context.Context) {
 	defer cancel()
 	go Load(cancelCtx)
 
-	select {
-	case <-fails.Fail():
-		reporter.Logf("fail条件を満たしました")
-	case <-cancelCtx.Done():
+	for {
+		t := time.NewTimer(parameter.ReportInterval)
+		select {
+		case <-t.C:
+			reporter.Report(fails.Get())
+		case <-fails.Fail():
+			reporter.Logf("fail条件を満たしました")
+			return
+		case <-cancelCtx.Done():
+			return
+		}
 	}
 }

@@ -89,10 +89,10 @@ func Add(err error, label ErrorLabel) {
 			msg += " (critical error)"
 			critical++
 		case ErrTimeout:
-			msg += "（タイムアウトしました）"
+			msg += " (タイムアウトしました)"
 			trivial++
 		case ErrTemporary:
-			msg += "（一時的なエラー）"
+			msg += " (一時的なエラー)"
 			trivial++
 		case ErrApplication:
 			application++

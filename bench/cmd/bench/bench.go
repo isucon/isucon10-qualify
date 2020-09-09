@@ -31,6 +31,11 @@ func init() {
 }
 
 func main() {
+	defer func() {
+		reporter.SetFinished(true)
+		reporter.Report(fails.Get())
+	}()
+
 	flags := flag.NewFlagSet("isucon10-qualify", flag.ContinueOnError)
 	flags.SetOutput(os.Stderr)
 
@@ -46,9 +51,6 @@ func main() {
 	if err != nil {
 		err = failure.Translate(err, fails.ErrBenchmarker, failure.Message("コマンドライン引数のパースに失敗しました"))
 		fails.Add(err, fails.ErrorOfInitialize)
-		reporter.SetFinished(true)
-		reporter.Update(fails.GetMsgs(), 1, 0)
-		reporter.Report()
 	}
 
 	err = client.SetShareTargetURLs(
@@ -57,19 +59,16 @@ func main() {
 	)
 	if err != nil {
 		fails.Add(failure.Translate(err, fails.ErrBenchmarker), fails.ErrorOfInitialize)
-		reporter.SetFinished(true)
-		reporter.Update(fails.GetMsgs(), 1, 0)
-		reporter.Report()
+		reporter.SetPassed(false)
+		return
 	}
 
 	// 初期データの準備
 	asset.Initialize(context.Background(), dataDir, fixtureDir)
 	msgs := fails.GetMsgs()
 	if len(msgs) > 0 {
-		reporter.SetFinished(true)
 		reporter.Logf("asset initialize failed")
-		reporter.Update(msgs, 1, 0)
-		reporter.Report()
+		reporter.SetPassed(false)
 		return
 	}
 
@@ -78,10 +77,8 @@ func main() {
 	initRes := scenario.Initialize(context.Background())
 	msgs = fails.GetMsgs()
 	if len(msgs) > 0 {
-		reporter.SetFinished(true)
 		reporter.Logf("initialize failed")
-		reporter.Update(msgs, 1, 0)
-		reporter.Report()
+		reporter.SetPassed(false)
 		return
 	}
 
@@ -93,10 +90,8 @@ func main() {
 	scenario.Verify(context.Background(), dataDir, fixtureDir)
 	msgs = fails.GetMsgs()
 	if len(msgs) > 0 {
-		reporter.SetFinished(true)
 		reporter.Logf("verify failed")
-		reporter.Update(msgs, 1, 0)
-		reporter.Report()
+		reporter.SetPassed(false)
 		return
 	}
 
@@ -107,10 +102,9 @@ func main() {
 	// checkとloadは区別がつかないようにしないといけない。loadのリクエストはログアウト状態しかなかったので、ログアウト時のキャッシュを強くするだけでスコアがはねる問題が過去にあった
 	// 今回はほぼ全リクエストがログイン前提になっているので、checkとloadの区別はできないはず
 	scenario.Validation(context.Background())
-
 	reporter.Logf("最終的な負荷レベル: %d", score.GetLevel())
-	msgs, cCnt, aCnt, _ := fails.Get()
-	reporter.Update(msgs, cCnt, aCnt)
-	reporter.SetFinished(true)
-	reporter.Report()
+
+	// ベンチマーク終了時にcritical errorは1つでもあれば、application errorは10回以上で失格
+	msgs, critical, application, _ := fails.Get()
+	reporter.SetPassed(critical == 0 && application < 10)
 }

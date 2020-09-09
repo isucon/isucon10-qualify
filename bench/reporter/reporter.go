@@ -78,10 +78,15 @@ func init() {
 	writer = io.MultiWriter(logger, os.Stderr)
 }
 
-func Report() error {
+func Report(msgs []string, critical, application, trivial int) error {
+	err := update(msgs, critical, application, trivial)
+	if err != nil {
+		return err
+	}
+
 	mu.RLock()
 	defer mu.RUnlock()
-	err := reporter.Report(result)
+	err = reporter.Report(result)
 	if err != nil {
 		return err
 	}
@@ -104,27 +109,23 @@ func SetPassed(passed bool) {
 	result.Passed = passed
 }
 
-func Update(msgs []string, cCnt, aCnt int) error {
+func update(msgs []string, critical, application, trivial int) error {
 	mu.Lock()
 	defer mu.Unlock()
 
 	row := score.GetScore()
-	deducation := int64(aCnt * 50)
+	deducation := int64(application * 50)
 	score := row - deducation
 	if score < 0 {
 		score = 0
 	}
 
 	result.ScoreBreakdown.Raw = row
-	result.ScoreBreakdown.Deduction = row - deducation
+	result.ScoreBreakdown.Deduction = deducation
 	result.Score = score
 
-	// ベンチマーク終了時にcritical errorは1つでもあれば、application errorは10回以上で失格
-	pass := !result.Finished && cCnt == 0 || aCnt < 10 && result.Score > 0
-	result.Passed = pass
-
 	output := Stdout{
-		Pass:     pass,
+		Pass:     result.Passed && result.Score > 0,
 		Score:    score,
 		Messages: UniqMsgs(msgs),
 		Language: "",
