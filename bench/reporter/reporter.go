@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"runtime"
 	"sort"
 	"sync"
 	"time"
@@ -148,26 +147,10 @@ func update(msgs []string, critical, application, trivial int) error {
 }
 
 func Logf(format string, v ...interface{}) {
-	// Ref. https://golang.org/src/log/log.go
 	t := time.Now()
 	year, month, day := t.Date()
 	hour, min, sec := t.Clock()
-	_, file, line, ok := runtime.Caller(1)
-	if !ok {
-		file = "???"
-		line = 0
-	}
-
-	short := file
-	for i := len(file) - 1; i > 0; i-- {
-		if file[i] == '/' {
-			short = file[i+1:]
-			break
-		}
-	}
-	file = short
-
-	prefix := fmt.Sprintf("%04d/%02d/%02d %02d:%02d:%02d %s:%d: ", year, month, day, hour, min, sec, file, line)
+	prefix := fmt.Sprintf("%04d/%02d/%02d %02d:%02d:%02d: ", year, month, day, hour, min, sec)
 
 	mu.Lock()
 	defer mu.Unlock()
