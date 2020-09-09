@@ -1,0 +1,16 @@
+[Unit]
+Description=isucon-supervisor
+After=syslog.target
+
+[Service]
+WorkingDirectory=/home/isucon/poratal/supervisor
+EnvironmentFile=/home/isucon/portal/env.sh
+PIDFile=/home/isucon/portal/supervisor/server.pid
+
+User=isucon
+Group=isucon
+ExecStart=/home/isucon/portal/supervisor/target/release/isuxportal-supervisor --data-dir /home/isucon/isuumo/initial-data --fixture-dir /home/isucon/isuumo/webapp/fixture
+ExecStop=/bin/kill -s QUIT $MAINPID
+
+[Install]
+WantedBy=multi-user.target
