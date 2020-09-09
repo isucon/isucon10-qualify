@@ -5,7 +5,7 @@ from io import StringIO
 import csv
 import flask
 from werkzeug.exceptions import BadRequest, NotFound
-import mysql.connector
+from mysql.connector.pooling import MySQLConnectionPool
 from humps import camelize
 
 LIMIT = 20
@@ -16,17 +16,18 @@ estate_search_condition = json.load(open("../fixture/estate_condition.json", "r"
 
 app = flask.Flask(__name__)
 
-mysql_connection_env = {
-    "host": getenv("MYSQL_HOST", "127.0.0.1"),
-    "port": getenv("MYSQL_PORT", 3306),
-    "user": getenv("MYSQL_USER", "isucon"),
-    "password": getenv("MYSQL_PASS", "isucon"),
-    "database": getenv("MYSQL_DBNAME", "isuumo"),
-}
+cnxpool = MySQLConnectionPool(
+    host=getenv("MYSQL_HOST", "127.0.0.1"),
+    port=getenv("MYSQL_PORT", 3306),
+    user=getenv("MYSQL_USER", "isucon"),
+    password=getenv("MYSQL_PASS", "isucon"),
+    database=getenv("MYSQL_DBNAME", "isuumo"),
+    pool_size=10,
+)
 
 
 def select_all(query, *args, dictionary=True):
-    cnx = mysql.connector.connect(**mysql_connection_env)
+    cnx = cnxpool.get_connection()
     try:
         cur = cnx.cursor(dictionary=dictionary)
         cur.execute(query, *args)
@@ -175,7 +176,7 @@ def get_chair(chair_id):
 
 @app.route("/api/chair/buy/<int:chair_id>", methods=["POST"])
 def post_chair_buy(chair_id):
-    cnx = mysql.connector.connect(**mysql_connection_env)
+    cnx = cnxpool.get_connection()
     try:
         cnx.start_transaction()
         cur = cnx.cursor(dictionary=True)
@@ -298,7 +299,7 @@ def post_estate_nazotte():
         "bottom_right_corner": {"longitude": max(longitudes), "latitude": max(latitudes)},
     }
 
-    cnx = mysql.connector.connect(**mysql_connection_env)
+    cnx = cnxpool.get_connection()
     try:
         cur = cnx.cursor(dictionary=True)
         cur.execute(
@@ -371,7 +372,7 @@ def post_chair():
     if "chairs" not in flask.request.files:
         raise BadRequest()
     records = csv.reader(StringIO(flask.request.files["chairs"].read().decode()))
-    cnx = mysql.connector.connect(**mysql_connection_env)
+    cnx = cnxpool.get_connection()
     try:
         cnx.start_transaction()
         cur = cnx.cursor()
@@ -392,7 +393,7 @@ def post_estate():
     if "estates" not in flask.request.files:
         raise BadRequest()
     records = csv.reader(StringIO(flask.request.files["estates"].read().decode()))
-    cnx = mysql.connector.connect(**mysql_connection_env)
+    cnx = cnxpool.get_connection()
     try:
         cnx.start_transaction()
         cur = cnx.cursor()
