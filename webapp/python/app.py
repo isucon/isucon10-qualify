@@ -1,4 +1,4 @@
-from os import getenv
+from os import getenv, path
 import json
 import subprocess
 from io import StringIO
@@ -45,7 +45,17 @@ def select_row(*args, **kwargs):
 
 @app.route("/initialize", methods=["POST"])
 def post_initialize():
-    subprocess.call("../mysql/db/init.sh")
+    sql_dir = "../mysql/db"
+    sql_files = [
+        "0_Schema.sql",
+        "1_DummyEstateData.sql",
+        "2_DummyChairData.sql",
+    ]
+
+    for sql_file in sql_files:
+        command = f"mysql -h {mysql_connection_env['host']} -u {mysql_connection_env['user']} -p{mysql_connection_env['password']} -P {mysql_connection_env['port']} {mysql_connection_env['database']} < {path.join(sql_dir, sql_file)}"
+        subprocess.run(["bash", "-c", command])
+
     return {"language": "python"}
 
 
