@@ -633,7 +633,7 @@ return function (App $app) {
             return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
         }
 
-        $query = 'SELECT * FROM estate WHERE (door_width >= :w AND door_height >= :h) OR (door_width >= :w AND door_height >= :h) OR (door_width >= :w AND door_height >= :h) OR (door_width >= :w AND door_height >= :h) OR (door_width >= :w AND door_height >= :h) OR (door_width >= :w AND door_height >= :h) ORDER BY popularity DESC, id ASC LIMIT :limit';
+        $query = 'SELECT * FROM estate WHERE (door_width >= :w AND door_height >= :h) OR (door_width >= :w AND door_height >= :d) OR (door_width >= :h AND door_height >= :w) OR (door_width >= :h AND door_height >= :d) OR (door_width >= :d AND door_height >= :w) OR (door_width >= :d AND door_height >= :h) ORDER BY popularity DESC, id ASC LIMIT :limit';
         $stmt = $this->get(PDO::class)->prepare($query);
         $stmt->bindValue(':w', $chair->getWidth(), PDO::PARAM_INT);
         $stmt->bindValue(':h', $chair->getHeight(), PDO::PARAM_INT);
