@@ -8,6 +8,7 @@ use League\Csv\Reader;
 use Slim\App;
 use App\Domain\Chair;
 use App\Domain\ChairSearchCondition;
+use App\Domain\Estate;
 use App\Domain\Range;
 use App\Domain\RangeCondition;
 
@@ -243,7 +244,8 @@ return function (App $app) {
     });
 
     $app->post('/api/chair/buy/{id}', function(Request $request, Response $response, array $args) {
-        if (!$id = $args['id'] ?? null) {
+        $id = $args['id'] ?? null;
+        if (empty($id) || !is_numeric($id)) {
             $this->logger->info('post request document failed');
             return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
         }
@@ -356,6 +358,25 @@ return function (App $app) {
         }
 
         return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+    });
+
+    // Estate
+    $app->get('/api/estate/{id}', function(Request $request, Response $response, array $args) {
+        $id = $args['id'] ?? null;
+        if (empty($id) || !is_numeric($id)) {
+            $this->logger->info('Request parameter "id" parse error');
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        }
+
+        $stmt = $this->get(PDO::class)->prepare('SELECT * FROM estate WHERE id = :id');
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $estate = $stmt->fetchObject(Estate::class);
+
+        $response->getBody()->write(json_encode($estate->toArray()));
+
+        return $response->withHeader('Content-Type', 'application/json');
     });
 
     $app->get('/', function (Request $request, Response $response) {
