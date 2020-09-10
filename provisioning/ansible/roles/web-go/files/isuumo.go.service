@@ -1,6 +1,5 @@
 [Unit]
-Description=isucon-go
-After=syslog.target
+Description=isuumo.go
 
 [Service]
 WorkingDirectory=/home/isucon/isuumo/webapp/go
@@ -11,6 +10,9 @@ User=isucon
 Group=isucon
 ExecStart=/home/isucon/isuumo/webapp/go/isuumo
 ExecStop=/bin/kill -s QUIT $MAINPID
+
+Restart   = always
+Type      = simple
 
 [Install]
 WantedBy=multi-user.target

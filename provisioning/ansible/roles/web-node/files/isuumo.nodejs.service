@@ -1,6 +1,5 @@
 [Unit]
-Description=isucon-nodejs
-After=syslog.target
+Description=isuumo.nodejs
 
 [Service]
 WorkingDirectory=/home/isucon/isuumo/webapp/nodejs
@@ -12,5 +11,7 @@ Group=isucon
 ExecStart=/usr/local/node/bin/npm start
 ExecStop=/bin/kill -s QUIT $MAINPID
 
+Restart   = always
+Type      = simple
 [Install]
 WantedBy=multi-user.target
