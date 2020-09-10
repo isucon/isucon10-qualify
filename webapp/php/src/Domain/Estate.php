@@ -31,7 +31,7 @@ class Estate
 
     public function getLongitude(): ?float
     {
-        return is_null($this->longitude) ?: (int)$this->longitude;
+        return is_null($this->longitude) ?: (float)$this->longitude;
     }
 
     public function getAddress(): ?string
@@ -51,7 +51,7 @@ class Estate
 
     public function getDoorWidth(): ?int
     {
-        return is_null($this->door_width) ?: (int)$this->door_height;
+        return is_null($this->door_width) ?: (int)$this->door_width;
     }
 
     public function getFeatures(): ?string
