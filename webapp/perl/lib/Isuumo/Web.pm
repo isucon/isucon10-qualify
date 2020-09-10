@@ -173,8 +173,26 @@ get  '/api/recommended_estate/{id:\d+}' => \&search_recommended_estate_with_chai
 sub initialize {
     my ($self, $c)  = @_;
 
-    my $cmd = File::Spec->catfile($self->root_dir, '..', 'mysql', 'db', 'init.sh');
-    system($cmd);
+    my $sql_dir = File::Spec->catfile($self->root_dir, '..', 'mysql', 'db');
+    my @path = (
+        File::Spec->catfile($sql_dir, '0_Schema.sql'),
+        File::Spec->catfile($sql_dir, '1_DummyEstateData.sql'),
+        File::Spec->catfile($sql_dir, '2_DummyChairData.sql'),
+    );
+    for my $p (@path) {
+        my $cmd = sprintf("mysql -h %s -u %s -p%s -P %s %s < %s",
+            $MYSQL_CONNECTION_DATA->{host},
+            $MYSQL_CONNECTION_DATA->{user},
+            $MYSQL_CONNECTION_DATA->{password},
+            $MYSQL_CONNECTION_DATA->{port},
+            $MYSQL_CONNECTION_DATA->{dbname},
+            $p
+        );
+        if (my $e = system($cmd)) {
+            infof('Initialize script error : %s , %s', $e, $!);
+            return $self->res_no_content($c, HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 
     $self->res_json($c, {
         language => "perl",
