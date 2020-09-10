@@ -177,8 +177,8 @@ return function (App $app) {
         $stmt->execute();
         $count = (int)$stmt->fetchColumn();
 
-        $params[':offset'] = [(int)$page, PDO::PARAM_INT];
         $params[':limit'] = [(int)$perPage, PDO::PARAM_INT];
+        $params[':offset'] = [(int)$page*$perPage, PDO::PARAM_INT];
 
         $stmt = $this->get(PDO::class)->prepare($searchQuery . $searchCondition . $limitOffset);
         foreach ($params as $key => $bind) {
