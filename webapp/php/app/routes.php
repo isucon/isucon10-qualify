@@ -290,7 +290,7 @@ return function (App $app) {
 
         if (!$chair) {
             $this->get('logger')->error(sprintf('requested id\'s chair not found : %s', $id));
-            return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+            return $response->withStatus(StatusCodeInterface::STATUS_NOT_FOUND);
         } elseif (!$chair instanceof Chair) {
             $this->get('logger')->error(sprintf('Failed to get the chair from id : %s', $id));
             return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
