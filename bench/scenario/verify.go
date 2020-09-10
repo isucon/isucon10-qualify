@@ -10,6 +10,7 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
 	"github.com/morikuni/failure"
 	"golang.org/x/sync/errgroup"
 )
@@ -18,9 +19,17 @@ import (
 // 早い段階でベンチマークをFailさせて早期リターンさせるのが目的
 // ex) Search API を叩いて初期状態を確認する
 func Verify(ctx context.Context, dataDir, fixtureDir string) {
+	ctx, cancel := context.WithTimeout(ctx, parameter.VerifyTimeout)
+	defer cancel()
+
 	c := client.NewClientForVerify()
 	verifyWithSnapshot(ctx, c, filepath.Join(dataDir, "result/verification_data"))
 	verifyWithScenario(ctx, c, fixtureDir, dataDir)
+
+	if ctx.Err() != nil {
+		err := failure.New(fails.ErrCritical, failure.Message("アプリケーション互換性チェックがタイムアウトしました"))
+		fails.Add(err, fails.ErrorOfVerify)
+	}
 }
 
 func verifyPostEstates(ctx context.Context, c *client.Client, estates []asset.Estate) error {
