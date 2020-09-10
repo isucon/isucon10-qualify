@@ -615,6 +615,44 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
+    $app->get('/api/recommended_estate/{id}', function(Request $request, Response $response, array $args) {
+        $id = $args['id'] ?? null;
+        if (empty($id) || !is_numeric($id)) {
+            $this->get('logger')->info('post request document failed');
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        }
+
+        $query = 'SELECT * FROM chair WHERE id = ?';
+        $stmt = $this->get(PDO::class)->prepare($query);
+        $stmt->execute([$id]);
+        $chair = $stmt->fetchObject(Chair::class);
+
+        if (!$chair) {
+            $this->get('logger')->info(sprintf('Requested chair id "%s" not found', $id));
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        }
+
+        $query = 'SELECT * FROM estate WHERE (door_width >= :w AND door_height >= :h) OR (door_width >= :w AND door_height >= :h) OR (door_width >= :w AND door_height >= :h) OR (door_width >= :w AND door_height >= :h) OR (door_width >= :w AND door_height >= :h) OR (door_width >= :w AND door_height >= :h) ORDER BY popularity DESC, id ASC LIMIT :limit';
+        $stmt = $this->get(PDO::class)->prepare($query);
+        $stmt->bindValue(':w', $chair->getWidth(), PDO::PARAM_INT);
+        $stmt->bindValue(':h', $chair->getHeight(), PDO::PARAM_INT);
+        $stmt->bindValue(':d', $chair->getDepth(), PDO::PARAM_INT);
+        $stmt->bindValue(':limit', NUM_LIMIT, PDO::PARAM_INT);
+        $stmt->execute();
+        $estates = $stmt->fetchAll(PDO::FETCH_CLASS, Estate::class);
+
+        $response->getBody()->write(json_encode([
+            'estates' => array_map(
+                function(Estate $estate) {
+                    return $estate->toArray();
+                },
+                $estates
+            ),
+        ]));
+
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
     $app->get('/api/estate/{id}', function(Request $request, Response $response, array $args) {
         $id = $args['id'] ?? null;
         if (empty($id) || !is_numeric($id)) {
