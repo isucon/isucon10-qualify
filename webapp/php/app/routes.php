@@ -9,6 +9,7 @@ use Slim\App;
 use App\Domain\Chair;
 use App\Domain\ChairSearchCondition;
 use App\Domain\Estate;
+use App\Domain\EstateSearchCondition;
 use App\Domain\Range;
 use App\Domain\RangeCondition;
 
@@ -405,6 +406,117 @@ return function (App $app) {
             $this->get('logger')->error(sprintf('failed to insert estate: %s', $e->getMessage()));
             return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
         }
+
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
+    $app->get('/api/estate/search', function(Request $request, Response $response) {
+        $conditions = [];
+        $params = [];
+
+        /** @var EstateSearchCondition */
+        $estateSearchCondition = $this->get(EstateSearchCondition::class);
+
+        if ($doorHeightRangeId = $request->getQueryParams()['doorHeightRangeId'] ?? null) {
+            if (!$doorHeight = getRange($estateSearchCondition->doorHeight, $doorHeightRangeId)) {
+                $this->get('logger')->info(sprintf('doorHeightRangeId invalid, %s', $doorHeightRangeId));
+                return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+            }
+            if ($doorHeight->min != -1) {
+                $conditions[] = 'door_height >= :minDoorHeight';
+                $params[':minDoorHeight'] = [$doorHeight->min, PDO::PARAM_INT];
+            }
+            if ($doorHeight->max != -1) {
+                $conditions[] = 'door_height < :maxDoorHeight';
+                $params[':maxDoorHeight'] = [$doorHeight->max, PDO::PARAM_INT];
+            }
+        }
+
+        if ($doorWidthRangeId = $request->getQueryParams()['doorWidthRangeId'] ?? null) {
+            if (!$doorWidth = getRange($estateSearchCondition->doorWidth, $doorWidthRangeId)) {
+                $this->get('logger')->info(sprintf('doorWidthRangeId invalid, %s', $doorWidthRangeId));
+                return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+            }
+            if ($doorWidth->min != -1) {
+                $conditions[] = 'door_width >= :minDoorWidth';
+                $params[':minDoorWidth'] = [$doorWidth->min, PDO::PARAM_INT];
+            }
+            if ($doorWidth->max != -1) {
+                $conditions[] = 'door_width < :maxDoorWidth';
+                $params[':maxDoorWidth'] = [$doorWidth->max, PDO::PARAM_INT];
+            }
+        }
+
+        if ($rentRangeId = $request->getQueryParams()['rentRangeId'] ?? null) {
+            if (!$estateRent = getRange($estateSearchCondition->rent, $rentRangeId)) {
+                $this->get('logger')->info(sprintf('rentRangeId invalid, %s', $rentRangeId));
+                return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+            }
+            if ($estateRent->min != -1) {
+                $conditions[] = 'rent >= :minEstateRent';
+                $params[':minEstateRent'] = [$estateRent->min, PDO::PARAM_INT];
+            }
+            if ($estateRent->max != -1) {
+                $conditions[] = 'rent < :maxEstateRent';
+                $params[':maxEstateRent'] = [$estateRent->max, PDO::PARAM_INT];
+            }
+        }
+
+        if ($features = $request->getQueryParams()['features'] ?? null) {
+            foreach (explode(',', $features) as $key => $feature) {
+                $name = sprintf(':feature_%s', $key);
+                $conditions[] = sprintf("features LIKE CONCAT('%%', %s, '%%')", $name);
+                $params[$name] = [$feature, PDO::PARAM_STR];
+            }
+        }
+
+        if (count($conditions) === 0) {
+            $this->get('logger')->info('Search condition not found');
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        }
+
+        if (is_null($page = $request->getQueryParams()['page'] ?? null)) {
+            $this->get('logger')->info(sprintf('Invalid format page parameter: %s', $page));
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        }
+        if (is_null($perPage = $request->getQueryParams()['perPage'] ?? null)) {
+            $this->get('logger')->info(sprintf('Invalid format perPage parameter: %s', $perPage));
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        }
+
+        $searchQuery = 'SELECT * FROM estate WHERE ';
+        $countQuery = 'SELECT COUNT(*) FROM estate WHERE ';
+        $searchCondition = implode(' AND ', $conditions);
+        $limitOffset = ' ORDER BY popularity DESC, id ASC LIMIT :limit OFFSET :offset';
+
+        $stmt = $this->get(PDO::class)->prepare($countQuery . $searchCondition);
+        foreach ($params as $key => $bind) {
+            list($value, $type) = $bind;
+            $stmt->bindValue($key, $value, $type);
+        }
+        $stmt->execute();
+        $count = (int)$stmt->fetchColumn();
+
+        $params[':limit'] = [(int)$perPage, PDO::PARAM_INT];
+        $params[':offset'] = [(int)$page*$perPage, PDO::PARAM_INT];
+
+        $stmt = $this->get(PDO::class)->prepare($searchQuery . $searchCondition . $limitOffset);
+        foreach ($params as $key => $bind) {
+            list($value, $type) = $bind;
+            $stmt->bindValue($key, $value, $type);
+        }
+        $stmt->execute();
+        $estates = $stmt->fetchAll(PDO::FETCH_CLASS, Estate::class);
+
+        $response->getBody()->write(json_encode([
+            'count' => $count,
+            'estates' => array_map(
+                function(Estate $estate) {
+                    return $estate->toArray();
+                },
+                $estates
+            )
+        ]));
 
         return $response->withHeader('Content-Type', 'application/json');
     });
