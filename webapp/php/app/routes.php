@@ -243,6 +243,48 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
+    $app->post('/api/chair/buy/{id}', function(Request $request, Response $response, array $args) {
+        if (!$id = $args['id'] ?? null) {
+            $this->get(LoggerInterface::class)->info('post request document failed');
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        }
+
+        $pdo = $this->get(PDO::class);
+
+        try {
+            $pdo->beginTransaction();
+            $stmt = $pdo->prepare('SELECT * FROM chair WHERE id = :id AND stock > 0 FOR UPDATE');
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
+            $chair = $stmt->fetchObject(Chair::class);
+
+            if (!$chair) {
+                $pdo->rollback();
+                $this->get(LoggerInterface::class)->info(sprintf('buyChair chair id "%s" not found', $id));
+                return $response->withStatus(StatusCodeInterface::STATUS_NOT_FOUND);
+            }
+
+            $stmt = $pdo->prepare('UPDATE chair SET stock = stock - 1 WHERE id = :id');
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+            if (!$stmt->execute()) {
+                $pdo->rollback();
+                $this->get(LoggerInterface::class)->error('chair stock update failed');
+                return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+            }
+
+            if (!$pdo->commit()) {
+                $this->get(LoggerInterface::class)->error('transaction commit error');
+                return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+            }
+        } catch (PDOException $e) {
+            $pdo->rollBack();
+            $this->get(LoggerInterface::class)->error(sprintf('DB Execution Error: on getting a chair by id : %s', $id));
+            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
     $app->get("/api/chair/{id}", function(Request $request, Response $response, array $args) {
         $id = $args['id'] ?? null;
         if (empty($id) || !is_numeric($id)) {
@@ -312,14 +354,13 @@ return function (App $app) {
                     ':stock' => (int)trim($record[12] ?? null),
                 ]);
             }
+            if (!$pdo->commit()) {
+                $this->get(LoggerInterface::class)->error('failed to commit tx');
+                return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+            }
         } catch (PDOException $e) {
-            $pdo->rollback();
+            $pdo->rollBack();
             $this->get(LoggerInterface::class)->error(sprintf('failed to insert chair: %s', $e->getMessage()));
-            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
-        }
-
-        if (!$pdo->commit()) {
-            $this->get(LoggerInterface::class)->error('failed to commit tx');
             return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
         }
 
