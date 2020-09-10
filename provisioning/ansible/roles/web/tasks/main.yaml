@@ -62,6 +62,7 @@
     - mysql-common
     - mysql-client-5.7
     - mysql-client-core-5.7
+    - libmysqld-dev
     update_cache: yes
 
 
