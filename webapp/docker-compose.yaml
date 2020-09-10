@@ -76,6 +76,8 @@ services:
       SERVER_PORT: 1323
     ports:
       - 1323:1323
+    depends_on:
+      - mysql
     volumes:
       - ./fixture:/fixture
       - ./php:/php
