@@ -609,6 +609,12 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
+    $app->get('/api/estate/search/condition', function(Request $request, Response $response) {
+        $estateSearchCondition = $this->get(EstateSearchCondition::class);
+        $response->getBody()->write(json_encode($estateSearchCondition));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
     $app->get('/api/estate/{id}', function(Request $request, Response $response, array $args) {
         $id = $args['id'] ?? null;
         if (empty($id) || !is_numeric($id)) {
