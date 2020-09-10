@@ -8,16 +8,16 @@ use Monolog\Processor\UidProcessor;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
-return function (ContainerBuilder $containerBuilder) {
-    $containerBuilder->addDefinitions([
-        'logger' => function(ContainerInterface $c): LoggerInterface {
-            return $c->get(LoggerInterface::class);
+return function (ContainerBuilder $containerontainerBuilder) {
+    $containerontainerBuilder->addDefinitions([
+        'logger' => function(ContainerInterface $container): LoggerInterface {
+            return $container->get(LoggerInterface::class);
         }
     ]);
 
-    $containerBuilder->addDefinitions([
-        LoggerInterface::class => function(ContainerInterface $c): LoggerInterface {
-            $settings = $c->get('settings');
+    $containerontainerBuilder->addDefinitions([
+        LoggerInterface::class => function(ContainerInterface $container): LoggerInterface {
+            $settings = $container->get('settings');
 
             $loggerSettings = $settings['logger'];
             $logger = new Logger($loggerSettings['name']);
@@ -32,9 +32,9 @@ return function (ContainerBuilder $containerBuilder) {
         }
     ]);
 
-    $containerBuilder->addDefinitions([
-        PDO::class => function(ContainerInterface $c): PDO {
-            $settings = $c->get('settings')['database'];
+    $containerontainerBuilder->addDefinitions([
+        PDO::class => function(ContainerInterface $container): PDO {
+            $settings = $container->get('settings')['database'];
 
             $dsn = vsprintf('mysql:host=%s;dbname=%s;port=%d', [
                 $settings['host'],
