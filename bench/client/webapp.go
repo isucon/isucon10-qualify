@@ -9,7 +9,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 
@@ -132,41 +131,11 @@ func (c *Client) GetChairDetailFromID(ctx context.Context, id string) (*asset.Ch
 	return &chair, nil
 }
 
-func loadChairsFromJSON(ctx context.Context, filePath string) ([]asset.Chair, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	chairs := []asset.Chair{}
-	decoder := json.NewDecoder(f)
-	for {
-		if err := ctx.Err(); err != nil {
-			return nil, err
-		}
-		var chair asset.Chair
-		if err := decoder.Decode(&chair); err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-		chairs = append(chairs, chair)
-	}
-
-	return chairs, nil
-}
-
-func (c *Client) PostChairs(ctx context.Context, filePath string) error {
-	chairs, err := loadChairsFromJSON(ctx, filePath)
-	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker)
-	}
-
+func (c *Client) PostChairs(ctx context.Context, chairs []asset.Chair) error {
 	var (
-		b  bytes.Buffer
-		fw io.Writer
+		b   bytes.Buffer
+		fw  io.Writer
+		err error
 	)
 	w := multipart.NewWriter(&b)
 	csv := ""
@@ -176,7 +145,7 @@ func (c *Client) PostChairs(ctx context.Context, filePath string) error {
 	}
 	r := strings.NewReader(csv)
 
-	if fw, err = w.CreateFormFile("chairs", filePath); err != nil {
+	if fw, err = w.CreateFormFile("chairs", "chairs.csv"); err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker)
 	}
 
@@ -466,41 +435,11 @@ func (c *Client) GetEstateDetailFromID(ctx context.Context, id string) (*asset.E
 	return &estate, nil
 }
 
-func loadEstatesFromJSON(ctx context.Context, filePath string) ([]asset.Estate, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	estates := []asset.Estate{}
-	decoder := json.NewDecoder(f)
-	for {
-		if err := ctx.Err(); err != nil {
-			return nil, err
-		}
-		var estate asset.Estate
-		if err := decoder.Decode(&estate); err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-		estates = append(estates, estate)
-	}
-
-	return estates, nil
-}
-
-func (c *Client) PostEstates(ctx context.Context, filePath string) error {
-	estates, err := loadEstatesFromJSON(ctx, filePath)
-	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker)
-	}
-
+func (c *Client) PostEstates(ctx context.Context, estates []asset.Estate) error {
 	var (
-		b  bytes.Buffer
-		fw io.Writer
+		b   bytes.Buffer
+		fw  io.Writer
+		err error
 	)
 	w := multipart.NewWriter(&b)
 	csv := ""
@@ -510,7 +449,7 @@ func (c *Client) PostEstates(ctx context.Context, filePath string) error {
 	}
 	r := strings.NewReader(csv)
 
-	if fw, err = w.CreateFormFile("estates", filePath); err != nil {
+	if fw, err = w.CreateFormFile("estates", "estates.csv"); err != nil {
 		return failure.Translate(err, fails.ErrBenchmarker)
 	}
 
