@@ -10,7 +10,13 @@ use Psr\Log\LoggerInterface;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
-        LoggerInterface::class => function (ContainerInterface $c) {
+        'logger' => function(ContainerInterface $c): LoggerInterface {
+            return $c->get(LoggerInterface::class);
+        }
+    ]);
+
+    $containerBuilder->addDefinitions([
+        LoggerInterface::class => function(ContainerInterface $c): LoggerInterface {
             $settings = $c->get('settings');
 
             $loggerSettings = $settings['logger'];
@@ -23,11 +29,11 @@ return function (ContainerBuilder $containerBuilder) {
             $logger->pushHandler($handler);
 
             return $logger;
-        },
+        }
     ]);
 
     $containerBuilder->addDefinitions([
-        PDO::class => function(ContainerInterface $c) {
+        PDO::class => function(ContainerInterface $c): PDO {
             $settings = $c->get('settings')['database'];
 
             $dsn = vsprintf('mysql:host=%s;dbname=%s;port=%d', [
