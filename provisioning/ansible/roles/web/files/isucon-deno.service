@@ -9,7 +9,7 @@ PIDFile=/home/isucon/isuumo/webapp/deno/server.pid
 
 User=isucon
 Group=isucon
-ExecStart=/home/isucon/.deno/bin/deno run /home/isucon/isuumo/webapp/deno/isuumo
+ExecStart=/home/isucon/.deno/bin/deno run --allow-run --allow-net --allow-read --allow-env --allow-write --unstable /home/isucon/isuumo/webapp/deno/isuumo
 ExecStop=/bin/kill -s QUIT $MAINPID
 
 [Install]
