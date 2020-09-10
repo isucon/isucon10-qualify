@@ -194,19 +194,19 @@ return function (App $app) {
                 $query = 'INSERT INTO chair VALUES(:id, :name, :description, :thumbnail, :price, :height, :width, :depth, :color, :features, :kind, :popularity, :stock)';
                 $stmt = $pdo->prepare($query);
                 $stmt->execute([
-                    ':id' => (int)trim($record[0]),
-                    ':name' => (string)trim($record[1]),
-                    ':description' => (string)trim($record[2]),
-                    ':thumbnail' => (string)trim($record[3]),
-                    ':price' => (int)trim($record[4]),
-                    ':height' => (int)trim($record[5]),
-                    ':width' => (int)trim($record[6]),
-                    ':depth' => (int)trim($record[7]),
-                    ':color' => (string)trim($record[8]),
-                    ':features' => (string)trim($record[9]),
-                    ':kind' => (string)trim($record[10]),
-                    ':popularity' => (int)trim($record[11]),
-                    ':stock' => (int)trim($record[12]),
+                    ':id' => (int)trim($record[0] ?? null),
+                    ':name' => (string)trim($record[1] ?? null),
+                    ':description' => (string)trim($record[2] ?? null),
+                    ':thumbnail' => (string)trim($record[3] ?? null),
+                    ':price' => (int)trim($record[4] ?? null),
+                    ':height' => (int)trim($record[5] ?? null),
+                    ':width' => (int)trim($record[6]) ?? null,
+                    ':depth' => (int)trim($record[7] ?? null),
+                    ':color' => (string)trim($record[8] ?? null),
+                    ':features' => (string)trim($record[9] ?? null),
+                    ':kind' => (string)trim($record[10] ?? null),
+                    ':popularity' => (int)trim($record[11] ?? null),
+                    ':stock' => (int)trim($record[12] ?? null),
                 ]);
             }
         } catch (PDOException $e) {
@@ -221,6 +221,11 @@ return function (App $app) {
         }
 
         return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+    });
+
+    $app->get('/api/chair/search', function(Request $request, Response $response) {
+        $conditions = null;
+        $params = null;
     });
 
     $app->get('/', function (Request $request, Response $response) {
