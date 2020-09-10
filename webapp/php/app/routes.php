@@ -10,7 +10,6 @@ use Slim\App;
 use App\Domain\Chair;
 
 const EXEC_SUCCESS = 127;
-const DIR_ROOT = __DIR__ . '/../..';
 
 function getRange($condition, int $rangeId)
 {
