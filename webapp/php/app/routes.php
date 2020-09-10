@@ -15,7 +15,7 @@ use App\Domain\EstateSearchCondition;
 use App\Domain\Range;
 use App\Domain\RangeCondition;
 
-const EXEC_SUCCESS = 127;
+const EXEC_SUCCESS = 0;
 const NUM_LIMIT = 20;
 const NUM_NAZOTTE_LIMIT = 50;
 
@@ -48,15 +48,16 @@ return function (App $app) {
 
         foreach ($paths as $path) {
             $sqlFile = realpath($path);
-            $cmdStr = vsprintf('mysql -h %s -u %s -p%s %s < %s', [
+            $cmdStr = vsprintf('mysql -h %s -u %s -p%s -P %s %s < %s', [
                 $config['host'],
                 $config['user'],
                 $config['pass'],
+                $config['port'],
                 $config['dbname'],
                 $sqlFile,
             ]);
 
-            system("bash -c $cmdStr", $result);
+            system("bash -c \"$cmdStr\"", $result);
             if ($result !== EXEC_SUCCESS) {
                 $this->get('logger')->error('Initialize script error');
                 return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
