@@ -8,12 +8,22 @@ use Fig\Http\Message\StatusCodeInterface;
 use League\Csv\Reader;
 use Slim\App;
 use App\Domain\Chair;
+use App\Domain\ChairSearchCondition;
+use App\Domain\Range;
+use App\Domain\RangeCondition;
 
 const EXEC_SUCCESS = 127;
 
-function getRange($condition, int $rangeId)
+function getRange(RangeCondition $condition, int $rangeId): ?Range
 {
-    // $rangeId
+    if ($rangeId < 0) {
+        return null;
+    }
+    if (count($condition->ranges) <= $rangeId) {
+        return null;
+    }
+
+    return $condition->ranges[$rangeId] ?? null;
 }
 
 return function (App $app) {
@@ -61,15 +71,148 @@ return function (App $app) {
         $conditions = [];
         $params = [];
 
+        /** @var ChairSearchCondition */
+        $chairSearchCondition = $this->get(ChairSearchCondition::class);
+
         if ($priceRangeId = $request->getQueryParams()['priceRangeId'] ?? null) {
-            if (!is_numeric($priceRangeId)) {
-                $this->get(LoggerInterface::class)->error(sprintf('priceRangeID invalid, %s', $priceRangeId));
+            $chairPrice = getRange($chairSearchCondition->price, (int)$priceRangeId);
+            if (!$chairPrice) {
+                $this->get(LoggerInterface::class)->info(sprintf('priceRangeId invalid, %s', $priceRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
             }
-            $chairPrice = getRange($condition, (int)$rangeId);
+            if ($chairPrice->min != -1) {
+                $conditions[] = 'price >= :minPrice';
+                $params[':minPrice'] = [$chairPrice->min, PDO::PARAM_INT];
+            }
+            if ($chairPrice->max != -1) {
+                $conditions[] = 'price < :maxPrice';
+                $params[':maxPrice'] = [$chairPrice->max, PDO::PARAM_INT];
+            }
+        }
+        if ($heightRangeId = $request->getQueryParams()['heightRangeId'] ?? null) {
+            $chairHeight = getRange($chairSearchCondition->height, $heightRangeId);
+            if (!$chairHeight) {
+                $this->get(LoggerInterface::class)->info(sprintf('heightRangeId invalid, %s', $heightRangeId));
+                return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+            }
+            if ($chairHeight->min != -1) {
+                $conditions[] = 'height >= :minHeight';
+                $params[':minHeight'] = [$chairHeight->min, PDO::PARAM_INT];
+            }
+            if ($chairHeight->max != -1) {
+                $conditions[] = 'height < :maxHeight';
+                $params[':maxHeight'] = [$chairHeight->max, PDO::PARAM_INT];
+            }
+        }
+        if ($widthRangeId = $request->getQueryParams()['widthRangeId'] ?? null) {
+            $chairWidth = getRange($chairSearchCondition->width, $widthRangeId);
+            if (!$chairWidth) {
+                $this->get(LoggerInterface::class)->info(sprintf('widthRangeId invalid, %s', $heightRangeId));
+                return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+            }
+            if ($chairWidth->min != -1) {
+                $conditions[] = 'width >= :minWidth';
+                $params[':minWidth'] = [$chairWidth->min, PDO::PARAM_INT];
+            }
+            if ($chairWidth->max != -1) {
+                $conditions[] = 'width < :maxWidth';
+                $params[':maxWidth'] = [$chairWidth->max, PDO::PARAM_INT];
+            }
+        }
+        if ($depthRangeId = $request->getQueryParams()['depthRangeId'] ?? null) {
+            $chairDepth = getRange($chairSearchCondition->depth, $depthRangeId);
+            if (!$chairDepth) {
+                $this->get(LoggerInterface::class)->info(sprintf('depthRangeId invalid, %s', $heightRangeId));
+                return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+            }
+            if ($chairDepth->min != -1) {
+                $conditions[] = 'depth >= :minDepth';
+                $params[':minDepth'] = [$chairDepth->min, PDO::PARAM_INT];
+            }
+            if ($chairDepth->max != -1) {
+                $conditions[] = 'depth < :maxDepth';
+                $params[':maxDepth'] = [$chairDepth->max, PDO::PARAM_INT];
+            }
+        }
+        if ($kind = $request->getQueryParams()['kind'] ?? null) {
+            $conditions[] = 'kind = :kind';
+            $params[':kind'] = [$kind, PDO::PARAM_STR];
+        }
+        if ($color = $request->getQueryParams()['color'] ?? null) {
+            $conditions[] = 'color = :color';
+            $params[':color'] = [$color, PDO::PARAM_STR];
+        }
+        if ($features = $request->getQueryParams()['features'] ?? null) {
+            foreach (explode(',', $features) as $key => $feature) {
+                $name = sprintf(':feature_%s', $key);
+                $conditions[] = sprintf("features LIKE CONCAT('%%', %s, '%%')", $name);
+                $params[$name] = [$feature, PDO::PARAM_STR];
+            }
         }
 
-        return $response;
+        if (count($conditions) === 0) {
+            $this->get(LoggerInterface::class)->info('Search condition not found');
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        }
+
+        $conditions[] = 'stock > 0';
+
+        if (is_null($page = $request->getQueryParams()['page'] ?? null)) {
+            $this->get(LoggerInterface::class)->info(sprintf('Invalid format page parameter: %s', $page));
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        }
+        if (is_null($perPage = $request->getQueryParams()['perPage'] ?? null)) {
+            $this->get(LoggerInterface::class)->info(sprintf('Invalid format perPage parameter: %s', $perPage));
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        }
+
+        $searchQuery = 'SELECT * FROM chair WHERE ';
+        $countQuery = 'SELECT COUNT(*) FROM chair WHERE ';
+        $searchCondition = implode(' AND ', $conditions);
+        $limitOffset = ' ORDER BY popularity DESC, id ASC LIMIT :limit OFFSET :offset';
+
+        $stmt = $this->get(PDO::class)->prepare($countQuery . $searchCondition);
+        foreach ($params as $key => $bind) {
+            list($value, $type) = $bind;
+            $stmt->bindValue($key, $value, $type);
+        }
+        $stmt->execute();
+        $count = (int)$stmt->fetchColumn();
+
+        $params[':offset'] = [(int)$page, PDO::PARAM_INT];
+        $params[':limit'] = [(int)$perPage, PDO::PARAM_INT];
+
+        $stmt = $this->get(PDO::class)->prepare($searchQuery . $searchCondition . $limitOffset);
+        foreach ($params as $key => $bind) {
+            list($value, $type) = $bind;
+            $stmt->bindValue($key, $value, $type);
+        }
+        $stmt->execute();
+        $chairs = $stmt->fetchAll(PDO::FETCH_CLASS, Chair::class);
+
+        if (count($chairs) === 0) {
+            $response->getBody()->write(json_encode([
+                'count' => $count,
+                'chairs' => [],
+            ]));
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
+        }
+
+        $response->getBody()->write(json_encode([
+            'count' => $count,
+            'chairs' => array_map(
+                function(Chair $chair) {
+                    return $chair->toArray();
+                },
+                $chairs
+            ),
+        ]));
+
+        return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
     });
 
     $app->get("/api/chair/{id}", function(Request $request, Response $response, array $args) {
