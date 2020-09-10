@@ -420,13 +420,9 @@ class App < Sinatra::Base
 
     estates_in_polygon = []
     estates.each do |estate|
-      point = sprintf("'POINT(%f %f)'", estate['latitude'], estate['longitude'])
-      coordinates_to_text = sprintf("'POLYGON((%s))'", coordinates.map { |c| sprintf('%f %f', c[:latitude], c[:longitude]) }.join(','))
-      sql = sprintf(
-        'SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))',
-        coordinates_to_text,
-        point,
-      )
+      point = "'POINT(%f %f)'" % estate.values_at('latitude', 'longitude')
+      coordinates_to_text = "'POLYGON((%s))'" % coordinates.map { |c| '%f %f' % c.values_at(:latitude, :longitude) }.join(',')
+      sql = 'SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))' % [coordinates_to_text, point]
       e = db.xquery(sql, estate['id']).first
       if e
         estates_in_polygon << e
