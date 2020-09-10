@@ -509,6 +509,33 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
+    $app->get('/api/estate/low_priced', function(Request $request, Response $response) {
+        $query = 'SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT :limit';
+        $stmt = $this->get(PDO::class)->prepare($query);
+        $stmt->bindValue(':limit', NUM_LIMIT, PDO::PARAM_INT);
+        $stmt->execute();
+        $estates = $stmt->fetchAll(PDO::FETCH_CLASS, Estate::class);
+
+        if (count($estates) === 0) {
+            $this->get('logger')->error('getLowPricedEstate not found');
+            $response->getBody()->write(json_encode([
+                'chairs' => []
+            ]));
+            return $response->withHeader('Content-Type', 'application/json');
+        }
+
+        $response->getBody()->write(json_encode([
+            'estates' => array_map(
+                function(Estate $estate) {
+                    return $estate->toArray();
+                },
+                $estates
+            )
+        ]));
+
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
     $app->get('/api/estate/{id}', function(Request $request, Response $response, array $args) {
         $id = $args['id'] ?? null;
         if (empty($id) || !is_numeric($id)) {
