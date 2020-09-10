@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use App\Domain\BoundingBox;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Fig\Http\Message\StatusCodeInterface;
@@ -8,6 +9,7 @@ use League\Csv\Reader;
 use Slim\App;
 use App\Domain\Chair;
 use App\Domain\ChairSearchCondition;
+use App\Domain\Coordinate;
 use App\Domain\Estate;
 use App\Domain\EstateSearchCondition;
 use App\Domain\Range;
@@ -15,6 +17,7 @@ use App\Domain\RangeCondition;
 
 const EXEC_SUCCESS = 127;
 const NUM_LIMIT = 20;
+const NUM_NAZOTTE_LIMIT = 50;
 
 function getRange(RangeCondition $condition, int $rangeId): ?Range
 {
@@ -554,6 +557,56 @@ return function (App $app) {
         }
 
         return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+    });
+
+    $app->post('/api/estate/nazotte', function(request $request, Response $response) {
+        $coordinates = array_map(
+            Coordinate::class . '::createFromJson',
+            json_decode($request->getBody()->getContents(), true)
+        );
+        if (count($coordinates) === 0) {
+            return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+        }
+
+        $boundingBox = BoundingBox::createFromCordinates($coordinates);
+
+        $query = 'SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC';
+        $stmt = $this->get(PDO::class)->prepare($query);
+        $stmt->execute([
+            $boundingBox->bottomRightCorner->latitude,
+            $boundingBox->topLeftCorner->latitude,
+            $boundingBox->bottomRightCorner->longitude,
+            $boundingBox->topLeftCorner->longitude,
+        ]);
+        $estatesInBoundingBox = $stmt->fetchAll(PDO::FETCH_CLASS, Estate::class);
+
+        $estatesInPolygon = array_map(
+            function(Estate $estate) use ($coordinates) {
+                $point = sprintf("'POINT(%f %f)'", $estate->latitude, $estate->longitude);
+                $query = sprintf('SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))', Coordinate::toText($coordinates), $point);
+
+                $stmt = $this->get(PDO::class)->prepare($query);
+                $stmt->execute([$estate->id]);
+                return $stmt->fetchObject(Estate::class);
+            },
+            $estatesInBoundingBox
+        );
+
+        if (count($estatesInPolygon) > NUM_NAZOTTE_LIMIT) {
+            $estatesInPolygon = array_slice($estatesInPolygon, 0, NUM_NAZOTTE_LIMIT);
+        }
+
+        $response->getBody()->write(json_encode([
+            'count' => count($estatesInPolygon),
+            'estates' => array_map(
+                function(Estate $estate) {
+                    return $estate->toArray();
+                },
+                $estatesInPolygon
+            ),
+        ]));
+
+        return $response->withHeader('Content-Type', 'application/json');
     });
 
     $app->get('/api/estate/{id}', function(Request $request, Response $response, array $args) {
