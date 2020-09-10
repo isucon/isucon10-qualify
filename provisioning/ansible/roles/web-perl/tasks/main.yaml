@@ -24,3 +24,14 @@
     chdir: /home/isucon/isuumo/webapp/perl
   shell: |
     /home/isucon/local/perl/bin/cpm install -g --show-build-log-on-failure
+
+
+- name: Copy Service file
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/systemd/system"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_items:
+    - isuumo.perl.service
