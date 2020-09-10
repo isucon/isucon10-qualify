@@ -177,15 +177,6 @@
   shell: |
     npm ci
 
-# - name: Build Web Application ruby
-#   become: yes
-#   become_user: isucon
-#   args:
-#     chdir: /home/isucon/isuumo/webapp/ruby
-#   environment:
-#     <<: *env
-#   shell: |
-#     bundle install
 
 - name: Copy service file
   copy:

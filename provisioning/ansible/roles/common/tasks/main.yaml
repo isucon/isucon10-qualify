@@ -68,6 +68,8 @@
     - libonig-dev
     - libtidy-dev
     - libzip-dev
+    - default-mysql-client
+    - default-libmysqlclient-dev
     update_cache: yes
 
 - name: install xbuild

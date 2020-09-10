@@ -1,0 +1,21 @@
+- name: Build Web Application ruby
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isuumo/webapp/ruby
+ environment:
+    <<: *env
+  shell: |
+    bundle config set deployment true && \
+    bundle config set path /gems && \
+    bundle config set without 'development test' && \
+    bundle install -j4
+- name: Copy service file
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/systemd/system"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_items:
+    - isucon-ruby.service
