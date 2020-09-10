@@ -100,6 +100,7 @@ func Add(err error, label ErrorLabel) {
 			application++
 		case ErrBenchmarker:
 			msgs = append(msgs, "運営に連絡してください")
+			critical++
 			return
 		default:
 			application++

@@ -26,6 +26,7 @@ const (
 	DefaultAPITimeout              = 2000 * time.Millisecond
 	InitializeTimeout              = 30 * time.Second
 	VerifyTimeout                  = 10 * time.Second
+	DraftTimeout                   = 5 * time.Second
 	LoadTimeout                    = 60 * time.Second
 )
 

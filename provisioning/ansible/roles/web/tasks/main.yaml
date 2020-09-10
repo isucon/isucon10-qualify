@@ -199,7 +199,7 @@
     - isucon-go.service
     - isucon-nodejs.service
     - isucon-deno.service
-
+    - isucon-python.service
 
 - name: Install frontend packages
   become: yes

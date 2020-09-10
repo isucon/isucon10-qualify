@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"strconv"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
@@ -40,8 +41,39 @@ func loadChairsFromJSON(ctx context.Context, filePath string) ([]asset.Chair, er
 
 func chairDraftPostScenario(ctx context.Context, c *client.Client, filePath string) {
 	chairs, err := loadChairsFromJSON(ctx, filePath)
+	if err != nil {
+		fails.Add(failure.Translate(err, fails.ErrCritical), fails.ErrorOfChairDraftPostScenario)
+		return
+	}
+
+	id := strconv.FormatInt(chairs[0].ID, 10)
+	chair, err := c.GetChairDetailFromID(ctx, id)
+	if err != nil {
+		fails.Add(failure.Translate(err, fails.ErrCritical), fails.ErrorOfChairDraftPostScenario)
+		return
+	}
+	if chair != nil {
+		fails.Add(failure.New(fails.ErrCritical, failure.Message("入稿前のイスが存在しています")), fails.ErrorOfChairDraftPostScenario)
+		return
+	}
+
 	err = c.PostChairs(ctx, chairs)
 	if err != nil {
 		fails.Add(failure.Translate(err, fails.ErrCritical), fails.ErrorOfChairDraftPostScenario)
+		return
+	}
+
+	chair, err = c.GetChairDetailFromID(ctx, id)
+	if err != nil {
+		fails.Add(failure.Translate(err, fails.ErrCritical), fails.ErrorOfChairDraftPostScenario)
+		return
+	}
+	if chair == nil {
+		fails.Add(failure.Translate(err, fails.ErrCritical, failure.Message("入稿したイスのデータが不正です")), fails.ErrorOfChairDraftPostScenario)
+		return
+	}
+	if err := checkChairEqualToAsset(chair); err != nil {
+		fails.Add(failure.Translate(err, fails.ErrCritical, failure.Message("入稿したイスのデータが不正です")), fails.ErrorOfChairDraftPostScenario)
+		return
 	}
 }
