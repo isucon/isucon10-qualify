@@ -21,7 +21,7 @@
     dest: /tmp/isucon10-qualify
     accept_hostkey: yes
 
-- name: Chgroup sisucon10-qualify repo
+- name: Chgroup isucon10-qualify repo
   become: yes
   become_user: root
   file:
@@ -199,7 +199,6 @@
     - isucon-go.service
     - isucon-nodejs.service
     - isucon-deno.service
-    - isucon-python.service
 
 - name: Install frontend packages
   become: yes
