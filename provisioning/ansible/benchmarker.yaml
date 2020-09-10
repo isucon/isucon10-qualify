@@ -4,5 +4,5 @@
   roles:
     - role: common
     - role: langs
-    - role: web
+    - role: web-prepare
     - role: bench

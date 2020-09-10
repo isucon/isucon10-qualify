@@ -2,5 +2,13 @@
   become: yes
   become_user: root
   roles:
-    - role: web
+    - role: web-bootstrap
+    - role: web-go
+    - role: web-node
+    - role: web-perl
+    - role: web-python
+    - role: web-rust
+    - role: web-ruby
+    - role: web-deno
+    - role: web-prepare
     - role: remove

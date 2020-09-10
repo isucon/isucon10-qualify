@@ -17,7 +17,7 @@
   become: no
   git:
     repo: git@github.com:isucon/isucon10-qualify.git
-    version: master
+    version: provisioning/ansible/separate-role
     dest: /tmp/isucon10-qualify
     accept_hostkey: yes
 
@@ -146,60 +146,6 @@
   shell: |
     mysql -u isucon -pisucon < webapp/mysql/db/0_Schema.sql
 
-
-- name: Build Web Application Go
-  become: yes
-  become_user: isucon
-  args:
-    chdir: /home/isucon/isuumo/webapp/go/
-  environment:
-    <<: *env
-  shell: |
-    make isuumo
-
-# - name: Build Web Application Rust
-#   become: yes
-#   become_user: isucon
-#   args:
-#     chdir: /home/isucon/isuumo/webapp/rust
-#   environment:
-#     <<: *env
-#   shell: |
-#     make run
-
-- name: Build Web Application Node
-  become: yes
-  become_user: isucon
-  args:
-    chdir: /home/isucon/isuumo/webapp/nodejs
-  environment:
-    <<: *env
-  shell: |
-    npm ci
-
-
-- name: Build Web Application deno
-  become: yes
-  become_user: isucon
-  args:
-    chdir: /home/isucon/isuumo/webapp/deno
-  environment:
-    <<: *env
-  shell: |
-    make isuumo
-
-- name: Copy service file
-  copy:
-    src: "{{ item }}"
-    dest: "/etc/systemd/system"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  with_items:
-    - isucon-go.service
-    - isucon-nodejs.service
-    - isucon-deno.service
-
 - name: Install frontend packages
   become: yes
   become_user: isucon
@@ -242,23 +188,4 @@
   copy:
     src: "env.sh"
     dest: /home/isucon
-
-- name: Start "isucon-go.service"
-  systemd:
-    daemon_reload: "yes"
-    name: "isucon-go.service"
-    state: "restarted"
-    enabled: "yes"
-
-- name: Start "nginx"
-  systemd:
-    daemon_reload: "yes"
-    name: "nginx"
-    state: "reloaded"
-    enabled: "yes"
-
-- name: Initialize isucon10
-  become: yes
-  become_user: isucon
-  command: curl -X POST http://localhost/initialize
 

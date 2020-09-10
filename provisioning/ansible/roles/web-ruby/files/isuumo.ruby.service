@@ -1,6 +1,5 @@
 [Unit]
-Description=isucon-ruby
-After=syslog.target
+Description=isuumo.ruby
 
 [Service]
 WorkingDirectory=/home/isucon/isuumo/webapp/ruby
