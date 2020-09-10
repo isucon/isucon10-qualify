@@ -8,6 +8,7 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/reporter"
+	"github.com/morikuni/failure"
 )
 
 func Initialize(ctx context.Context) *client.InitializeResponse {
@@ -20,7 +21,12 @@ func Initialize(ctx context.Context) *client.InitializeResponse {
 
 	res, err := initialize(ctx)
 	if err != nil {
-		fails.Add(err, fails.ErrorOfInitialize)
+		if ctx.Err() != nil {
+			err = failure.New(fails.ErrCritical, failure.Message("POST /initialize: リクエストがタイムアウトしました"))
+			fails.Add(err, fails.ErrorOfInitialize)
+		} else {
+			fails.Add(err, fails.ErrorOfInitialize)
+		}
 	}
 	return res
 }
