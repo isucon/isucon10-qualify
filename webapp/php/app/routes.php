@@ -13,6 +13,7 @@ use App\Domain\Range;
 use App\Domain\RangeCondition;
 
 const EXEC_SUCCESS = 127;
+const NUM_LIMIT = 20;
 
 function getRange(RangeCondition $condition, int $rangeId): ?Range
 {
@@ -204,6 +205,33 @@ return function (App $app) {
                 },
                 $chairs
             ),
+        ]));
+
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
+    $app->get('/api/chair/low_priced', function(Request $request, Response $response) {
+        $query = 'SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT :limit';
+        $stmt = $this->get(PDO::class)->prepare($query);
+        $stmt->bindValue(':limit', NUM_LIMIT, PDO::PARAM_INT);
+        $stmt->execute();
+        $chairs = $stmt->fetchAll(PDO::FETCH_CLASS, Chair::class);
+
+        if (count($chairs) === 0) {
+            $this->get(LoggerInterface::class)->error('getLowPricedChair not found');
+            $response->getBody()->write(json_encode([
+                'chairs' => []
+            ]));
+            return $response->withHeader('Content-Type', 'application/json');
+        }
+
+        $response->getBody()->write(json_encode([
+            'chairs' => array_map(
+                function(Chair $chair) {
+                    return $chair->toArray();
+                },
+                $chairs
+            )
         ]));
 
         return $response->withHeader('Content-Type', 'application/json');
