@@ -62,9 +62,7 @@ return function (App $app) {
             'language' => 'php',
         ]));
 
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+        return $response->withHeader('Content-Type', 'application/json');
     });
 
     $app->get('/api/chair/search', function(Request $request, Response $response) {
@@ -195,9 +193,7 @@ return function (App $app) {
                 'count' => $count,
                 'chairs' => [],
             ]));
-            return $response
-                ->withHeader('Content-Type', 'application/json')
-                ->withStatus(200);
+            return $response->withHeader('Content-Type', 'application/json');
         }
 
         $response->getBody()->write(json_encode([
@@ -210,9 +206,7 @@ return function (App $app) {
             ),
         ]));
 
-        return $response
-                ->withHeader('Content-Type', 'application/json')
-                ->withStatus(200);
+        return $response->withHeader('Content-Type', 'application/json');
     });
 
     $app->get("/api/chair/{id}", function(Request $request, Response $response, array $args) {
@@ -240,9 +234,7 @@ return function (App $app) {
 
         $response->getBody()->write(json_encode($chair->toArray()));
 
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+        return $response->withHeader('Content-Type', 'application/json');
     });
 
     $app->post('/api/chair', function (Request $request, Response $response) {
