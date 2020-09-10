@@ -536,6 +536,26 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
+    $app->post('/api/estate/req_doc/{id}', function(Request $request, Response $response) {
+        $id = $args['id'] ?? null;
+        if (empty($id) || !is_numeric($id)) {
+            $this->get('logger')->error(sprintf('Request parameter "id" parse error : %s', $id));
+            return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+        }
+
+        $query = 'SELECT * FROM estate WHERE id = :id';
+        $stmt = $this->get(PDO::class)->prepare($query);
+        $stmt->execute([':id' => $id]);
+        $estate = $stmt->fetchObject(Estate::class);
+
+        if (!$estate) {
+            $this->get('logger')->error(sprintf('requested id\'s estate not found : %s', $id));
+            return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+        }
+
+        return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+    });
+
     $app->get('/api/estate/{id}', function(Request $request, Response $response, array $args) {
         $id = $args['id'] ?? null;
         if (empty($id) || !is_numeric($id)) {
