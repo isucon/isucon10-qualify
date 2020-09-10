@@ -14,8 +14,6 @@ import (
 func Initialize(ctx context.Context) *client.InitializeResponse {
 	// Initializeにはタイムアウトを設定
 	// レギュレーションにある時間を設定する
-	// timeoutSeconds := 180
-
 	ctx, cancel := context.WithTimeout(ctx, parameter.InitializeTimeout)
 	defer cancel()
 
