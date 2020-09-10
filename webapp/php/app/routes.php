@@ -259,7 +259,7 @@ return function (App $app) {
             $chair = $stmt->fetchObject(Chair::class);
 
             if (!$chair) {
-                $pdo->rollback();
+                $pdo->rollBack();
                 $this->logger->info(sprintf('buyChair chair id "%s" not found', $id));
                 return $response->withStatus(StatusCodeInterface::STATUS_NOT_FOUND);
             }
@@ -267,15 +267,12 @@ return function (App $app) {
             $stmt = $pdo->prepare('UPDATE chair SET stock = stock - 1 WHERE id = :id');
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
             if (!$stmt->execute()) {
-                $pdo->rollback();
+                $pdo->rollBack();
                 $this->logger->error('chair stock update failed');
                 return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
             }
 
-            if (!$pdo->commit()) {
-                $this->logger->error('transaction commit error');
-                return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
-            }
+            $pdo->commit();
         } catch (PDOException $e) {
             $pdo->rollBack();
             $this->logger->error(sprintf('DB Execution Error: on getting a chair by id : %s', $id));
@@ -329,12 +326,9 @@ return function (App $app) {
 
         $pdo = $this->get(PDO::class);
 
-        if (!$pdo->beginTransaction()) {
-            $this->logger->error('failed to begin tx');
-            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
-        }
-
         try {
+            $pdo->beginTransaction();
+
             foreach ($records as $record) {
                 $query = 'INSERT INTO chair VALUES(:id, :name, :description, :thumbnail, :price, :height, :width, :depth, :color, :features, :kind, :popularity, :stock)';
                 $stmt = $pdo->prepare($query);
@@ -354,10 +348,8 @@ return function (App $app) {
                     ':stock' => (int)trim($record[12] ?? null),
                 ]);
             }
-            if (!$pdo->commit()) {
-                $this->logger->error('failed to commit tx');
-                return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
-            }
+
+            $pdo->commit();
         } catch (PDOException $e) {
             $pdo->rollBack();
             $this->logger->error(sprintf('failed to insert chair: %s', $e->getMessage()));
