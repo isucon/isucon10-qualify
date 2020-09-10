@@ -110,6 +110,29 @@ services:
       - mysql
     command: /go/src/isuumo/isuumo
 
+  python:
+    build: ./python
+    entrypoint:
+      - dockerize
+      - -timeout
+      - 60s
+      - -wait
+      - tcp://mysql:3306
+    volumes:
+      - ./mysql/db:/mysql/db
+      - ./fixture:/fixture
+    environment:
+      MYSQL_DATABASE: isuumo
+      MYSQL_USER: isucon
+      MYSQL_PASSWORD: isucon
+      MYSQL_HOST: mysql
+      SERVER_PORT: 1323
+    ports:
+      - "1323:1323"
+    depends_on:
+      - mysql
+    command: python app.py
+
   frontend:
     build: ./frontend
     volumes:
