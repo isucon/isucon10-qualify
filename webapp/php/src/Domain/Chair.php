@@ -6,7 +6,7 @@ class Chair
 {
     public function getId(): ?int
     {
-        return (int)$this->id;
+        return is_null($this->id) ?: (int)$this->id;
     }
 
     public function getName(): ?string
@@ -26,22 +26,22 @@ class Chair
 
     public function getPrice(): ?int
     {
-        return (int)$this->price;
+        return is_null($this->price) ?: (int)$this->price;
     }
 
     public function getHeight(): ?int
     {
-        return (int)$this->height;
+        return is_null($this->height) ?: (int)$this->height;
     }
 
     public function getWidth(): ?int
     {
-        return (int)$this->width;
+        return is_null($this->width) ?: (int)$this->width;
     }
 
     public function getDepth(): ?int
     {
-        return (int)$this->depth;
+        return is_null($this->depth) ?: (int)$this->depth;
     }
 
     public function getColor(): ?string
@@ -61,12 +61,12 @@ class Chair
 
     public function getPopularity(): ?int
     {
-        return (int)$this->popularity;
+        return is_null($this->popularity) ?: (int)$this->popularity;
     }
 
     public function getStock(): ?int
     {
-        return (int)$this->stock;
+        return is_null($this->stock) ?: (int)$this->stock;
     }
 
     public function toArray()
