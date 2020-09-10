@@ -380,17 +380,17 @@ sub search_chairs {
         return $self->res_no_content($c, HTTP_BAD_REQUEST);
     }
 
-    my $searchQuery = "SELECT * FROM chair WHERE ";
-    my $countQuery = "SELECT COUNT(*) FROM chair WHERE ";
-    my $searchCondition = join " AND ", @conditions;
-    my $limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
+    my $search_query = "SELECT * FROM chair WHERE ";
+    my $count_query = "SELECT COUNT(*) FROM chair WHERE ";
+    my $search_condition = join " AND ", @conditions;
+    my $limit_offset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
 
     my $dbh = $self->dbh;
 
-    my $count = $dbh->select_one($countQuery . $searchCondition, @params);
+    my $count = $dbh->select_one($count_query . $search_condition, @params);
 
     push @params => $per_page, $page * $per_page;
-    my $chairs = $dbh->select_all($searchQuery . $searchCondition . $limitOffset, @params);
+    my $chairs = $dbh->select_all($search_query . $search_condition . $limit_offset, @params);
 
     return $self->res_json($c, {
         count  => $count,
@@ -625,17 +625,17 @@ sub search_estates {
         return $self->res_no_content($c, HTTP_BAD_REQUEST);
     }
 
-    my $searchQuery = "SELECT * FROM estate WHERE ";
-    my $countQuery = "SELECT COUNT(*) FROM estate WHERE ";
-    my $searchCondition = join " AND ", @conditions;
-    my $limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
+    my $search_query = "SELECT * FROM estate WHERE ";
+    my $count_query = "SELECT COUNT(*) FROM estate WHERE ";
+    my $search_condition = join " AND ", @conditions;
+    my $limit_offset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
 
     my $dbh = $self->dbh;
 
-    my $count = $dbh->select_one($countQuery . $searchCondition, @params);
+    my $count = $dbh->select_one($count_query . $search_condition, @params);
 
     push @params => $per_page, $page * $per_page;
-    my $estates = $dbh->select_all($searchQuery . $searchCondition . $limitOffset, @params);
+    my $estates = $dbh->select_all($search_query . $search_condition . $limit_offset, @params);
 
     return $self->res_json($c, {
         count   => $count,
