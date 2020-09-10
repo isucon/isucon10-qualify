@@ -137,7 +137,7 @@ func update(msgs []string, critical, application, trivial int) error {
 		Pass:     result.Passed && result.Score > 0,
 		Score:    score,
 		Messages: UniqMsgs(msgs),
-		Language: "",
+		Language: result.SurveyResponse.Language,
 	}
 	bytes, err := json.Marshal(output)
 	if err != nil {
