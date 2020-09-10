@@ -1,0 +1,14 @@
+---
+- name: Download cpm
+  get_url:
+    url: https://raw.githubusercontent.com/skaji/cpm/master/cpm
+    dest: /home/isucon/local/perl/bin/cpm
+    mode: '0755'
+
+- name: Install isuumo.perl Pacakges
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isuumo/webapp/perl
+  shell: |
+    cpm install -g --show-build-log-on-failure
