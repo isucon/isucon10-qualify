@@ -561,9 +561,10 @@ return function (App $app) {
     });
 
     $app->post('/api/estate/nazotte', function(request $request, Response $response) {
+        $json = json_decode($request->getBody()->getContents(), true);
         $coordinates = array_map(
             Coordinate::class . '::createFromJson',
-            json_decode($request->getBody()->getContents(), true)
+            $json['coordinates']
         );
         if (count($coordinates) === 0) {
             return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
