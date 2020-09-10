@@ -285,7 +285,7 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    $app->get("/api/chair/{id}", function(Request $request, Response $response, array $args) {
+    $app->get('/api/chair/{id}', function(Request $request, Response $response, array $args) {
         $id = $args['id'] ?? null;
         if (empty($id) || !is_numeric($id)) {
             $this->get(LoggerInterface::class)->error(sprintf('Request parameter \"id\" parse error : %s', $id));
