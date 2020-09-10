@@ -15,3 +15,9 @@ packer/%:
 
 all/%: initssh/% packer/% qemu/ssh/%
 
+multistage-packer-common:
+	packer build -var 'env=multistage-lang' multistage-lang.json
+
+multistage-packer-specify/%:
+	rm -rf "./output-$(shell basename $@)"
+	packer build -var 'env=$(shell basename $@)' multistage-specify.json

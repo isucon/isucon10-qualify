@@ -1,13 +1,13 @@
 {
   "builders": [
     {
-      "accelerator": "none",
+      "accelerator": "hvf",
       "disk_compression": true,
       "disk_discard": "unmap",
       "disk_image": true,
       "disk_interface": "virtio-scsi",
       "disk_size": "10000M",
-      "format": "qcow2",
+      "format": "raw",
       "headless": true,
       "http_directory": "./packer-config",
       "iso_checksum": "file:https://cloud-images.ubuntu.com/bionic/current/SHA256SUMS",

@@ -1,10 +1,48 @@
-- name: Install Nginx
+---
+- name: Check isucon10-qualify
+  become: no
+  stat:
+    path: "/home/isucon/isuumo"
+  register: chk_file
+
+- name: Delete isucon10-qualify if exists
   become: yes
   become_user: root
-  apt:
-    name:
-    - nginx
-    update_cache: yes
+  file:
+    path: /home/isucon/isuumo
+    state: absent
+  when: chk_file.stat.exists
+
+- name: Clone isucon10-qualify
+  become: no
+  git:
+    repo: git@github.com:isucon/isucon10-qualify.git
+    version: master
+    dest: /tmp/isucon10-qualify
+    accept_hostkey: yes
+
+- name: Chgroup sisucon10-qualify repo
+  become: yes
+  become_user: root
+  file:
+    path: /tmp/isucon10-qualify
+    state: directory
+    owner: isucon
+    group: isucon
+    recurse: yes
+
+- name: Deploy isucon10-qualify
+  become: yes
+  become_user: isucon
+  command: mv /tmp/isucon10-qualify /home/isucon/isuumo
+
+- name: Upgrade pip
+  environment: &env
+    PATH: "/home/isucon/local/go/bin:/home/isucon/local/node/bin:/home/isucon/local/ruby/bin:/home/isucon/local/python/bin:/home/isucon/local/perl/bin:/home/isucon/local/php/bin:/home/isucon/.cargo/bin:/home/isucon/.deno/bin:/home/isucon/bin:/home/isucon/.local/bin:/usr/bin:/sbin:/bin"
+  pip:
+    name: pip
+    executable: pip3
+    state: latest
 
 - name: Deploy nginx.conf
   copy:
@@ -13,7 +51,6 @@
     owner: "root"
     group: "root"
     mode: "0644"
-
 
 - name: Install Package(MYSQL)
   become: yes
@@ -25,15 +62,9 @@
     - mysql-common
     - mysql-client-5.7
     - mysql-client-core-5.7
+    - libmysqld-dev
     update_cache: yes
 
-- name: Upgrade pip
-  environment: &env
-    PATH: "/home/isucon/bin:/home/isucon/.local/bin:/usr/local/node/bin:/usr/local/python/bin:/usr/local/go/bin:/home/isucon/go/bin:/usr/local/bin:/usr/bin:/bin"
-  pip:
-    name: pip
-    executable: pip3
-    state: latest
 
 - name: Set Temporary password
   become: yes
@@ -92,7 +123,7 @@
   become: yes
   become_user: isucon
   args:
-    chdir: /home/isucon/isucon10-qualify/initial-data
+    chdir: /home/isucon/isuumo/initial-data
   environment: 
     <<: *env
   shell: |
@@ -109,66 +140,54 @@
   become: yes
   become_user: isucon
   args:
-    chdir: /home/isucon/isucon10-qualify
+    chdir: /home/isucon/isuumo
   environment:
     <<: *env
   shell: |
     mysql -u isucon -pisucon < webapp/mysql/db/0_Schema.sql
 
 
-- name: Build Web Application 
+- name: Build Web Application Go
   become: yes
   become_user: isucon
   args:
-    chdir: /home/isucon/isucon10-qualify/webapp/go/
+    chdir: /home/isucon/isuumo/webapp/go/
   environment:
     <<: *env
   shell: |
     make isuumo
 
-- name: Install npm packages
+# - name: Build Web Application Rust
+#   become: yes
+#   become_user: isucon
+#   args:
+#     chdir: /home/isucon/isuumo/webapp/rust
+#   environment:
+#     <<: *env
+#   shell: |
+#     make run
+
+- name: Build Web Application Node
   become: yes
   become_user: isucon
   args:
-    chdir: /home/isucon/isucon10-qualify/webapp/frontend
+    chdir: /home/isucon/isuumo/webapp/nodejs
   environment:
     <<: *env
   shell: |
     npm ci
 
-- name: Build frontend application
+
+- name: Build Web Application deno
   become: yes
   become_user: isucon
   args:
-    chdir: /home/isucon/isucon10-qualify/webapp/frontend
+    chdir: /home/isucon/isuumo/webapp/deno
   environment:
     <<: *env
   shell: |
-    npm run build
+    make isuumo
 
-- name: Export frontend application
-  become: yes
-  become_user: isucon
-  args:
-    chdir: /home/isucon/isucon10-qualify/webapp/frontend
-  environment:
-    <<: *env
-  shell: |
-    npm run export
-
-
-- name: Deploy static files
-  become: yes
-  become_user: root
-  shell: |
-    mkdir -p /www/data && cp -pR /home/isucon/isucon10-qualify/webapp/frontend/out/* /www/data
-
-- name: Deploy env shellscript
-  become: yes
-  become_user: isucon
-  copy:
-    src: "env.sh"
-    dest: /home/isucon
 - name: Copy service file
   copy:
     src: "{{ item }}"
@@ -178,7 +197,52 @@
     mode: "0644"
   with_items:
     - isucon-go.service
+    - isucon-nodejs.service
+    - isucon-deno.service
     - isucon-python.service
+
+- name: Install frontend packages
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isuumo/webapp/frontend
+  environment:
+    <<: *env
+  shell: |
+    npm ci
+
+- name: Build frontend application
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isuumo/webapp/frontend
+  environment:
+    <<: *env
+  shell: |
+    npm run build
+
+- name: Export frontend application
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isuumo/webapp/frontend
+  environment:
+    <<: *env
+  shell: |
+    npm run export
+
+- name: Deploy static files
+  become: yes
+  become_user: root
+  shell: |
+    mkdir -p /www/data && cp -pR /home/isucon/isuumo/webapp/frontend/out/* /www/data
+
+- name: Deploy env shellscript
+  become: yes
+  become_user: isucon
+  copy:
+    src: "env.sh"
+    dest: /home/isucon
 
 - name: Start "isucon-go.service"
   systemd:

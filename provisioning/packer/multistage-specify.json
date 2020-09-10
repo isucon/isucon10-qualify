@@ -1,7 +1,7 @@
 {
   "builders": [
     {
-      "accelerator": "none",
+      "accelerator": "hvf",
       "disk_compression": true,
       "disk_discard": "unmap",
       "disk_image": true,
@@ -10,8 +10,8 @@
       "format": "qcow2",
       "headless": true,
       "http_directory": "./packer-config",
-      "iso_checksum": "file:https://cloud-images.ubuntu.com/bionic/current/SHA256SUMS",
-      "iso_url": "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img",
+      "iso_checksum": "md5:aca681b1e01746e931736af2664986e3",
+      "iso_url": "./output-multistage-lang/isucon10-qualify-multistage-lang.qcow2",
       "output_directory": "output-{{user `env`}}",
       "qemuargs": [
         [
@@ -41,13 +41,6 @@
     }
   ],
   "provisioners": [
-    {
-      "inline": [
-        "sudo apt-get update",
-        "sudo apt-get install -y python ansible"
-      ],
-      "type": "shell"
-    },
     {
       "playbook_file": "../ansible/{{user `env`}}.yaml",
       "type": "ansible",

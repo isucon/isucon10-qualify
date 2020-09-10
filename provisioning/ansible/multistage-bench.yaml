@@ -2,7 +2,5 @@
   become: yes
   become_user: root
   roles:
-    - role: common
-    - role: langs
     - role: web
-    # - role: remove
+    - role: bench
