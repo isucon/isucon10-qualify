@@ -296,7 +296,7 @@ return function (App $app) {
             return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
         } elseif ($chair->getStock() <= 0) {
             $this->get('logger')->error(sprintf('requested id\'s chair is sold out : %s', $id));
-            return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+            return $response->withStatus(StatusCodeInterface::STATUS_NOT_FOUND);
         }
 
         $response->getBody()->write(json_encode($chair->toArray()));
