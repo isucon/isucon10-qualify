@@ -5,4 +5,4 @@
     - role: common
     - role: langs
     - role: web
-    # - role: remove
+    - role: remove
