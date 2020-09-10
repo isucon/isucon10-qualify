@@ -51,6 +51,9 @@ func main() {
 	if err != nil {
 		err = failure.Translate(err, fails.ErrBenchmarker, failure.Message("コマンドライン引数のパースに失敗しました"))
 		fails.Add(err, fails.ErrorOfInitialize)
+		reporter.SetPassed(false)
+		reporter.SetReason("コマンドライン引数のパースに失敗しました")
+		return
 	}
 
 	err = client.SetShareTargetURLs(
@@ -60,7 +63,7 @@ func main() {
 	if err != nil {
 		fails.Add(failure.Translate(err, fails.ErrBenchmarker), fails.ErrorOfInitialize)
 		reporter.SetPassed(false)
-		reporter.SetReason("コマンドライン引数のパースに失敗しました")
+		reporter.SetReason("ベンチ対象サーバーのURLが不正です")
 		return
 	}
 
