@@ -237,6 +237,12 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
+    $app->get('/api/chair/search/condition', function(Request $request, Response $response) {
+        $chairSearchCondition = $this->get(ChairSearchCondition::class);
+        $response->getBody()->write(json_encode($chairSearchCondition));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
     $app->get("/api/chair/{id}", function(Request $request, Response $response, array $args) {
         $id = $args['id'] ?? null;
         if (empty($id) || !is_numeric($id)) {
