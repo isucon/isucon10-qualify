@@ -18,4 +18,4 @@
     group: "root"
     mode: "0644"
   with_items:
-    - isucon-ruby.service
+    - isuumo.ruby.service

@@ -8,6 +8,7 @@
     - role: web-perl
     - role: web-python
     - role: web-rust
+    - role: web-ruby
     - role: web-deno
     - role: web-after
     - role: remove
