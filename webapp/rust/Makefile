@@ -1,4 +1,6 @@
 run:
+	cargo run --release
+build:
 	cargo build --locked --release
 
 rundev:
