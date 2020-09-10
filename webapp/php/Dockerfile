@@ -9,13 +9,15 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-      libzip-dev \
-      less \
-      && \
+        libzip-dev \
+        default-mysql-client \
+        less \
+        && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-configure zip && \
-    docker-php-ext-install zip
+    docker-php-ext-install zip && \
+    docker-php-ext-install pdo_mysql
 
 COPY . /php
