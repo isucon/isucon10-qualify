@@ -12,8 +12,8 @@ class ListCondition
         $this->list = $list;
     }
 
-    public static function unmarshal(array $list): ListCondition
+    public static function unmarshal(array $json): ListCondition
     {
-        return new ListCondition($list);
+        return new ListCondition($json['list']);
     }
 }
