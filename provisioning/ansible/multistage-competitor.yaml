@@ -2,7 +2,7 @@
   become: yes
   become_user: root
   roles:
-    - role: web-prepare
+    - role: web-bootstrap
     - role: web-go
     - role: web-node
     - role: web-perl
@@ -10,5 +10,5 @@
     - role: web-rust
     - role: web-ruby
     - role: web-deno
-    - role: web-after
+    - role: web-prepare
     - role: remove
