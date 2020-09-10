@@ -23,14 +23,16 @@ import (
 )
 
 const (
-	NumOfVerifyChairSearchCondition       = 3
-	NumOfVerifyChairSearch                = 3
-	NumOfVerifyEstateSearchCondition      = 3
-	NumOfVerifyEstateSearch               = 3
+	NumOfVerifyChairDetail                = 5
+	NumOfVerifyChairSearchCondition       = 1
+	NumOfVerifyChairSearch                = 5
+	NumOfVerifyEstateDetail               = 5
+	NumOfVerifyEstateSearchCondition      = 1
+	NumOfVerifyEstateSearch               = 5
 	NumOfVerifyLowPricedChair             = 1
 	NumOfVerifyLowPricedEstate            = 1
-	NumOfVerifyRecommendedEstateWithChair = 3
-	NumOfVerifyEstateNazotte              = 3
+	NumOfVerifyRecommendedEstateWithChair = 5
+	NumOfVerifyEstateNazotte              = 5
 )
 
 var (
@@ -70,6 +72,54 @@ func loadSnapshotFromFile(filePath string) (*Snapshot, error) {
 	return snapshot, nil
 }
 
+func verifyChairDetail(ctx context.Context, c *client.Client, filePath string) error {
+	snapshot, err := loadSnapshotFromFile(filePath)
+	if err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/id: Snapshotの読み込みに失敗しました"))
+	}
+
+	idx := strings.LastIndex(snapshot.Request.Resource, "/")
+	if idx == -1 || idx == len(snapshot.Request.Resource)-1 {
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
+	}
+
+	id := snapshot.Request.Resource[idx+1:]
+	actual, err := c.GetChairDetailFromID(ctx, id)
+
+	switch snapshot.Response.StatusCode {
+	case http.StatusOK:
+		if err != nil {
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+		}
+
+		var expected *asset.Chair
+		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
+		if err != nil {
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
+		}
+
+		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
+			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreChairUnexported))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+		}
+
+	case http.StatusNotFound:
+		if actual != nil {
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+		}
+		if err != nil {
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+		}
+
+	default:
+		if err == nil {
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+		}
+	}
+
+	return nil
+}
+
 func verifyChairSearchCondition(ctx context.Context, c *client.Client, filePath string) error {
 	snapshot, err := loadSnapshotFromFile(filePath)
 	if err != nil {
@@ -87,7 +137,7 @@ func verifyChairSearchCondition(ctx context.Context, c *client.Client, filePath 
 		var expected *asset.ChairSearchCondition
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search/condition: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search/condition: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
@@ -126,7 +176,7 @@ func verifyChairSearch(ctx context.Context, c *client.Client, filePath string) e
 		var expected *client.ChairsResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
@@ -137,6 +187,46 @@ func verifyChairSearch(ctx context.Context, c *client.Client, filePath string) e
 	default:
 		if err == nil {
 			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
+		}
+	}
+
+	return nil
+}
+
+func verifyEstateDetail(ctx context.Context, c *client.Client, filePath string) error {
+	snapshot, err := loadSnapshotFromFile(filePath)
+	if err != nil {
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/id: Snapshotの読み込みに失敗しました"))
+	}
+
+	idx := strings.LastIndex(snapshot.Request.Resource, "/")
+	if idx == -1 || idx == len(snapshot.Request.Resource)-1 {
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
+	}
+
+	id := snapshot.Request.Resource[idx+1:]
+	actual, err := c.GetEstateDetailFromID(ctx, id)
+
+	switch snapshot.Response.StatusCode {
+	case http.StatusOK:
+		if err != nil {
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
+		}
+
+		var expected *asset.Estate
+		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
+		if err != nil {
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
+		}
+
+		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
+			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+		}
+
+	default:
+		if err == nil {
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
 		}
 	}
 
@@ -160,7 +250,7 @@ func verifyEstateSearchCondition(ctx context.Context, c *client.Client, filePath
 		var expected *asset.EstateSearchCondition
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search/condition: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search/condition: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual) {
@@ -199,7 +289,7 @@ func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) 
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
@@ -233,7 +323,7 @@ func verifyLowPricedChair(ctx context.Context, c *client.Client, filePath string
 		var expected *client.ChairsResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/low_priced: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/low_priced: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
@@ -267,7 +357,7 @@ func verifyLowPricedEstate(ctx context.Context, c *client.Client, filePath strin
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/low_priced: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/low_priced: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
@@ -292,11 +382,11 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 
 	idx := strings.LastIndex(snapshot.Request.Resource, "/")
 	if idx == -1 || idx == len(snapshot.Request.Resource)-1 {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
 	}
-	id, err := strconv.ParseInt(string([]rune(snapshot.Request.Resource)[idx+1:]), 10, 64)
+	id, err := strconv.ParseInt(snapshot.Request.Resource[idx+1:], 10, 64)
 	if err != nil {
-		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"))
+		return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: 不正なSnapshotです"), failure.Messagef("snapshot: %s", filePath))
 	}
 
 	actual, err := c.GetRecommendedEstatesFromChair(ctx, id)
@@ -310,7 +400,7 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
@@ -349,7 +439,7 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 		var expected *client.EstatesResponse
 		err = json.Unmarshal([]byte(snapshot.Response.Body), &expected)
 		if err != nil {
-			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("POST /api/estate/nazotte: Response BodyのUnmarshalでエラーが発生しました"))
+			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("POST /api/estate/nazotte: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
@@ -369,11 +459,30 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsDirPath string) {
 	wg := sync.WaitGroup{}
 
-	snapshotsDirPath := filepath.Join(snapshotsParentsDirPath, "chair_search_condition")
+	snapshotsDirPath := filepath.Join(snapshotsParentsDirPath, "chair_detail")
 	snapshots, err := ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
+		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: Snapshotディレクトリがありません"))
+		fails.Add(err, fails.ErrorOfVerify)
+	} else {
+		for i := 0; i < NumOfVerifyChairDetail; i++ {
+			wg.Add(1)
+			r := rand.Intn(len(snapshots))
+			go func(filePath string) {
+				err := verifyChairDetail(ctx, c, filePath)
+				if err != nil {
+					fails.Add(err, fails.ErrorOfVerify)
+				}
+				wg.Done()
+			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
+		}
+	}
+
+	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "chair_search_condition")
+	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
+	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search/condition: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyChairSearchCondition; i++ {
 			wg.Add(1)
@@ -381,7 +490,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyChairSearchCondition(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -392,7 +501,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/search: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyChairSearch; i++ {
 			wg.Add(1)
@@ -400,7 +509,26 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyChairSearch(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
+				}
+				wg.Done()
+			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
+		}
+	}
+
+	snapshotsDirPath = filepath.Join(snapshotsParentsDirPath, "estate_detail")
+	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
+	if err != nil {
+		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: Snapshotディレクトリがありません"))
+		fails.Add(err, fails.ErrorOfVerify)
+	} else {
+		for i := 0; i < NumOfVerifyEstateDetail; i++ {
+			wg.Add(1)
+			r := rand.Intn(len(snapshots))
+			go func(filePath string) {
+				err := verifyEstateDetail(ctx, c, filePath)
+				if err != nil {
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -411,7 +539,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search/condition: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyEstateSearchCondition; i++ {
 			wg.Add(1)
@@ -419,7 +547,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyEstateSearchCondition(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -430,7 +558,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyEstateSearch; i++ {
 			wg.Add(1)
@@ -438,7 +566,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyEstateSearch(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -449,7 +577,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/low_priced: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyLowPricedChair; i++ {
 			wg.Add(1)
@@ -457,7 +585,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyLowPricedChair(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -468,7 +596,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/low_priced: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyLowPricedEstate; i++ {
 			wg.Add(1)
@@ -476,7 +604,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyLowPricedEstate(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -487,7 +615,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyRecommendedEstateWithChair; i++ {
 			wg.Add(1)
@@ -495,7 +623,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyRecommendedEstateWithChair(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))
@@ -506,7 +634,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 	snapshots, err = ioutil.ReadDir(snapshotsDirPath)
 	if err != nil {
 		err := failure.Translate(err, fails.ErrBenchmarker, failure.Message("POST /api/estate/nazotte: Snapshotディレクトリがありません"))
-		fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+		fails.Add(err, fails.ErrorOfVerify)
 	} else {
 		for i := 0; i < NumOfVerifyEstateNazotte; i++ {
 			wg.Add(1)
@@ -514,7 +642,7 @@ func verifyWithSnapshot(ctx context.Context, c *client.Client, snapshotsParentsD
 			go func(filePath string) {
 				err := verifyEstateNazotte(ctx, c, filePath)
 				if err != nil {
-					fails.ErrorsForCheck.Add(err, fails.ErrorOfVerify)
+					fails.Add(err, fails.ErrorOfVerify)
 				}
 				wg.Done()
 			}(path.Join(snapshotsDirPath, snapshots[r].Name()))

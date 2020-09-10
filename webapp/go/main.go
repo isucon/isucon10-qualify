@@ -294,10 +294,11 @@ func initialize(c echo.Context) error {
 
 	for _, p := range paths {
 		sqlFile, _ := filepath.Abs(p)
-		cmdStr := fmt.Sprintf("mysql -h %v -u %v -p%v %v < %v",
+		cmdStr := fmt.Sprintf("mysql -h %v -u %v -p%v -P %v %v < %v",
 			mySQLConnectionData.Host,
 			mySQLConnectionData.User,
 			mySQLConnectionData.Password,
+			mySQLConnectionData.Port,
 			mySQLConnectionData.DBName,
 			sqlFile,
 		)
@@ -532,19 +533,19 @@ func searchChairs(c echo.Context) error {
 func buyChair(c echo.Context) error {
 	m := echo.Map{}
 	if err := c.Bind(&m); err != nil {
-		c.Echo().Logger.Infof("post request document failed : %v", err)
+		c.Echo().Logger.Infof("post buy chair failed : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	_, ok := m["email"].(string)
 	if !ok {
-		c.Echo().Logger.Info("post request document failed : email not found in request body")
+		c.Echo().Logger.Info("post buy chair failed : email not found in request body")
 		return c.NoContent(http.StatusBadRequest)
 	}
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.Echo().Logger.Infof("post request document failed : %v", err)
+		c.Echo().Logger.Infof("post buy chair failed : %v", err)
 		return c.NoContent(http.StatusBadRequest)
 	}
 
