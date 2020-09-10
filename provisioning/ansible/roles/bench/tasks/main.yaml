@@ -94,10 +94,10 @@
     group: "root"
     mode: "0644"
   with_items:
-    - isucon-supervisor.service
+    - isuumo.supervisor.service
 - name: Start "supevisor"
   systemd:
     daemon_reload: "yes"
-    name: "isucon-supervisor"
+    name: "isuumo.supervisor"
     state: "restarted"
     enabled: "yes"

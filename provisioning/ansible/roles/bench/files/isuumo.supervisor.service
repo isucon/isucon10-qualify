@@ -3,6 +3,7 @@ Description=isucon-supervisor
 After=syslog.target
 
 [Service]
+LimitNOFILE=300000
 WorkingDirectory=/home/isucon/portal/supervisor
 EnvironmentFile=/home/isucon/portal/env.sh
 PIDFile=/home/isucon/portal/supervisor/server-supervisor.pid
