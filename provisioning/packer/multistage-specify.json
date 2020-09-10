@@ -1,0 +1,66 @@
+{
+  "variables": {
+      "env": ""
+  },
+  "builders": [
+    {
+      "accelerator": "none",
+      "disk_compression": true,
+      "disk_discard": "unmap",
+      "disk_image": true,
+      "disk_interface": "virtio-scsi",
+      "disk_size": "10000M",
+      "format": "qcow2",
+      "headless": true,
+      "http_directory": "./packer-config",
+      "iso_checksum": "bf01cfd4cf30fdd39d0d2e581ef386e6",
+      "iso_checksum_type": "md5",
+      "iso_url": "./output-multiistage-lang/isucon10-qualify-multistage-lang",
+      "output_directory": "output-{{user `env`}}" ,
+      "qemuargs": [
+        [
+          "-m",
+          "8192"
+        ],
+        [
+          "-smp",
+          "4,cores=4,threads=1"
+        ],
+        [
+          "-smbios",
+          "type=1,serial=ds=nocloud-net;instance-id=packer;seedfrom=http://{{ .HTTPIP }}:{{ .HTTPPort }}/"
+        ],
+        [
+          "-serial",
+          "mon:stdio"
+        ]
+      ],
+      "ssh_password": "ubuntu",
+      "ssh_port": 22,
+      "ssh_timeout": "300s",
+      "ssh_username": "ubuntu",
+      "type": "qemu",
+      "use_default_display": true,
+      "vm_name": "isucon10-qualify-{{user `env`}}"
+    }
+  ],
+  "provisioners": [
+    {
+        "type": "ansible",
+        "playbook_file": "../ansible/{{user `env`}}.yaml"
+    },
+    {
+      "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'",
+      "inline": [
+        "mv /etc/netplan/50-cloud-init.yaml /root/",
+        "mv /etc/sudoers.d/90-cloud-init-users /root/",
+        "/usr/bin/truncate --size 0 /etc/machine-id",
+        "rm -r /var/lib/cloud /var/lib/dbus/machine-id ",
+        "/bin/sync",
+        "/sbin/fstrim -v /"
+      ],
+      "type": "shell"
+    }
+  ]
+}
+
