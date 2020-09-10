@@ -22,13 +22,40 @@ func Verify(ctx context.Context, dataDir, fixtureDir string) {
 	ctx, cancel := context.WithTimeout(ctx, parameter.VerifyTimeout)
 	defer cancel()
 
-	c := client.NewClientForVerify()
-	verifyWithSnapshot(ctx, c, filepath.Join(dataDir, "result/verification_data"))
-	verifyWithScenario(ctx, c, fixtureDir, dataDir)
+	doneChan := make(chan bool)
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				close(doneChan)
+				return
+			case <-fails.Fail():
+			}
+		}
+	}()
 
+	c := client.NewClientForVerify()
+
+	verifyWithSnapshot(ctx, c, filepath.Join(dataDir, "result/verification_data"))
 	if ctx.Err() != nil {
 		err := failure.New(fails.ErrCritical, failure.Message("アプリケーション互換性チェックがタイムアウトしました"))
 		fails.Add(err, fails.ErrorOfVerify)
+	}
+
+	verifyWithScenario(ctx, c, fixtureDir, dataDir)
+	if ctx.Err() != nil {
+		err := failure.New(fails.ErrCritical, failure.Message("アプリケーション互換性チェックがタイムアウトしました"))
+		fails.Add(err, fails.ErrorOfVerify)
+	}
+
+	cancel()
+	<-doneChan
+	for {
+		select {
+		case <-fails.Fail():
+		default:
+			return
+		}
 	}
 }
 
