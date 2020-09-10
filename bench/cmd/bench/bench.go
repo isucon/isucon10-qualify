@@ -43,8 +43,8 @@ func main() {
 	dataDir := ""
 	fixtureDir := ""
 
-	flags.StringVar(&conf.TargetURLStr, "target-url", benchrun.GetTargetAddress(), "target url")
-	flags.StringVar(&dataDir, "data-dir", "initial-data", "data directory")
+	flags.StringVar(&conf.TargetURLStr, "target-url", "http://" + benchrun.GetTargetAddress(), "target url")
+	flags.StringVar(&dataDir, "data-dir", "../initial-data", "data directory")
 	flags.StringVar(&fixtureDir, "fixture-dir", "../webapp/fixture", "fixture directory")
 
 	err := flags.Parse(os.Args[1:])
