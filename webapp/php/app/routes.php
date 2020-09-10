@@ -361,6 +361,54 @@ return function (App $app) {
     });
 
     // Estate
+    $app->post('/api/estate', function(Request $request, Response $response) {
+        if (!$file = $request->getUploadedFiles()['estates'] ?? null) {
+            $this->get('logger')->error('failed to get form file');
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        } elseif (!$file instanceof Slim\Psr7\UploadedFile || $file->getError() !== UPLOAD_ERR_OK) {
+            $this->get('logger')->error('failed to get form file');
+            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        if (!$records = Reader::createFromPath($file->getFilePath())) {
+            $this->get('logger')->error('failed to read csv');
+            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        $pdo = $this->get(PDO::class);
+
+        try {
+            $pdo->beginTransaction();
+
+            foreach ($records as $record) {
+                $query = 'INSERT INTO estate VALUES(:id, :name, :description, :thumbnail, :address, :latitude, :longitude, :rent, :door_height, :door_width, :features, :popularity)';
+                $stmt = $pdo->prepare($query);
+                $stmt->execute([
+                    'id' => (int)trim($record[0] ?? null),
+                    'name' => trim($record[1] ?? null),
+                    'description' => trim($record[2] ?? null),
+                    'thumbnail' => trim($record[3] ?? null),
+                    'address' => trim($record[4] ?? null),
+                    'latitude' => (float)trim($record[5] ?? null),
+                    'longitude' => (float)trim($record[6] ?? null),
+                    'rent' => (int)trim($record[7] ?? null),
+                    'door_height' => (int)trim($record[8] ?? null),
+                    'door_width' => (int)trim($record[9] ?? null),
+                    'features' => trim($record[10] ?? null),
+                    'popularity' => (int)trim($record[11] ?? null),
+                ]);
+            }
+
+            $pdo->commit();
+        } catch (PDOException $e) {
+            $pdo->rollBack();
+            $this->get('logger')->error(sprintf('failed to insert estate: %s', $e->getMessage()));
+            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
     $app->get('/api/estate/{id}', function(Request $request, Response $response, array $args) {
         $id = $args['id'] ?? null;
         if (empty($id) || !is_numeric($id)) {
