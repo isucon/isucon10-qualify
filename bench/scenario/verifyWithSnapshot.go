@@ -89,7 +89,7 @@ func verifyChairDetail(ctx context.Context, c *client.Client, filePath string) e
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスが不正です"))
 		}
 
 		var expected *asset.Chair
@@ -100,20 +100,20 @@ func verifyChairDetail(ctx context.Context, c *client.Client, filePath string) e
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreChairUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	case http.StatusNotFound:
 		if actual != nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスが不正です"))
 		}
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスが不正です"))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスの内容が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスが不正です"))
 		}
 	}
 
@@ -131,7 +131,7 @@ func verifyChairSearchCondition(ctx context.Context, c *client.Client, filePath 
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/search/condition: レスポンスの内容が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/search/condition: レスポンスが不正です"))
 		}
 
 		var expected *asset.ChairSearchCondition
@@ -142,12 +142,12 @@ func verifyChairSearchCondition(ctx context.Context, c *client.Client, filePath 
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreChairUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search/condition: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search/condition: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search/condition: レスポンスの内容が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search/condition: レスポンスが不正です"))
 		}
 	}
 
@@ -170,7 +170,7 @@ func verifyChairSearch(ctx context.Context, c *client.Client, filePath string) e
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスが不正です"))
 		}
 
 		var expected *client.ChairsResponse
@@ -181,12 +181,12 @@ func verifyChairSearch(ctx context.Context, c *client.Client, filePath string) e
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreChairUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスの内容が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/search: レスポンスが不正です"))
 		}
 	}
 
@@ -210,7 +210,7 @@ func verifyEstateDetail(ctx context.Context, c *client.Client, filePath string) 
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスが不正です"))
 		}
 
 		var expected *asset.Estate
@@ -221,12 +221,12 @@ func verifyEstateDetail(ctx context.Context, c *client.Client, filePath string) 
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスが不正です"))
 		}
 	}
 
@@ -244,7 +244,7 @@ func verifyEstateSearchCondition(ctx context.Context, c *client.Client, filePath
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/search/condition: レスポンスの内容が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/search/condition: レスポンスが不正です"))
 		}
 
 		var expected *asset.EstateSearchCondition
@@ -255,12 +255,12 @@ func verifyEstateSearchCondition(ctx context.Context, c *client.Client, filePath
 
 		if !cmp.Equal(*expected, *actual) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search/condition: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search/condition: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search/condition: レスポンスの内容が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search/condition: レスポンスが不正です"))
 		}
 	}
 
@@ -283,7 +283,7 @@ func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) 
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスの内容が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスが不正です"))
 		}
 
 		var expected *client.EstatesResponse
@@ -294,12 +294,12 @@ func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) 
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスの内容が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスが不正です"))
 		}
 	}
 
@@ -317,7 +317,7 @@ func verifyLowPricedChair(ctx context.Context, c *client.Client, filePath string
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスが不正です"))
 		}
 
 		var expected *client.ChairsResponse
@@ -328,12 +328,12 @@ func verifyLowPricedChair(ctx context.Context, c *client.Client, filePath string
 
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreChairUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスが不正です"))
 		}
 	}
 
@@ -351,7 +351,7 @@ func verifyLowPricedEstate(ctx context.Context, c *client.Client, filePath strin
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスが不正です"))
 		}
 
 		var expected *client.EstatesResponse
@@ -362,12 +362,12 @@ func verifyLowPricedEstate(ctx context.Context, c *client.Client, filePath strin
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスが不正です"))
 		}
 	}
 
@@ -394,7 +394,7 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスの内容が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスが不正です"))
 		}
 
 		var expected *client.EstatesResponse
@@ -404,12 +404,12 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 		}
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスの内容が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスが不正です"))
 		}
 	}
 
@@ -433,7 +433,7 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 	switch snapshot.Response.StatusCode {
 	case http.StatusOK:
 		if err != nil {
-			return failure.Translate(err, fails.ErrApplication, failure.Message("POST /api/estate/nazotte: レスポンスの内容が不正です"))
+			return failure.Translate(err, fails.ErrApplication, failure.Message("POST /api/estate/nazotte: レスポンスが不正です"))
 		}
 
 		var expected *client.EstatesResponse
@@ -444,12 +444,12 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 
 		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
 			log.Printf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
-			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: レスポンスの内容が不正です"), failure.Messagef("snapshot: %s", filePath))
+			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
 	default:
 		if err == nil {
-			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: レスポンスの内容が不正です"))
+			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: レスポンスが不正です"))
 		}
 	}
 
