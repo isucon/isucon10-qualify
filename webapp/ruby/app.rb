@@ -42,6 +42,48 @@ class App < Sinatra::Base
       )
     end
 
+    def transaction(name)
+      begin_transaction(name)
+      yield(name)
+      commit_transaction(name)
+    rescue Exception => e
+      logger.error "Failed to commit tx: #{e.inspect}"
+      rollback_transaction(name)
+      raise
+    ensure
+      ensure_to_abort_transaction(name)
+    end
+
+    def begin_transaction(name)
+      Thread.current[:db_transaction] ||= {}
+      db.query('BEGIN')
+      Thread.current[:db_transaction][name] = :open
+    end
+
+    def commit_transaction(name)
+      Thread.current[:db_transaction] ||= {}
+      db.query('COMMIT')
+      Thread.current[:db_transaction][name] = :nil
+    end
+
+    def rollback_transaction(name)
+      Thread.current[:db_transaction] ||= {}
+      db.query('ROLLBACK')
+      Thread.current[:db_transaction][name] = :nil
+    end
+
+    def ensure_to_abort_transaction(name)
+      Thread.current[:db_transaction] ||= {}
+      if in_transaction?(name)
+        logger.warn "Transaction closed implicitly (#{$$}, #{Thread.current.object_id}): #{name}"
+        rollback_transaction(name)
+      end
+    end
+
+    def in_transaction?(name)
+      Thread.current[:db_transaction] && Thread.current[:db_transaction][name] == :open
+    end
+
     def camelize_keys_for_estate(estate_hash)
       estate_hash.tap do |e|
         e['doorHeight'] = e.delete('door_height')
@@ -233,18 +275,11 @@ class App < Sinatra::Base
       halt 400
     end
 
-    db.query('BEGIN')
-    begin
+    transaction('post_api_chair') do
       CSV.parse(params[:chairs][:tempfile].read, skip_blanks: true) do |row|
         sql = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         db.xquery(sql, *row.map(&:to_s))
       end
-      db.query('COMMIT')
-    rescue => e
-      logger.error("Failed to commit tx: #{e.inspect}")
-      raise
-    ensure
-      db.query('ROLLBACK')
     end
 
     status 201
@@ -264,19 +299,13 @@ class App < Sinatra::Base
         halt 400
       end
 
-    db.query('BEGIN')
-    begin
+    transaction('post_api_chair_buy') do |tx_name|
       chair = db.xquery('SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE', id).first
       unless chair
+        rollback_transaction(tx_name) if in_transaction?(tx_name)
         halt 404
       end
       db.xquery('UPDATE chair SET stock = stock - 1 WHERE id = ?', id)
-      db.query('COMMIT')
-    rescue => e
-      logger.error("Failed to commit tx: #{e.inspect}")
-      raise
-    ensure
-      db.query('ROLLBACK')
     end
 
     status 200
@@ -460,18 +489,11 @@ class App < Sinatra::Base
       halt 400
     end
 
-    db.query('BEGIN')
-    begin
+    transaction('post_api_estate') do
       CSV.parse(params[:estates][:tempfile].read, skip_blanks: true) do |row|
         sql = 'INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         db.xquery(sql, *row.map(&:to_s))
       end
-      db.query('COMMIT')
-    rescue => e
-      logger.error("Failed to commit tx: #{e.inspect}")
-      raise
-    ensure
-      db.query('ROLLBACK')
     end
 
     status 201
