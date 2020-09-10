@@ -9,7 +9,7 @@
   become: yes
   become_user: root
   file:
-    path: /home/isucon/isucon10-qualify
+    path: /home/isucon/isuumo
     state: absent
   when: chk_file.stat.exists
 
@@ -178,6 +178,16 @@
     npm ci
 
 
+- name: Build Web Application deno
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isuumo/webapp/deno
+  environment:
+    <<: *env
+  shell: |
+    make isuumo
+
 - name: Copy service file
   copy:
     src: "{{ item }}"
@@ -188,6 +198,7 @@
   with_items:
     - isucon-go.service
     - isucon-nodejs.service
+    - isucon-deno.service
 
 
 - name: Install frontend packages
