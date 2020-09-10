@@ -75,8 +75,7 @@ return function (App $app) {
         $chairSearchCondition = $this->get(ChairSearchCondition::class);
 
         if ($priceRangeId = $request->getQueryParams()['priceRangeId'] ?? null) {
-            $chairPrice = getRange($chairSearchCondition->price, (int)$priceRangeId);
-            if (!$chairPrice) {
+            if (!$chairPrice = getRange($chairSearchCondition->price, (int)$priceRangeId)) {
                 $this->get('logger')->info(sprintf('priceRangeId invalid, %s', $priceRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
             }
@@ -90,8 +89,7 @@ return function (App $app) {
             }
         }
         if ($heightRangeId = $request->getQueryParams()['heightRangeId'] ?? null) {
-            $chairHeight = getRange($chairSearchCondition->height, $heightRangeId);
-            if (!$chairHeight) {
+            if (!$chairHeight = getRange($chairSearchCondition->height, $heightRangeId)) {
                 $this->get('logger')->info(sprintf('heightRangeId invalid, %s', $heightRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
             }
@@ -105,8 +103,7 @@ return function (App $app) {
             }
         }
         if ($widthRangeId = $request->getQueryParams()['widthRangeId'] ?? null) {
-            $chairWidth = getRange($chairSearchCondition->width, $widthRangeId);
-            if (!$chairWidth) {
+            if (!$chairWidth = getRange($chairSearchCondition->width, $widthRangeId)) {
                 $this->get('logger')->info(sprintf('widthRangeId invalid, %s', $heightRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
             }
@@ -120,8 +117,7 @@ return function (App $app) {
             }
         }
         if ($depthRangeId = $request->getQueryParams()['depthRangeId'] ?? null) {
-            $chairDepth = getRange($chairSearchCondition->depth, $depthRangeId);
-            if (!$chairDepth) {
+            if (!$chairDepth = getRange($chairSearchCondition->depth, $depthRangeId)) {
                 $this->get('logger')->info(sprintf('depthRangeId invalid, %s', $heightRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
             }
@@ -189,14 +185,6 @@ return function (App $app) {
         }
         $stmt->execute();
         $chairs = $stmt->fetchAll(PDO::FETCH_CLASS, Chair::class);
-
-        if (count($chairs) === 0) {
-            $response->getBody()->write(json_encode([
-                'count' => $count,
-                'chairs' => [],
-            ]));
-            return $response->withHeader('Content-Type', 'application/json');
-        }
 
         $response->getBody()->write(json_encode([
             'count' => $count,
