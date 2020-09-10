@@ -70,3 +70,22 @@ func NewClientForVerify() *Client {
 		},
 	}
 }
+
+func NewClientForDraft() *Client {
+	return &Client{
+		userAgent: GenerateUserAgent(),
+		isBot:     false,
+		httpClient: &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					// HTTPのときには無視される
+					ServerName: ShareTargetURLs.TargetHost,
+				},
+			},
+			Timeout: parameter.DraftTimeout,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return fmt.Errorf("redirect attempted")
+			},
+		},
+	}
+}

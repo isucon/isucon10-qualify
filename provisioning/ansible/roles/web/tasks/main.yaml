@@ -9,7 +9,7 @@
   become: yes
   become_user: root
   file:
-    path: /home/isucon/isucon10-qualify
+    path: /home/isucon/isuumo
     state: absent
   when: chk_file.stat.exists
 
@@ -21,7 +21,7 @@
     dest: /tmp/isucon10-qualify
     accept_hostkey: yes
 
-- name: Chgroup sisucon10-qualify repo
+- name: Chgroup isucon10-qualify repo
   become: yes
   become_user: root
   file:
@@ -62,6 +62,7 @@
     - mysql-common
     - mysql-client-5.7
     - mysql-client-core-5.7
+    - libmysqld-dev
     update_cache: yes
 
 
@@ -176,15 +177,16 @@
   shell: |
     npm ci
 
-# - name: Build Web Application ruby
-#   become: yes
-#   become_user: isucon
-#   args:
-#     chdir: /home/isucon/isuumo/webapp/ruby
-#   environment:
-#     <<: *env
-#   shell: |
-#     bundle install
+
+- name: Build Web Application deno
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isuumo/webapp/deno
+  environment:
+    <<: *env
+  shell: |
+    make isuumo
 
 - name: Copy service file
   copy:
@@ -196,7 +198,7 @@
   with_items:
     - isucon-go.service
     - isucon-nodejs.service
-
+    - isucon-deno.service
 
 - name: Install frontend packages
   become: yes
