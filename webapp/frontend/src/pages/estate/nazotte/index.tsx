@@ -11,7 +11,7 @@ const useStyles = makeStyles((theme: Theme) =>
     container: {
       padding: theme.spacing(2),
       width: '100vw',
-      height: 0,
+      height: '100vh',
       flex: 'auto'
     },
     page: {
