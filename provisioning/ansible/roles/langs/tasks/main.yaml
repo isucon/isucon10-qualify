@@ -123,10 +123,10 @@
       export PATH=/home/isucon/local/go/bin:/home/isucon/go/bin:$PATH
       export GOROOT=/home/isucon/local/go
 
-- name: Install python v3.7.9
+- name: Install python v3.8.5
   become: yes
   become_user: isucon
-  command: /tmp/xbuild/python-install 3.7.9 /home/isucon/local/python
+  command: /tmp/xbuild/python-install 3.8.5 /home/isucon/local/python
 
 - name: Add PATH for python
   become: yes
