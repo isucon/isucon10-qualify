@@ -8,10 +8,16 @@ use Monolog\Processor\UidProcessor;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
-return function (ContainerBuilder $containerBuilder) {
-    $containerBuilder->addDefinitions([
-        LoggerInterface::class => function (ContainerInterface $c) {
-            $settings = $c->get('settings');
+return function (ContainerBuilder $containerontainerBuilder) {
+    $containerontainerBuilder->addDefinitions([
+        'logger' => function(ContainerInterface $container): LoggerInterface {
+            return $container->get(LoggerInterface::class);
+        }
+    ]);
+
+    $containerontainerBuilder->addDefinitions([
+        LoggerInterface::class => function(ContainerInterface $container): LoggerInterface {
+            $settings = $container->get('settings');
 
             $loggerSettings = $settings['logger'];
             $logger = new Logger($loggerSettings['name']);
@@ -23,6 +29,24 @@ return function (ContainerBuilder $containerBuilder) {
             $logger->pushHandler($handler);
 
             return $logger;
-        },
+        }
+    ]);
+
+    $containerontainerBuilder->addDefinitions([
+        PDO::class => function(ContainerInterface $container): PDO {
+            $settings = $container->get('settings')['database'];
+
+            $dsn = vsprintf('mysql:host=%s;dbname=%s;port=%d', [
+                $settings['host'],
+                $settings['dbname'],
+                $settings['port']
+            ]);
+
+            $pdo = new PDO($dsn, $settings['user'], $settings['pass']);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+            return $pdo;
+        }
     ]);
 };
