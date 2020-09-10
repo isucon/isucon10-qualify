@@ -60,6 +60,7 @@ func main() {
 	if err != nil {
 		fails.Add(failure.Translate(err, fails.ErrBenchmarker), fails.ErrorOfInitialize)
 		reporter.SetPassed(false)
+		reporter.SetReason("コマンドライン引数のパースに失敗しました")
 		return
 	}
 
@@ -69,6 +70,7 @@ func main() {
 	if len(msgs) > 0 {
 		reporter.Logf("asset initialize failed")
 		reporter.SetPassed(false)
+		reporter.SetReason("ベンチマーカーの初期化に失敗しました")
 		return
 	}
 
@@ -79,6 +81,7 @@ func main() {
 	if len(msgs) > 0 {
 		reporter.Logf("initialize failed")
 		reporter.SetPassed(false)
+		reporter.SetReason("POST /initializeに失敗しました")
 		return
 	}
 
@@ -92,6 +95,7 @@ func main() {
 	if len(msgs) > 0 {
 		reporter.Logf("verify failed")
 		reporter.SetPassed(false)
+		reporter.SetReason("アプリケーション互換性チェックに失敗しました")
 		return
 	}
 
@@ -104,7 +108,19 @@ func main() {
 	scenario.Validation(context.Background())
 	reporter.Logf("最終的な負荷レベル: %d", score.GetLevel())
 
-	// ベンチマーク終了時にcritical errorは1つでもあれば、application errorは10回以上で失格
+	// ベンチマーク終了時にcritical errorが1つ以上、もしくはapplication errorが10回以上で失格
 	msgs, critical, application, _ := fails.Get()
-	reporter.SetPassed(critical == 0 && application < 10)
+	isPassed := true
+
+	if critical > 0 {
+		isPassed = false
+		reporter.SetReason("致命的なエラーが発生しました")
+	} else if application >= 10 {
+		isPassed = false
+		reporter.SetReason("アプリケーションエラーが10回以上発生しました")
+	} else {
+		reporter.SetReason("OK")
+	}
+
+	reporter.SetPassed(isPassed)
 }

@@ -108,6 +108,12 @@ func SetPassed(passed bool) {
 	result.Passed = passed
 }
 
+func SetReason(reason string) {
+	mu.Lock()
+	defer mu.Unlock()
+	result.Execution.Reason = reason
+}
+
 func update(msgs []string, critical, application, trivial int) error {
 	mu.Lock()
 	defer mu.Unlock()
@@ -123,6 +129,10 @@ func update(msgs []string, critical, application, trivial int) error {
 	result.ScoreBreakdown.Deduction = deducation
 	result.Score = score
 
+	if result.Score < 0 {
+		result.Execution.Reason = "スコアが0点を下回りました"
+	}
+
 	output := Stdout{
 		Pass:     result.Passed && result.Score > 0,
 		Score:    score,
@@ -134,13 +144,6 @@ func update(msgs []string, critical, application, trivial int) error {
 		return err
 	}
 	result.Execution.Stdout = string(bytes)
-
-	bytes, err = json.Marshal(msgs)
-	if err != nil {
-		return err
-	}
-	result.Execution.Reason = string(bytes)
-
 	result.Execution.Stderr = logger.String()
 
 	return nil
