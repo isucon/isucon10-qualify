@@ -75,8 +75,8 @@ class Estate
             'longitude' => $this->getLongitude(),
             'address' => $this->getAddress(),
             'rent' => $this->getRent(),
-            'door_height' => $this->getDoorHeight(),
-            'door_width' => $this->getDoorWidth(),
+            'doorHeight' => $this->getDoorHeight(),
+            'doorWidth' => $this->getDoorWidth(),
             'features' => $this->getFeatures(),
             'popularity' => $this->getPopularity(),
         ];
