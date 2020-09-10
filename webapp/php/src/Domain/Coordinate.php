@@ -23,7 +23,7 @@ class Coordinate
      */
     public static function toText(array $coordinates): string
     {
-        return sprintf("'POLYGON(%s)'", implode(',', array_map(
+        return sprintf("'POLYGON((%s))'", implode(',', array_map(
             function(Coordinate $coordinate) {
                 return sprintf('%f %f', $coordinate->latitude, $coordinate->longitude);
             },
