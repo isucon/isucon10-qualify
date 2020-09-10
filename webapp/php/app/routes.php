@@ -60,7 +60,7 @@ return function (App $app) {
             system("bash -c \"$cmdStr\"", $result);
             if ($result !== EXEC_SUCCESS) {
                 $this->get('logger')->error('Initialize script error');
-                return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+                return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -280,7 +280,7 @@ return function (App $app) {
         $id = $args['id'] ?? null;
         if (empty($id) || !is_numeric($id)) {
             $this->get('logger')->error(sprintf('Request parameter \"id\" parse error : %s', $id));
-            return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
         }
 
         $query = 'SELECT * FROM chair WHERE id = :id';
@@ -293,7 +293,7 @@ return function (App $app) {
             return $response->withStatus(StatusCodeInterface::STATUS_NOT_FOUND);
         } elseif (!$chair instanceof Chair) {
             $this->get('logger')->error(sprintf('Failed to get the chair from id : %s', $id));
-            return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
         } elseif ($chair->getStock() <= 0) {
             $this->get('logger')->error(sprintf('requested id\'s chair is sold out : %s', $id));
             return $response->withStatus(StatusCodeInterface::STATUS_NOT_FOUND);
@@ -350,7 +350,7 @@ return function (App $app) {
             return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
         }
 
-        return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+        return $response->withStatus(StatusCodeInterface::STATUS_CREATED);
     });
 
     // Estate
@@ -399,7 +399,7 @@ return function (App $app) {
             return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
         }
 
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withStatus(StatusCodeInterface::STATUS_CREATED);
     });
 
     $app->get('/api/estate/search', function(Request $request, Response $response) {
@@ -544,7 +544,7 @@ return function (App $app) {
         $id = $args['id'] ?? null;
         if (empty($id) || !is_numeric($id)) {
             $this->get('logger')->error(sprintf('Request parameter "id" parse error : %s', $id));
-            return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
         }
 
         $query = 'SELECT * FROM estate WHERE id = :id';
@@ -554,10 +554,10 @@ return function (App $app) {
 
         if (!$estate) {
             $this->get('logger')->error(sprintf('requested id\'s estate not found : %s', $id));
-            return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+            return $response->withStatus(StatusCodeInterface::STATUS_NOT_FOUND);
         }
 
-        return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+        return $response->withStatus(StatusCodeInterface::STATUS_OK);
     });
 
     $app->post('/api/estate/nazotte', function(request $request, Response $response) {
@@ -567,7 +567,7 @@ return function (App $app) {
             $json['coordinates']
         );
         if (count($coordinates) === 0) {
-            return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
         }
 
         $boundingBox = BoundingBox::createFromCordinates($coordinates);
