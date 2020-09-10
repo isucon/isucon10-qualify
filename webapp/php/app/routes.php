@@ -5,6 +5,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Fig\Http\Message\StatusCodeInterface;
+use League\Csv\Reader;
 use Slim\App;
 
 const EXEC_SUCCESS = 127;
@@ -165,6 +166,61 @@ return function (App $app) {
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
+    });
+
+    $app->post('/api/chair', function (Request $request, Response $response) {
+        if (!$file = $request->getUploadedFiles()['chairs'] ?? null) {
+            $this->get(LoggerInterface::class)->error('failed to get form file');
+            return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+        } elseif (!$file instanceof Slim\Psr7\UploadedFile || $file->getError() !== UPLOAD_ERR_OK) {
+            $this->get(LoggerInterface::class)->error('failed to get form file');
+            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        if (!$records = Reader::createFromPath($file->getFilePath())) {
+            $this->get(LoggerInterface::class)->error('failed to read csv');
+            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        $pdo = $this->get(PDO::class);
+
+        if (!$pdo->beginTransaction()) {
+            $this->get(LoggerInterface::class)->error('failed to begin tx');
+            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        try {
+            foreach ($records as $record) {
+                $query = 'INSERT INTO chair VALUES(:id, :name, :description, :thumbnail, :price, :height, :width, :depth, :color, :features, :kind, :popularity, :stock)';
+                $stmt = $pdo->prepare($query);
+                $stmt->execute([
+                    ':id' => (int)trim($record[0]),
+                    ':name' => (string)trim($record[1]),
+                    ':description' => (string)trim($record[2]),
+                    ':thumbnail' => (string)trim($record[3]),
+                    ':price' => (int)trim($record[4]),
+                    ':height' => (int)trim($record[5]),
+                    ':width' => (int)trim($record[6]),
+                    ':depth' => (int)trim($record[7]),
+                    ':color' => (string)trim($record[8]),
+                    ':features' => (string)trim($record[9]),
+                    ':kind' => (string)trim($record[10]),
+                    ':popularity' => (int)trim($record[11]),
+                    ':stock' => (int)trim($record[12]),
+                ]);
+            }
+        } catch (PDOException $e) {
+            $pdo->rollback();
+            $this->get(LoggerInterface::class)->error(sprintf('failed to insert chair: %s', $e->getMessage()));
+            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        if (!$pdo->commit()) {
+            $this->get(LoggerInterface::class)->error('failed to commit tx');
+            return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
     });
 
     $app->get('/', function (Request $request, Response $response) {
