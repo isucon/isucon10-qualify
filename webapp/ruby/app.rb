@@ -39,6 +39,7 @@ class App < Sinatra::Base
         password: db_info[:password],
         database: db_info[:database],
         reconnect: true,
+        symbolize_keys: true,
       )
     end
 
@@ -86,8 +87,8 @@ class App < Sinatra::Base
 
     def camelize_keys_for_estate(estate_hash)
       estate_hash.tap do |e|
-        e['doorHeight'] = e.delete('door_height')
-        e['doorWidth'] = e.delete('door_width')
+        e[:doorHeight] = e.delete(:door_height)
+        e[:doorWidth] = e.delete(:door_width)
       end
     end
 
@@ -240,7 +241,7 @@ class App < Sinatra::Base
     limit_offset = " ORDER BY popularity DESC, id ASC LIMIT #{per_page} OFFSET #{per_page * page}" # XXX: mysql-cs-bind doesn't support escaping variables for limit and offset
     count_prefix = 'SELECT COUNT(*) as count FROM chair WHERE '
 
-    count = db.xquery("#{count_prefix}#{search_condition}", query_params).first['count']
+    count = db.xquery("#{count_prefix}#{search_condition}", query_params).first[:count]
     chairs = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
 
     { count: count, chairs: chairs }.to_json
@@ -261,7 +262,7 @@ class App < Sinatra::Base
       halt 404
     end
 
-    if chair['stock'] <= 0
+    if chair[:stock] <= 0
       logger.info "Requested id's chair is sold out: #{id}"
       halt 404
     end
@@ -412,7 +413,7 @@ class App < Sinatra::Base
     limit_offset = " ORDER BY popularity DESC, id ASC LIMIT #{per_page} OFFSET #{per_page * page}" # XXX:
     count_prefix = 'SELECT COUNT(*) as count FROM estate WHERE '
 
-    count = db.xquery("#{count_prefix}#{search_condition}", query_params).first['count']
+    count = db.xquery("#{count_prefix}#{search_condition}", query_params).first[:count]
     estates = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
 
     { count: count, estates: estates.map { |e| camelize_keys_for_estate(e) } }.to_json
@@ -449,10 +450,10 @@ class App < Sinatra::Base
 
     estates_in_polygon = []
     estates.each do |estate|
-      point = "'POINT(%f %f)'" % estate.values_at('latitude', 'longitude')
+      point = "'POINT(%f %f)'" % estate.values_at(:latitude, :longitude)
       coordinates_to_text = "'POLYGON((%s))'" % coordinates.map { |c| '%f %f' % c.values_at(:latitude, :longitude) }.join(',')
       sql = 'SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))' % [coordinates_to_text, point]
-      e = db.xquery(sql, estate['id']).first
+      e = db.xquery(sql, estate[:id]).first
       if e
         estates_in_polygon << e
       end
@@ -541,9 +542,9 @@ class App < Sinatra::Base
       halt 404
     end
 
-    w = chair['width']
-    h = chair['height']
-    d = chair['depth']
+    w = chair[:width]
+    h = chair[:height]
+    d = chair[:depth]
 
     sql = "SELECT * FROM estate WHERE (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) ORDER BY popularity DESC, id ASC LIMIT #{LIMIT}" # XXX:
     estates = db.xquery(sql, w, h, w, d, h, w, h, d, d, w, d, h).to_a
