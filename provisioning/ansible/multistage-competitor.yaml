@@ -5,7 +5,7 @@
     - role: web-prepare
     - role: web-go
     - role: web-node
-    - role: web-perl
+    # - role: web-perl
     - role: web-python
     - role: web-rust
     - role: web-deno

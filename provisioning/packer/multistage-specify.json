@@ -10,8 +10,8 @@
       "format": "qcow2",
       "headless": true,
       "http_directory": "./packer-config",
-      "iso_checksum": "md5:aca681b1e01746e931736af2664986e3",
-      "iso_url": "./output-multistage-lang/isucon10-qualify-multistage-lang.qcow2",
+      "iso_checksum": "md5:7b99dc9f0d65c641d387109688c4594d",
+      "iso_url": "./output-multistage-lang/isucon10-qualify-multistage-lang",
       "output_directory": "output-{{user `env`}}",
       "qemuargs": [
         [
@@ -20,7 +20,7 @@
         ],
         [
           "-smp",
-          "4,cores=4,threads=1"
+          "2,cores=2,threads=1"
         ],
         [
           "-smbios",
@@ -44,7 +44,8 @@
     {
       "playbook_file": "../ansible/{{user `env`}}.yaml",
       "type": "ansible",
-      "ansible_env_vars": ["ANSIBLE_CONFIG=../ansible/ansible.cfg"]
+      "ansible_env_vars": ["ANSIBLE_CONFIG=../ansible/ansible.cfg"],
+      "extra_arguments": ["-vvvv"]
     },
     {
       "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'",

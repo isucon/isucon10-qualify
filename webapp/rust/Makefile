@@ -1,5 +1,5 @@
 run:
-	cargo run --release
+	cargo build --locked --frozen --release
 
 rundev:
 	# systemfd and cargo-watch is required for autoloading
