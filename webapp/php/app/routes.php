@@ -9,6 +9,7 @@ use League\Csv\Reader;
 use Slim\App;
 
 const EXEC_SUCCESS = 127;
+const DIR_ROOT = __DIR__ . '/../..';
 
 class Chair
 {
@@ -97,6 +98,177 @@ class Chair
     }
 }
 
+class Range
+{
+    public ?int $id;
+    public ?int $min;
+    public ?int $max;
+
+    public function __construct(
+        int $id = null,
+        int $min = null,
+        int $max = null
+    ) {
+        $this->id = $id;
+        $this->min = $min;
+        $this->max = $max;
+    }
+
+    public static function unmarshal(array $json) {
+        return new Range(
+            $json['id'] ?? null,
+            $json['min'] ?? null,
+            $json['max'] ?? null,
+        );
+    }
+}
+
+class RangeCondition
+{
+    public ?string $prefix;
+    public ?string $suffix;
+    /** @var Range[] */
+    public array $ranges;
+
+    public function __construct(
+        string $prefix = null,
+        string $suffix = null,
+        array $ranges = []
+    ) {
+        $this->prefix = $prefix;
+        $this->suffix = $suffix;
+        $this->ranges = $ranges;
+    }
+
+    public static function unmarshal(array $json): RangeCondition
+    {
+        return new RangeCondition(
+            $json['prefix'] ?? null,
+            $json['suffix'] ?? null,
+            array_map(Range::class . '::unmarshal', $json['ranges'] ?? [])
+        );
+    }
+}
+
+class ChairSearchCondition
+{
+    public ?RangeCondition $width;
+    public ?RangeCondition $height;
+    public ?RangeCondition $depth;
+    public ?RangeCondition $price;
+    public ?RangeCondition $color;
+    public ?RangeCondition $feature;
+    public ?RangeCondition $kind;
+
+    public function __construct(
+        RangeCondition $width = null,
+        RangeCondition $height = null,
+        RangeCondition $depth = null,
+        RangeCondition $price = null,
+        RangeCondition $color = null,
+        RangeCondition $feature = null,
+        RangeCondition $kind = null
+    ) {
+        $this->width = $width;
+        $this->height = $height;
+        $this->depth = $depth;
+        $this->price = $price;
+        $this->color = $color;
+        $this->feature = $feature;
+        $this->kind = $kind;
+    }
+
+    public static function unmarshal(array $json): ChairSearchCondition
+    {
+        return new ChairSearchCondition(
+            isset($json['width']) ? RangeCondition::unmarshal($json['width']) : null,
+            isset($json['height']) ? RangeCondition::unmarshal($json['height']) : null,
+            isset($json['depth']) ? RangeCondition::unmarshal($json['depth']) : null,
+            isset($json['price']) ? RangeCondition::unmarshal($json['price']) : null,
+            isset($json['color']) ? RangeCondition::unmarshal($json['color']) : null,
+            isset($json['features']) ? RangeCondition::unmarshal($json['features']) : null,
+            isset($json['kind']) ? RangeCondition::unmarshal($json['kind']) : null,
+        );
+    }
+}
+
+class EstateSearchCondition
+{
+    public ?RangeCondition $doorWidth;
+    public ?RangeCondition $doorHeight;
+    public ?RangeCondition $rent;
+    public ?ListCondition $feature;
+
+    public function __construct(
+        RangeCondition $doorHeight = null,
+        RangeCondition $doorWidth = null,
+        RangeCondition $rent = null,
+        ListCondition $feature = null
+    ) {
+        $this->doorHeight = $doorHeight;
+        $this->doorWidth = $doorWidth;
+        $this->rent = $rent;
+        $this->feature = $feature;
+    }
+
+    public static function unmarshal(array $json): EstateSearchCondition
+    {
+        return new EstateSearchCondition(
+            isset($json['doorHeight']) ? RangeCondition::unmarshal($json['doorHeight']) : null,
+            isset($json['doorWidth']) ? RangeCondition::unmarshal($json['doorWidth']) : null,
+            isset($json['rent']) ? RangeCondition::unmarshal($json['rent']) : null,
+            isset($json['feature']) ? ListCondition::unmarshal($json['feature']) : null,
+        );
+    }
+}
+
+class ListCondition
+{
+    /** @var string[] */
+    public array $list;
+
+    public function __construct(array $list)
+    {
+        $this->list = $list;
+    }
+
+    public static function unmarshal(array $list): ListCondition
+    {
+        return new ListCondition($list);
+    }
+}
+
+function getRange($condition, int $rangeId)
+{
+    // $rangeId
+}
+
+global $chairSearchCondition;
+global $estateSearchCondition;
+
+function init() {
+    global $chairSearchCondition;
+    global $estateSearchCondition;
+
+    if (!$jsonText = file_get_contents(DIR_ROOT . '/fixture/chair_condition.json')) {
+        throw new RuntimeException(sprintf('Failed to get load file: %s', '/fixture/chair_condition.json'));
+    }
+    if (!$json = json_decode($jsonText, true)) {
+        throw new RuntimeException(sprintf('Failed to parse json: %s', '../fixture/chair_condition.json'));
+    }
+    $chairSearchCondition = ChairSearchCondition::unmarshal($json);
+
+    if (!$jsonText = file_get_contents(DIR_ROOT . '/fixture/estate_condition.json')) {
+        throw new RuntimeException(sprintf('Failed to get load file: %s', '/fixture/estate_condition.json'));
+    }
+    if (!$json = json_decode($jsonText, true)) {
+        throw new RuntimeException(sprintf('Failed to parse json: %s', '../fixture/estate_condition.json'));
+    }
+    $estateSearchCondition = EstateSearchCondition::unmarshal($json);
+}
+
+init();
+
 return function (App $app) {
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
         // CORS Pre-Flight OPTIONS Request Handler
@@ -136,6 +308,21 @@ return function (App $app) {
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
+    });
+
+    $app->get('/api/chair/search', function(Request $request, Response $response) {
+        $conditions = [];
+        $params = [];
+
+        if ($priceRangeId = $request->getQueryParams()['priceRangeId'] ?? null) {
+            if (!is_numeric($priceRangeId)) {
+                $this->get(LoggerInterface::class)->error(sprintf('priceRangeID invalid, %s', $priceRangeId));
+                return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
+            }
+            $chairPrice = getRange($condition, (int)$rangeId);
+        }
+
+        return $response;
     });
 
     $app->get("/api/chair/{id}", function(Request $request, Response $response, array $args) {
@@ -221,11 +408,6 @@ return function (App $app) {
         }
 
         return $response->withStatus(StatusCodeInterface::STATUS_NO_CONTENT);
-    });
-
-    $app->get('/api/chair/search', function(Request $request, Response $response) {
-        $conditions = null;
-        $params = null;
     });
 
     $app->get('/', function (Request $request, Response $response) {
