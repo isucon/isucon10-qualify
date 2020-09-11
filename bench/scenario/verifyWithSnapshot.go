@@ -38,6 +38,8 @@ const (
 var (
 	ignoreChairUnexported  = cmpopts.IgnoreUnexported(asset.Chair{})
 	ignoreEstateUnexported = cmpopts.IgnoreUnexported(asset.Estate{})
+	ignoreEstateLatitude   = cmpopts.IgnoreFields(asset.Estate{}, "Latitude")
+	ignoreEstateLongitude  = cmpopts.IgnoreFields(asset.Estate{}, "Longitude")
 )
 
 type Request struct {
@@ -219,8 +221,8 @@ func verifyEstateDetail(ctx context.Context, c *client.Client, filePath string) 
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/:id: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
-		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
-			reporter.Logf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
+		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported, ignoreEstateLatitude, ignoreEstateLongitude) {
+			reporter.Logf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported, ignoreEstateLatitude, ignoreEstateLongitude))
 			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
@@ -292,8 +294,8 @@ func verifyEstateSearch(ctx context.Context, c *client.Client, filePath string) 
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/search: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
-		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
-			reporter.Logf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
+		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported, ignoreEstateLatitude, ignoreEstateLongitude) {
+			reporter.Logf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported, ignoreEstateLatitude, ignoreEstateLongitude))
 			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
@@ -360,8 +362,8 @@ func verifyLowPricedEstate(ctx context.Context, c *client.Client, filePath strin
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/estate/low_priced: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
-		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
-			reporter.Logf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
+		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported, ignoreEstateLatitude, ignoreEstateLongitude) {
+			reporter.Logf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported, ignoreEstateLatitude, ignoreEstateLongitude))
 			return failure.New(fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
@@ -402,8 +404,8 @@ func verifyRecommendedEstateWithChair(ctx context.Context, c *client.Client, fil
 		if err != nil {
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/recommended_estate/:id: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
-		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
-			reporter.Logf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
+		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported, ignoreEstateLatitude, ignoreEstateLongitude) {
+			reporter.Logf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported, ignoreEstateLatitude, ignoreEstateLongitude))
 			return failure.New(fails.ErrApplication, failure.Message("GET /api/recommended_estate/:id: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
@@ -442,8 +444,8 @@ func verifyEstateNazotte(ctx context.Context, c *client.Client, filePath string)
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("POST /api/estate/nazotte: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
-		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported) {
-			reporter.Logf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported))
+		if !cmp.Equal(*expected, *actual, ignoreEstateUnexported, ignoreEstateLatitude, ignoreEstateLongitude) {
+			reporter.Logf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreEstateUnexported, ignoreEstateLatitude, ignoreEstateLongitude))
 			return failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
 		}
 
