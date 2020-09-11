@@ -19,19 +19,19 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 	t := time.Now()
 	chairs, estates, err := c.AccessTopPage(ctx)
 	if err != nil {
-		fails.Add(err, fails.ErrorOfEstateSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 
 	if err := checkChairsOrderedByPrice(chairs.Chairs, t); err != nil {
 		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
-		fails.Add(err, fails.ErrorOfEstateSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 
 	if err := checkEstatesOrderedByRent(estates.Estates); err != nil {
 		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
-		fails.Add(err, fails.ErrorOfEstateSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 
@@ -42,7 +42,7 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 	t = time.Now()
 	err = c.AccessEstateSearchPage(ctx)
 	if err != nil {
-		fails.Add(err, fails.ErrorOfEstateSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
@@ -54,14 +54,14 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 	for i := 0; i < parameter.NumOfSearchEstateInScenario; i++ {
 		q, err := createRandomEstateSearchQuery()
 		if err != nil {
-			fails.Add(err, fails.ErrorOfEstateSearchScenario)
+			fails.Add(err)
 			return failure.New(fails.ErrApplication)
 		}
 
 		t = time.Now()
 		_er, err := c.SearchEstatesWithQuery(ctx, q)
 		if err != nil {
-			fails.Add(err, fails.ErrorOfEstateSearchScenario)
+			fails.Add(err)
 			return failure.New(fails.ErrApplication)
 		}
 
@@ -75,7 +75,7 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 
 		if err := checkEstatesOrderedByPopularity(_er.Estates); err != nil {
 			err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスの内容が不正です"))
-			fails.Add(err, fails.ErrorOfEstateSearchScenario)
+			fails.Add(err)
 			return failure.New(fails.ErrApplication)
 		}
 
@@ -95,7 +95,7 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 			t := time.Now()
 			_er, err := c.SearchEstatesWithQuery(ctx, q)
 			if err != nil {
-				fails.Add(err, fails.ErrorOfEstateSearchScenario)
+				fails.Add(err)
 				return failure.New(fails.ErrApplication)
 			}
 
@@ -104,13 +104,13 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 			}
 
 			if len(_er.Estates) == 0 {
-				fails.Add(err, fails.ErrorOfEstateSearchScenario)
+				fails.Add(err)
 				return failure.New(fails.ErrApplication)
 			}
 
 			if err := checkEstatesOrderedByPopularity(er.Estates); err != nil {
 				err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/search: レスポンスの内容が不正です"))
-				fails.Add(err, fails.ErrorOfEstateSearchScenario)
+				fails.Add(err)
 				return failure.New(fails.ErrApplication)
 			}
 
@@ -137,7 +137,7 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 		t = time.Now()
 		e, err := c.AccessEstateDetailPage(ctx, targetID)
 		if err != nil {
-			fails.Add(err, fails.ErrorOfEstateSearchScenario)
+			fails.Add(err)
 			return failure.New(fails.ErrApplication)
 		}
 
@@ -148,7 +148,7 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 		estate, err := asset.GetEstateFromID(e.ID)
 		if err != nil || !e.Equal(estate) {
 			err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
-			fails.Add(err, fails.ErrorOfEstateSearchScenario)
+			fails.Add(err)
 			return failure.New(fails.ErrApplication)
 		}
 	}
@@ -160,7 +160,7 @@ func estateSearchScenario(ctx context.Context, c *client.Client) error {
 	err = c.RequestEstateDocument(ctx, strconv.FormatInt(targetID, 10))
 
 	if err != nil {
-		fails.Add(err, fails.ErrorOfEstateSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 

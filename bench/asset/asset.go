@@ -113,7 +113,7 @@ func Initialize(ctx context.Context, dataDir, fixtureDir string) {
 
 	if err := eg.Wait(); err != nil {
 		err = failure.Translate(err, fails.ErrBenchmarker, failure.Message("assetの初期化に失敗しました"))
-		fails.Add(err, fails.ErrorOfInitialize)
+		fails.Add(err)
 	}
 }
 

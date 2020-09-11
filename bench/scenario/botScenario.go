@@ -18,14 +18,14 @@ func botScenario(ctx context.Context, c *client.Client) {
 		defer wg.Done()
 		q, err := createRandomChairSearchQuery()
 		if err != nil {
-			fails.Add(err, fails.ErrorOfBotScenario)
+			fails.Add(err)
 		}
 		q.Set("perPage", "10")
 		chairs, err := c.SearchChairsWithQuery(ctx, q)
 		if err != nil {
 			code, _ := failure.CodeOf(err)
 			if code != fails.ErrBot {
-				fails.Add(err, fails.ErrorOfBotScenario)
+				fails.Add(err)
 			}
 			return
 		}
@@ -37,7 +37,7 @@ func botScenario(ctx context.Context, c *client.Client) {
 				_, err := c.GetChairDetailFromID(ctx, id)
 				code, _ := failure.CodeOf(err)
 				if code != fails.ErrBot {
-					fails.Add(err, fails.ErrorOfBotScenario)
+					fails.Add(err)
 				}
 			}(strconv.FormatInt(chair.ID, 10))
 		}
@@ -48,7 +48,7 @@ func botScenario(ctx context.Context, c *client.Client) {
 		defer wg.Done()
 		q, err := createRandomEstateSearchQuery()
 		if err != nil {
-			fails.Add(err, fails.ErrorOfBotScenario)
+			fails.Add(err)
 		}
 		q.Set("perPage", "10")
 
@@ -56,7 +56,7 @@ func botScenario(ctx context.Context, c *client.Client) {
 		if err != nil {
 			code, _ := failure.CodeOf(err)
 			if code != fails.ErrBot {
-				fails.Add(err, fails.ErrorOfBotScenario)
+				fails.Add(err)
 			}
 			return
 		}
@@ -68,7 +68,7 @@ func botScenario(ctx context.Context, c *client.Client) {
 				_, err := c.GetEstateDetailFromID(ctx, id)
 				code, _ := failure.CodeOf(err)
 				if code != fails.ErrBot {
-					fails.Add(err, fails.ErrorOfBotScenario)
+					fails.Add(err)
 				}
 			}(strconv.FormatInt(estate.ID, 10))
 		}

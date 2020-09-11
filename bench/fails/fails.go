@@ -24,19 +24,6 @@ const (
 	ErrBot failure.StringCode = "error bot"
 )
 
-type ErrorLabel int
-
-const (
-	ErrorOfInitialize ErrorLabel = iota
-	ErrorOfVerify
-	ErrorOfEstateSearchScenario
-	ErrorOfChairSearchScenario
-	ErrorOfEstateNazotteSearchScenario
-	ErrorOfBotScenario
-	ErrorOfEstateDraftPostScenario
-	ErrorOfChairDraftPostScenario
-)
-
 var (
 	msgs []string
 
@@ -67,7 +54,7 @@ func Get() ([]string, int, int, int) {
 	return msgs[:], critical, application, trivial
 }
 
-func Add(err error, label ErrorLabel) {
+func Add(err error) {
 	if err == nil {
 		return
 	}
