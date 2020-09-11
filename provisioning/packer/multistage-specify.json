@@ -10,7 +10,7 @@
       "format": "qcow2",
       "headless": true,
       "http_directory": "./packer-config",
-      "iso_checksum": "md5:7b99dc9f0d65c641d387109688c4594d",
+      "iso_checksum": "md5:79ee7b3b00ffceb423481a24e7c2457c",
       "iso_url": "./output-multistage-lang/isucon10-qualify-multistage-lang",
       "output_directory": "output-{{user `env`}}",
       "qemuargs": [
