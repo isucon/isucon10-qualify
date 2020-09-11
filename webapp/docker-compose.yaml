@@ -87,6 +87,25 @@ services:
       - mysql
     command: make run
 
+  php:
+    build: ./php
+    command: -c "make run"
+    entrypoint: bash
+    environment:
+      MYSQL_DATABASE: isuumo
+      MYSQL_USER: isucon
+      MYSQL_PASSWORD: isucon
+      MYSQL_HOST: mysql
+      SERVER_PORT: 1323
+    ports:
+      - 1323:1323
+    depends_on:
+      - mysql
+    volumes:
+      - ./fixture:/fixture
+      - ./php:/php
+      - ./mysql:/mysql
+
   perl:
     build: ./perl
     entrypoint:
