@@ -19,16 +19,17 @@ const EXEC_SUCCESS = 0;
 const NUM_LIMIT = 20;
 const NUM_NAZOTTE_LIMIT = 50;
 
-function getRange(RangeCondition $condition, int $rangeId): ?Range
+function getRange(RangeCondition $condition, string $rangeId): ?Range
 {
-    if ($rangeId < 0) {
-        return null;
-    }
-    if (count($condition->ranges) <= $rangeId) {
-        return null;
+    $id = intval($rangeId, 10);
+
+    foreach ($condition->ranges as $range) {
+        if ($range['id'] == $id) {
+            return range;
+        }
     }
 
-    return $condition->ranges[$rangeId] ?? null;
+    return null;
 }
 
 return function (App $app) {
