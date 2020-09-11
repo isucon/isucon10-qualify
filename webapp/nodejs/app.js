@@ -577,7 +577,7 @@ app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
   try {
     await beginTransaction();
     const csv = parse(req.file.buffer, { skip_empty_line: true });
-    for (var i = 1; i < csv.length; i++) {
+    for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
       await query(
         "INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -605,7 +605,7 @@ app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
   try {
     await beginTransaction();
     const csv = parse(req.file.buffer, { skip_empty_line: true });
-    for (var i = 1; i < csv.length; i++) {
+    for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
       await query(
         "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",

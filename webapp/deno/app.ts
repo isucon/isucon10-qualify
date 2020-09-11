@@ -580,7 +580,7 @@ router.post("/api/chair", async (ctx) => {
     const content = decoder.decode((form.chairs as any).content);
     const csv = await parse(content);
     await db.transaction(async (conn) => {
-      for (let i = 1; i < csv.length; i++) {
+      for (let i = 0; i < csv.length; i++) {
         const items = csv[i] as any;
         await conn.execute(
           "INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -607,7 +607,7 @@ router.post("/api/estate", async (ctx) => {
     const content = decoder.decode((form.estates as any).content);
     const csv = await parse(content);
     await db.transaction(async (conn) => {
-      for (let i = 1; i < csv.length; i++) {
+      for (let i = 0; i < csv.length; i++) {
         const items = csv[i] as any;
         await conn.execute(
           "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
