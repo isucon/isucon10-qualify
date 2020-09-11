@@ -3,6 +3,7 @@
   become_user: root
   roles:
     - role: web-bootstrap
+    - role: web-php
     - role: web-go
     - role: web-node
     - role: web-perl
