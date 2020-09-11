@@ -42,9 +42,9 @@ return function (App $app) {
         $config = $this->get('settings')['database'];
 
         $paths = [
-            '../mysql/db/0_Schema.sql',
-            '../mysql/db/1_DummyEstateData.sql',
-            '../mysql/db/2_DummyChairData.sql',
+            '../../mysql/db/0_Schema.sql',
+            '../../mysql/db/1_DummyEstateData.sql',
+            '../../mysql/db/2_DummyChairData.sql',
         ];
 
         foreach ($paths as $path) {
