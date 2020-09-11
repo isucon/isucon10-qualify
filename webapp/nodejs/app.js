@@ -107,7 +107,7 @@ app.get("/api/chair/search", async (req, res, next) => {
     perPage,
   } = req.query;
 
-  if (priceRangeId != null) {
+  if (!!priceRangeId) {
     const chairPrice = chairSearchCondition["price"].ranges[priceRangeId];
     if (chairPrice == null) {
       res.status(400).send("priceRangeID invalid");
@@ -125,7 +125,7 @@ app.get("/api/chair/search", async (req, res, next) => {
     }
   }
 
-  if (heightRangeId != null) {
+  if (!!heightRangeId) {
     const chairHeight = chairSearchCondition["height"].ranges[heightRangeId];
     if (chairHeight == null) {
       res.status(400).send("heightRangeId invalid");
@@ -143,7 +143,7 @@ app.get("/api/chair/search", async (req, res, next) => {
     }
   }
 
-  if (widthRangeId != null) {
+  if (!!widthRangeId) {
     const chairWidth = chairSearchCondition["width"].ranges[widthRangeId];
     if (chairWidth == null) {
       res.status(400).send("widthRangeId invalid");
@@ -161,7 +161,7 @@ app.get("/api/chair/search", async (req, res, next) => {
     }
   }
 
-  if (depthRangeId != null) {
+  if (!!depthRangeId) {
     const chairDepth = chairSearchCondition["depth"].ranges[depthRangeId];
     if (chairDepth == null) {
       res.status(400).send("depthRangeId invalid");
@@ -179,17 +179,17 @@ app.get("/api/chair/search", async (req, res, next) => {
     }
   }
 
-  if (kind != null) {
+  if (!!kind) {
     searchQueries.push("kind = ? ");
     queryParams.push(kind);
   }
 
-  if (color != null) {
+  if (!!color) {
     searchQueries.push("color = ? ");
     queryParams.push(color);
   }
 
-  if (features != null) {
+  if (!!features) {
     const featureConditions = features.split(",");
     for (const featureCondition of featureConditions) {
       searchQueries.push("features LIKE CONCAT('%', ?, '%')");
@@ -316,7 +316,7 @@ app.get("/api/estate/search", async (req, res, next) => {
     perPage,
   } = req.query;
 
-  if (doorHeightRangeId != null) {
+  if (!!doorHeightRangeId) {
     const doorHeight =
       estateSearchCondition["doorHeight"].ranges[doorHeightRangeId];
     if (doorHeight == null) {
@@ -335,7 +335,7 @@ app.get("/api/estate/search", async (req, res, next) => {
     }
   }
 
-  if (doorWidthRangeId != null) {
+  if (!!doorWidthRangeId) {
     const doorWidth =
       estateSearchCondition["doorWidth"].ranges[doorWidthRangeId];
     if (doorWidth == null) {
@@ -354,7 +354,7 @@ app.get("/api/estate/search", async (req, res, next) => {
     }
   }
 
-  if (rentRangeId != null) {
+  if (!!rentRangeId) {
     const rent = estateSearchCondition["rent"].ranges[rentRangeId];
     if (rent == null) {
       res.status(400).send("rentRangeId invalid");
@@ -372,7 +372,7 @@ app.get("/api/estate/search", async (req, res, next) => {
     }
   }
 
-  if (features != null) {
+  if (!!features) {
     const featureConditions = features.split(",");
     for (const featureCondition of featureConditions) {
       searchQueries.push("features LIKE CONCAT('%', ?, '%')");
