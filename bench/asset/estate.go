@@ -91,8 +91,6 @@ func (e1 *Estate) Equal(e2 *Estate) bool {
 		e1.Address == e2.Address &&
 		e1.DoorHeight == e2.DoorHeight &&
 		e1.DoorWidth == e2.DoorWidth &&
-		e1.Latitude == e2.Latitude &&
-		e1.Longitude == e2.Longitude &&
 		e1.Features == e2.Features
 }
 
