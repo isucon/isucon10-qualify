@@ -546,7 +546,7 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    $app->post('/api/estate/req_doc/{id}', function(Request $request, Response $response) {
+    $app->post('/api/estate/req_doc/{id}', function(Request $request, Response $response, array $args) {
         $id = $args['id'] ?? null;
         if (empty($id) || !is_numeric($id)) {
             $this->get('logger')->error(sprintf('Request parameter "id" parse error : %s', $id));
