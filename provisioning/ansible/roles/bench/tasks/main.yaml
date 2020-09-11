@@ -108,5 +108,5 @@
   systemd:
     daemon_reload: "yes"
     name: "isuumo.supervisor"
-    state: "restarted"
+    state: "stopped"
     enabled: "yes"
