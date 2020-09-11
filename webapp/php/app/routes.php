@@ -24,8 +24,8 @@ function getRange(RangeCondition $condition, string $rangeId): ?Range
     $id = intval($rangeId, 10);
 
     foreach ($condition->ranges as $range) {
-        if ($range['id'] == $id) {
-            return range;
+        if ($range->id == $id) {
+            return $range;
         }
     }
 
@@ -80,7 +80,7 @@ return function (App $app) {
         $chairSearchCondition = $this->get(ChairSearchCondition::class);
 
         if ($priceRangeId = $request->getQueryParams()['priceRangeId'] ?? null) {
-            if (!$chairPrice = getRange($chairSearchCondition->price, (int)$priceRangeId)) {
+            if (!$chairPrice = getRange($chairSearchCondition->price, $priceRangeId)) {
                 $this->get('logger')->info(sprintf('priceRangeId invalid, %s', $priceRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
             }
@@ -109,7 +109,7 @@ return function (App $app) {
         }
         if ($widthRangeId = $request->getQueryParams()['widthRangeId'] ?? null) {
             if (!$chairWidth = getRange($chairSearchCondition->width, $widthRangeId)) {
-                $this->get('logger')->info(sprintf('widthRangeId invalid, %s', $heightRangeId));
+                $this->get('logger')->info(sprintf('widthRangeId invalid, %s', $widthRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
             }
             if ($chairWidth->min != -1) {
@@ -123,7 +123,7 @@ return function (App $app) {
         }
         if ($depthRangeId = $request->getQueryParams()['depthRangeId'] ?? null) {
             if (!$chairDepth = getRange($chairSearchCondition->depth, $depthRangeId)) {
-                $this->get('logger')->info(sprintf('depthRangeId invalid, %s', $heightRangeId));
+                $this->get('logger')->info(sprintf('depthRangeId invalid, %s', $depthRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
             }
             if ($chairDepth->min != -1) {
