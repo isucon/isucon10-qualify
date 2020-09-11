@@ -17,7 +17,7 @@
   become: no
   git:
     repo: git@github.com:isucon/isucon10-qualify.git
-    version: provisioning/ansible/separate-role
+    version: master
     dest: /tmp/isucon10-qualify
     accept_hostkey: yes
 
