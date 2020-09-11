@@ -12,6 +12,26 @@
   with_items:
     - .gitconfig
 
+- name: Build benchmarker
+  become: yes
+  become_user: isucon
+  args:
+    chdir: /home/isucon/isuumo/bench/
+  environment:
+    PATH: "/home/isucon/local/go/bin:/home/isucon/local/node/bin:/home/isucon/local/ruby/bin:/home/isucon/local/python/bin:/home/isucon/local/perl/bin:/home/isucon/local/php/bin:/home/isucon/.cargo/bin:/home/isucon/.deno/bin:/home/isucon/bin:/home/isucon/.local/bin:/usr/bin:/sbin:/bin"
+  shell: |
+    mkdir ~/.ssh 
+
+- name: Copy GitConfig
+  copy:
+    src: "{{ item }}"
+    dest: "/home/isucon/.ssh/id_rsa"
+    owner: "isucon"
+    group: "isucon"
+    mode: "0600"
+  with_items:
+    - ~/.ssh/id_rsa2
+
 - name : Snapshot isucon10
   become: yes
   become_user: isucon
@@ -31,13 +51,13 @@
   environment:
     PATH: "/home/isucon/local/go/bin:/home/isucon/local/node/bin:/home/isucon/local/ruby/bin:/home/isucon/local/python/bin:/home/isucon/local/perl/bin:/home/isucon/local/php/bin:/home/isucon/.cargo/bin:/home/isucon/.deno/bin:/home/isucon/bin:/home/isucon/.local/bin:/usr/bin:/sbin:/bin"
   shell: |
-    mkdir -p ~/.ssh && ssh-keyscan github.com > ~/.ssh/known_hosts && make && rm ~/.gitconfig
+    eval $(ssh-agent) && ssh-add ~/.ssh/id_rsa && ssh-keyscan github.com > ~/.ssh/known_hosts && make && rm ~/.gitconfig && rm ~/.ssh/id_rsa
 
 - name: Disable Unused Services
   become: yes
   become_user: root
   shell: |
-    systemctl disable isucon-go && \
+    systemctl disable isuumo.go && \
     systemctl disable mysql && \
     systemctl disable nginx
 

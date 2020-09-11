@@ -1,6 +1,10 @@
+---
 - hosts: all
   become: yes
   become_user: root
   roles:
+    - role: web-bootstrap
+    - role: web-go
     - role: web-prepare
     - role: bench
+    - role: bench-kernel
