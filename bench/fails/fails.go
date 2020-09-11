@@ -3,9 +3,9 @@ package fails
 import (
 	"context"
 	"errors"
-	"log"
 	"sync"
 
+	"github.com/isucon10-qualify/isucon10-qualify/bench/reporter"
 	"github.com/morikuni/failure"
 )
 
@@ -54,7 +54,7 @@ func init() {
 	failChan = make(chan bool, 1)
 }
 
-func GetMsgs() ([]string) {
+func GetMsgs() []string {
 	mu.RLock()
 	defer mu.RUnlock()
 
@@ -80,8 +80,6 @@ func Add(err error, label ErrorLabel) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	log.Printf("%+v", err)
-
 	msg, ok := failure.MessageOf(err)
 	code, _ := failure.CodeOf(err)
 
@@ -91,10 +89,10 @@ func Add(err error, label ErrorLabel) {
 			msg += " (critical error)"
 			critical++
 		case ErrTimeout:
-			msg += "（タイムアウトしました）"
+			msg += " (タイムアウトしました)"
 			trivial++
 		case ErrTemporary:
-			msg += "（一時的なエラー）"
+			msg += " (一時的なエラー)"
 			trivial++
 		case ErrApplication:
 			application++
@@ -116,6 +114,8 @@ func Add(err error, label ErrorLabel) {
 	if critical > 0 || application >= 10 {
 		failChan <- true
 	}
+
+	reporter.Logf("%+v", err)
 }
 
 func Fail() chan bool {
