@@ -106,7 +106,7 @@ router.get("/api/chair/search", async (ctx, next) => {
     perPage,
   } = helpers.getQuery(ctx);
 
-  if (priceRangeId != null) {
+  if (!!priceRangeId) {
     const chairPrice = chairSearchCondition["price"].ranges[priceRangeId];
     if (chairPrice == null) {
       ctx.response.status = 400;
@@ -125,7 +125,7 @@ router.get("/api/chair/search", async (ctx, next) => {
     }
   }
 
-  if (heightRangeId != null) {
+  if (!!heightRangeId) {
     const chairHeight = chairSearchCondition["height"].ranges[heightRangeId];
     if (chairHeight == null) {
       ctx.response.status = 400;
@@ -144,7 +144,7 @@ router.get("/api/chair/search", async (ctx, next) => {
     }
   }
 
-  if (widthRangeId != null) {
+  if (!!widthRangeId) {
     const chairWidth = chairSearchCondition["width"].ranges[widthRangeId];
     if (chairWidth == null) {
       ctx.response.status = 400;
@@ -163,7 +163,7 @@ router.get("/api/chair/search", async (ctx, next) => {
     }
   }
 
-  if (depthRangeId != null) {
+  if (!!depthRangeId) {
     const chairDepth = chairSearchCondition["depth"].ranges[depthRangeId];
     if (chairDepth == null) {
       ctx.response.status = 400;
@@ -182,17 +182,17 @@ router.get("/api/chair/search", async (ctx, next) => {
     }
   }
 
-  if (kind != null) {
+  if (!!kind) {
     searchQueries.push("kind = ? ");
     queryParams.push(kind);
   }
 
-  if (color != null) {
+  if (!!color) {
     searchQueries.push("color = ? ");
     queryParams.push(color);
   }
 
-  if (features != null) {
+  if (!!features) {
     const featureConditions = features.split(",");
     for (const featureCondition of featureConditions) {
       searchQueries.push("features LIKE ?");
@@ -308,7 +308,7 @@ router.get("/api/estate/search", async (ctx) => {
     perPage,
   } = helpers.getQuery(ctx);
 
-  if (doorHeightRangeId != null) {
+  if (!!doorHeightRangeId) {
     const doorHeight =
       estateSearchCondition["doorHeight"].ranges[doorHeightRangeId];
     if (doorHeight == null) {
@@ -328,7 +328,7 @@ router.get("/api/estate/search", async (ctx) => {
     }
   }
 
-  if (doorWidthRangeId != null) {
+  if (!!doorWidthRangeId) {
     const doorWidth =
       estateSearchCondition["doorWidth"].ranges[doorWidthRangeId];
     if (doorWidth == null) {
@@ -348,7 +348,7 @@ router.get("/api/estate/search", async (ctx) => {
     }
   }
 
-  if (rentRangeId != null) {
+  if (!!rentRangeId) {
     const rent = estateSearchCondition["rent"].ranges[rentRangeId];
     if (rent == null) {
       ctx.response.status = 400;
@@ -367,7 +367,7 @@ router.get("/api/estate/search", async (ctx) => {
     }
   }
 
-  if (features != null) {
+  if (!!features) {
     const featureConditions = features.split(",");
     for (const featureCondition of featureConditions) {
       searchQueries.push("features LIKE ?");
