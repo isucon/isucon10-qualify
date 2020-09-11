@@ -52,6 +52,25 @@
     group: "root"
     mode: "0644"
 
+- name: Deploy nginx isuumo.conf
+  copy:
+    src: "isuumo.conf"
+    dest: "/etc/nginx/sites-available/isuumo.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Enable isuumo.config
+  file:
+    path: /etc/nginx/sites-enabled/isuumo.conf
+    src: /etc/nginx/sites-available/isuumo.conf
+    state: link
+
+- name: Delete default config
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
 - name: Install Package(MYSQL)
   become: yes
   become_user: root
