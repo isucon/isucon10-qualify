@@ -182,17 +182,17 @@ router.get("/api/chair/search", async (ctx, next) => {
     }
   }
 
-  if (kind != null) {
+  if (!kind) {
     searchQueries.push("kind = ? ");
     queryParams.push(kind);
   }
 
-  if (color != null) {
+  if (!color) {
     searchQueries.push("color = ? ");
     queryParams.push(color);
   }
 
-  if (features != null) {
+  if (!features) {
     const featureConditions = features.split(",");
     for (const featureCondition of featureConditions) {
       searchQueries.push("features LIKE ?");
@@ -367,7 +367,7 @@ router.get("/api/estate/search", async (ctx) => {
     }
   }
 
-  if (features != null) {
+  if (!features) {
     const featureConditions = features.split(",");
     for (const featureCondition of featureConditions) {
       searchQueries.push("features LIKE ?");
