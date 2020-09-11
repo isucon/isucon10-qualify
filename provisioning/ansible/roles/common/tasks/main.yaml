@@ -15,7 +15,7 @@
     name: isucon
     uid: 1100
     group: isucon
-    password: isucon
+    password: $6$a3ehJA1nkzvm3EiW$3vTxieCi5P8brkaJzzBDji3wyjJRQYWBtcRgf27f2BRdEMKeM7Pycb2JZ6eTdSw2/hqLh59xVH7PTr6r9wNiQ0
     home: /home/isucon
     shell: /bin/bash
     state: present
@@ -38,39 +38,45 @@
     replace: 'http://ftp.jaist.ac.jp/pub/Linux/ubuntu/'
     backup: yes
 
-- name: Check isucon10-qualify
-  become: no
-  stat:
-    path: "/home/isucon/isucon10-qualify"
-  register: chk_file
-
-- name: Delete isucon10-qualify if exists
+- name: Install Package(Build)
   become: yes
   become_user: root
-  file:
-    path: /home/isucon/isucon10-qualify
-    state: absent
-  when: chk_file.stat.exists
+  apt:
+    name: 
+    - libssl-dev
+    - libreadline-dev
+    - gcc
+    - make
+    - libffi-dev
+    - zlib1g-dev
+    - unzip
+    - pkg-config
+    - autoconf
+    - automake
+    - build-essential
+    - nginx
+    - libxml2-dev
+    - libsqlite3-dev
+    - libbz2-dev
+    - libkrb5-dev
+    - libcurl4-openssl-dev
+    - libpng-dev
+    - libjpeg-dev
+    - libfreetype6-dev
+    - libc-client2007e-dev
+    - libxslt-dev
+    - libonig-dev
+    - libtidy-dev
+    - libzip-dev
+    - default-mysql-client
+    - default-libmysqlclient-dev
+    update_cache: yes
 
-- name: Clone isucon10-qualify
-  become: no
-  git:
-    repo: git@github.com:isucon/isucon10-qualify.git
-    version: master
-    dest: /tmp/isucon10-qualify
-    accept_hostkey: yes
-
-- name: Chgroup sisucon10-qualify repo
-  become: yes
-  become_user: root
-  file:
-    path: /tmp/isucon10-qualify
-    state: directory
-    owner: isucon
-    group: isucon
-    recurse: yes
-
-- name: Deploy isucon10-qualify
+- name: install xbuild
   become: yes
   become_user: isucon
-  command: mv /tmp/isucon10-qualify /home/isucon/isucon10-qualify
+  git:
+    repo: https://github.com/tagomoris/xbuild.git
+    dest: /tmp/xbuild
+    version: master
+

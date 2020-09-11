@@ -2,33 +2,22 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
-	"log"
 	"math/rand"
 	"net"
 	"os"
-	"sort"
 	"time"
 
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
+	"github.com/isucon10-qualify/isucon10-qualify/bench/reporter"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/scenario"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/score"
+	"github.com/morikuni/failure"
+
+	"github.com/isucon/isucon10-portal/bench-tool.go/benchrun"
 )
-
-type Message struct {
-	Text  string `json:"text"`
-	Count int    `json:"count"`
-}
-
-type Output struct {
-	Pass     bool      `json:"pass"`
-	Score    int       `json:"score"`
-	Messages []Message `json:"messages"`
-	Language string    `json:"language"`
-}
 
 type Config struct {
 	TargetURLStr string
@@ -39,11 +28,14 @@ type Config struct {
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
-
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 
 func main() {
+	defer func() {
+		reporter.SetFinished(true)
+		reporter.Report(fails.Get())
+	}()
+
 	flags := flag.NewFlagSet("isucon10-qualify", flag.ContinueOnError)
 	flags.SetOutput(os.Stderr)
 
@@ -51,13 +43,17 @@ func main() {
 	dataDir := ""
 	fixtureDir := ""
 
-	flags.StringVar(&conf.TargetURLStr, "target-url", "http://127.0.0.1:8000", "target url")
-	flags.StringVar(&dataDir, "data-dir", "initial-data", "data directory")
+	flags.StringVar(&conf.TargetURLStr, "target-url", "http://" + benchrun.GetTargetAddress(), "target url")
+	flags.StringVar(&dataDir, "data-dir", "../initial-data", "data directory")
 	flags.StringVar(&fixtureDir, "fixture-dir", "../webapp/fixture", "fixture directory")
 
 	err := flags.Parse(os.Args[1:])
 	if err != nil {
-		log.Fatal(err)
+		err = failure.Translate(err, fails.ErrBenchmarker, failure.Message("コマンドライン引数のパースに失敗しました"))
+		fails.Add(err, fails.ErrorOfInitialize)
+		reporter.SetPassed(false)
+		reporter.SetReason("コマンドライン引数のパースに失敗しました")
+		return
 	}
 
 	err = client.SetShareTargetURLs(
@@ -65,145 +61,69 @@ func main() {
 		conf.TargetHost,
 	)
 	if err != nil {
-		log.Fatal(err)
+		fails.Add(failure.Translate(err, fails.ErrBenchmarker), fails.ErrorOfInitialize)
+		reporter.SetPassed(false)
+		reporter.SetReason("ベンチ対象サーバーのURLが不正です")
+		return
 	}
 
 	// 初期データの準備
 	asset.Initialize(context.Background(), dataDir, fixtureDir)
-	eMsgs := fails.GetMsgs()
-	if len(eMsgs) > 0 {
-		log.Print("asset initialize failed")
-
-		output := Output{
-			Pass:     false,
-			Score:    0,
-			Messages: uniqMsgs(eMsgs),
-			Language: "",
-		}
-		json.NewEncoder(os.Stdout).Encode(output)
-
+	msgs := fails.GetMsgs()
+	if len(msgs) > 0 {
+		reporter.Logf("asset initialize failed")
+		reporter.SetPassed(false)
+		reporter.SetReason("ベンチマーカーの初期化に失敗しました")
 		return
 	}
 
-	log.Print("=== initialize ===")
+	reporter.Logf("=== initialize ===")
 	// 初期化：/initialize にリクエストを送ることで、外部リソースのURLを指定する・DBのデータを初期データのみにする
 	initRes := scenario.Initialize(context.Background())
-	eMsgs = fails.GetMsgs()
-	if len(eMsgs) > 0 {
-		log.Print("initialize failed")
-
-		output := Output{
-			Pass:     false,
-			Score:    0,
-			Messages: uniqMsgs(eMsgs),
-			Language: "",
-		}
-		json.NewEncoder(os.Stdout).Encode(output)
-
+	msgs = fails.GetMsgs()
+	if len(msgs) > 0 {
+		reporter.Logf("initialize failed")
+		reporter.SetPassed(false)
+		reporter.SetReason("POST /initializeに失敗しました")
 		return
 	}
 
-	log.Print("=== verify ===")
+	reporter.SetLanguage(initRes.Language)
+
+	reporter.Logf("=== verify ===")
 	// 初期チェック：正しく動いているかどうかを確認する
 	// 明らかにおかしいレスポンスを返しているアプリケーションはさっさと停止させることで、運営側のリソースを使い果たさない・他サービスへの攻撃に利用されるを防ぐ
 	scenario.Verify(context.Background(), dataDir, fixtureDir)
-	eMsgs = fails.GetMsgs()
-	if len(eMsgs) > 0 {
-		log.Print("verify failed")
-		output := Output{
-			Pass:     false,
-			Score:    0,
-			Messages: uniqMsgs(eMsgs),
-			Language: initRes.Language,
-		}
-		json.NewEncoder(os.Stdout).Encode(output)
-
+	msgs = fails.GetMsgs()
+	if len(msgs) > 0 {
+		reporter.Logf("verify failed")
+		reporter.SetPassed(false)
+		reporter.SetReason("アプリケーション互換性チェックに失敗しました")
 		return
 	}
 
-	log.Print("=== validation ===")
+	reporter.Logf("=== validation ===")
 	// 一番大切なメイン処理：checkとloadの大きく2つの処理を行う
 	// checkはアプリケーションが正しく動いているか常にチェックする
 	// 理想的には全リクエストはcheckされるべきだが、それをやるとパフォーマンスが出し切れず、最適化されたアプリケーションよりも遅くなる
 	// checkとloadは区別がつかないようにしないといけない。loadのリクエストはログアウト状態しかなかったので、ログアウト時のキャッシュを強くするだけでスコアがはねる問題が過去にあった
 	// 今回はほぼ全リクエストがログイン前提になっているので、checkとloadの区別はできないはず
 	scenario.Validation(context.Background())
-	log.Printf("最終的な負荷レベル: %d", score.GetLevel())
+	reporter.Logf("最終的な負荷レベル: %d", score.GetLevel())
 
-	// context.Canceledのエラーは直後に取れば基本的には入ってこない
-	eMsgs, cCnt, aCnt, _ := fails.Get()
-	// critical errorは1つでもあれば、application errorは10回以上で失格
-	if cCnt > 0 || aCnt >= 10 {
-		log.Print("cause error!")
+	// ベンチマーク終了時にcritical errorが1つ以上、もしくはapplication errorが10回以上で失格
+	msgs, critical, application, _ := fails.Get()
+	isPassed := true
 
-		output := Output{
-			Pass:     false,
-			Score:    0,
-			Messages: uniqMsgs(eMsgs),
-			Language: initRes.Language,
-		}
-		json.NewEncoder(os.Stdout).Encode(output)
-
-		return
+	if critical > 0 {
+		isPassed = false
+		reporter.SetReason("致命的なエラーが発生しました")
+	} else if application >= 10 {
+		isPassed = false
+		reporter.SetReason("アプリケーションエラーが10回以上発生しました")
+	} else {
+		reporter.SetReason("OK")
 	}
 
-	score := int(score.GetScore())
-
-	// application errorは1回で10点減点
-	penalty := 50 * aCnt
-	log.Print(score, penalty)
-
-	score -= penalty
-	// 0点以下なら失格
-	if score <= 0 {
-		output := Output{
-			Pass:     false,
-			Score:    0,
-			Messages: uniqMsgs(eMsgs),
-			Language: initRes.Language,
-		}
-		json.NewEncoder(os.Stdout).Encode(output)
-
-		return
-	}
-
-	output := Output{
-		Pass:     true,
-		Score:    score,
-		Messages: uniqMsgs(eMsgs),
-		Language: initRes.Language,
-	}
-	json.NewEncoder(os.Stdout).Encode(output)
-}
-
-func uniqMsgs(allMsgs []string) []Message {
-	if len(allMsgs) == 0 {
-		return []Message{}
-	}
-
-	sort.Strings(allMsgs)
-	msgs := make([]Message, 0, len(allMsgs))
-
-	preMsg := allMsgs[0]
-	cnt := 0
-
-	// 適当にuniqする
-	for _, msg := range allMsgs {
-		if preMsg != msg {
-			msgs = append(msgs, Message{
-				Text:  preMsg,
-				Count: cnt,
-			})
-			preMsg = msg
-			cnt = 1
-		} else {
-			cnt++
-		}
-	}
-	msgs = append(msgs, Message{
-		Text:  preMsg,
-		Count: cnt,
-	})
-
-	return msgs
+	reporter.SetPassed(isPassed)
 }

@@ -40,6 +40,29 @@ services:
       - mysql
     command: npm start
 
+  ruby:
+    build: ./ruby
+    entrypoint:
+      - dockerize
+      - -timeout
+      - 60s
+      - -wait
+      - tcp://mysql:3306
+    volumes:
+      - ./mysql/db:/mysql/db
+      - ./fixture:/fixture
+    environment:
+      MYSQL_DBNAME: isuumo
+      MYSQL_USER: isucon
+      MYSQL_PASS: isucon
+      MYSQL_HOST: mysql
+      SERVER_PORT: 1323
+    ports:
+      - "1323:1323"
+    depends_on:
+      - mysql
+    command: bundle exec unicorn -c unicorn.conf.rb
+
   deno:
     build: ./deno
     entrypoint:
@@ -83,6 +106,29 @@ services:
       - ./php:/php
       - ./mysql:/mysql
 
+  perl:
+    build: ./perl
+    entrypoint:
+      - dockerize
+      - -timeout
+      - 60s
+      - -wait
+      - tcp://mysql:3306
+    volumes:
+      - ./mysql/db:/mysql/db
+      - ./fixture:/fixture
+    environment:
+      MYSQL_DATABASE: isuumo
+      MYSQL_USER: isucon
+      MYSQL_PASSWORD: isucon
+      MYSQL_HOST: mysql
+      SERVER_PORT: 1323
+    ports:
+      - "1323:1323"
+    depends_on:
+      - mysql
+    command: plackup -s Starlet --port 1323 -Ilib app.psgi
+
   api-server:
     build: ./go
     entrypoint:
@@ -105,6 +151,29 @@ services:
     depends_on:
       - mysql
     command: /go/src/isuumo/isuumo
+
+  python:
+    build: ./python
+    entrypoint:
+      - dockerize
+      - -timeout
+      - 60s
+      - -wait
+      - tcp://mysql:3306
+    volumes:
+      - ./mysql/db:/mysql/db
+      - ./fixture:/fixture
+    environment:
+      MYSQL_DATABASE: isuumo
+      MYSQL_USER: isucon
+      MYSQL_PASSWORD: isucon
+      MYSQL_HOST: mysql
+      SERVER_PORT: 1323
+    ports:
+      - "1323:1323"
+    depends_on:
+      - mysql
+    command: python app.py
 
   frontend:
     build: ./frontend

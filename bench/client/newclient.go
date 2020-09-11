@@ -63,7 +63,7 @@ func NewClientForVerify() *Client {
 					ServerName: ShareTargetURLs.TargetHost,
 				},
 			},
-			Timeout: parameter.VerifyTimeout,
+			Timeout: parameter.DefaultAPITimeout,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				return fmt.Errorf("redirect attempted")
 			},

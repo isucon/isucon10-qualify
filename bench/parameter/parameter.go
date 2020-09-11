@@ -28,6 +28,7 @@ const (
 	VerifyTimeout                  = 10 * time.Second
 	DraftTimeout                   = 5 * time.Second
 	LoadTimeout                    = 60 * time.Second
+	ReportInterval                 = 1 * time.Second
 )
 
 var BoundaryOfLevel []int64 = []int64{
