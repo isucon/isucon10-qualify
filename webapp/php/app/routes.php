@@ -79,7 +79,8 @@ return function (App $app) {
         /** @var ChairSearchCondition */
         $chairSearchCondition = $this->get(ChairSearchCondition::class);
 
-        if ($priceRangeId = $request->getQueryParams()['priceRangeId'] ?? null) {
+        $priceRangeId = $request->getQueryParams()['priceRangeId'];
+        if (is_numeric($priceRangeId)) {
             if (!$chairPrice = getRange($chairSearchCondition->price, $priceRangeId)) {
                 $this->get('logger')->info(sprintf('priceRangeId invalid, %s', $priceRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
@@ -93,7 +94,8 @@ return function (App $app) {
                 $params[':maxPrice'] = [$chairPrice->max, PDO::PARAM_INT];
             }
         }
-        if ($heightRangeId = $request->getQueryParams()['heightRangeId'] ?? null) {
+        $heightRangeId = $request->getQueryParams()['heightRangeId'];
+        if (is_numeric($heightRangeId)) {
             if (!$chairHeight = getRange($chairSearchCondition->height, $heightRangeId)) {
                 $this->get('logger')->info(sprintf('heightRangeId invalid, %s', $heightRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
@@ -107,7 +109,8 @@ return function (App $app) {
                 $params[':maxHeight'] = [$chairHeight->max, PDO::PARAM_INT];
             }
         }
-        if ($widthRangeId = $request->getQueryParams()['widthRangeId'] ?? null) {
+        $widthRangeId = $request->getQueryParams()['widthRangeId'];
+        if (is_numeric($widthRangeId)) {
             if (!$chairWidth = getRange($chairSearchCondition->width, $widthRangeId)) {
                 $this->get('logger')->info(sprintf('widthRangeId invalid, %s', $widthRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
@@ -121,7 +124,8 @@ return function (App $app) {
                 $params[':maxWidth'] = [$chairWidth->max, PDO::PARAM_INT];
             }
         }
-        if ($depthRangeId = $request->getQueryParams()['depthRangeId'] ?? null) {
+        $depthRangeId = $request->getQueryParams()['depthRangeId'];
+        if (is_numeric($depthRangeId)) {
             if (!$chairDepth = getRange($chairSearchCondition->depth, $depthRangeId)) {
                 $this->get('logger')->info(sprintf('depthRangeId invalid, %s', $depthRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
@@ -410,7 +414,8 @@ return function (App $app) {
         /** @var EstateSearchCondition */
         $estateSearchCondition = $this->get(EstateSearchCondition::class);
 
-        if ($doorHeightRangeId = $request->getQueryParams()['doorHeightRangeId'] ?? null) {
+        $doorHeightRangeId = $request->getQueryParams()['doorHeightRangeId'];
+        if (is_numeric($doorHeightRangeId)) {
             if (!$doorHeight = getRange($estateSearchCondition->doorHeight, $doorHeightRangeId)) {
                 $this->get('logger')->info(sprintf('doorHeightRangeId invalid, %s', $doorHeightRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
@@ -424,8 +429,8 @@ return function (App $app) {
                 $params[':maxDoorHeight'] = [$doorHeight->max, PDO::PARAM_INT];
             }
         }
-
-        if ($doorWidthRangeId = $request->getQueryParams()['doorWidthRangeId'] ?? null) {
+        $doorWidthRangeId = $request->getQueryParams()['doorWidthRangeId'];
+        if (is_numeric($doorWidthRangeId)) {
             if (!$doorWidth = getRange($estateSearchCondition->doorWidth, $doorWidthRangeId)) {
                 $this->get('logger')->info(sprintf('doorWidthRangeId invalid, %s', $doorWidthRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
@@ -439,8 +444,8 @@ return function (App $app) {
                 $params[':maxDoorWidth'] = [$doorWidth->max, PDO::PARAM_INT];
             }
         }
-
-        if ($rentRangeId = $request->getQueryParams()['rentRangeId'] ?? null) {
+        $rentRangeId = $request->getQueryParams()['rentRangeId'];
+        if (is_numeric($rentRangeId)) {
             if (!$estateRent = getRange($estateSearchCondition->rent, $rentRangeId)) {
                 $this->get('logger')->info(sprintf('rentRangeId invalid, %s', $rentRangeId));
                 return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
