@@ -1,0 +1,17 @@
+[Unit]
+Description=isucon-supervisor
+After=syslog.target
+
+[Service]
+WorkingDirectory=/home/isucon/portal/supervisor
+EnvironmentFile=/home/isucon/portal/env.sh
+PIDFile=/home/isucon/portal/supervisor/server-supervisor.pid
+
+User=isucon
+Group=isucon
+ExecStartPre=/bin/sh -c "sudo /bin/systemctl set-environment ISUXPORTAL_SUPERVISOR_TEAM_ID=$(cat /home/isucon/team_id)"
+ExecStart=/home/isucon/portal/supervisor/target/release/isuxportal-supervisor /home/isucon/isuumo/bench/bench --data-dir /home/isucon/isuumo/initial-data --fixture-dir /home/isucon/isuumo/webapp/fixture
+ExecStop=/bin/kill -s QUIT $MAINPID
+
+[Install]
+WantedBy=multi-user.target

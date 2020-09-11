@@ -2,7 +2,7 @@
   become: yes
   become_user: root
   file:
-    path: "/home/isucon/isucon10-qualify/{{ item }}"
+    path: "/home/isucon/isuumo/{{ item }}"
     state: absent
   with_items:
     - agreed
