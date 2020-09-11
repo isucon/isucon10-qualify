@@ -15,7 +15,7 @@
     name: isucon
     uid: 1100
     group: isucon
-    password: $6$a3ehJA1nkzvm3EiW$3vTxieCi5P8brkaJzzBDji3wyjJRQYWBtcRgf27f2BRdEMKeM7Pycb2JZ6eTdSw2/hqLh59xVH7PTr6r9wNiQ0
+    password: $6$bLyhK7nldUUYK6lV$HXuxqEZ9J.lgSUlr7NkXPVrRFvcFHOFAW9bmsYY6xLNVuwGf2bh2Z.7wbQPffcjGcgnrDWFRv7YrOHvtuifW6.
     home: /home/isucon
     shell: /bin/bash
     state: present

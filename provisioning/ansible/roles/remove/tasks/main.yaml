@@ -13,13 +13,10 @@
     - .github
     - .gitignore
     - LICENSE
+    - README.md
     - webapp/docker-compose-test.yaml
-    - webapp/docker-compose.yaml
     - webapp/Makefile
     - webapp/.gitignore
-    - webapp/frontend/Dockerfile
-    - webapp/frontend/.dockerignore
-    - webapp/frontend/.gitignore
     - webapp/go/Dockerfile
     - webapp/go/chair_test.go
     - webapp/go/estate_test.go
@@ -31,3 +28,15 @@
     - webapp/logs
     - webapp/nginx
     - webapp/frontend
+    - webapp/deno/Dockerfile
+    - webapp/nodejs/Dockerfile
+    - webapp/go/Dockerfile
+    - webapp/frontend/Dockerfile
+    - webapp/python/Dockerfile
+    - webapp/perl/Dockerfile
+    - webapp/rust/Dockerfile
+    - webapp/php/Dockerfile
+    - webapp/nginx/Dockerfile
+    - webapp/ruby/Dockerfile
+    - webapp/docker-compose.yaml
+    - webapp/php/docker-compose.override.yml
