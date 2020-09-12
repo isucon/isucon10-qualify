@@ -47,6 +47,7 @@ var result *isuxportalResources.BenchmarkResult
 var mu sync.RWMutex
 var logger Logger
 var writer io.Writer
+var stdout string
 
 func init() {
 	var err error
@@ -91,7 +92,7 @@ func Report(msgs []string, critical, application, trivial int) error {
 	}
 
 	if result.Finished {
-		fmt.Println(result.Execution.Stdout)
+		fmt.Println(stdout)
 	}
 	return nil
 }
@@ -143,7 +144,7 @@ func update(msgs []string, critical, application, trivial int) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(bytes))
+	stdout = string(bytes)
 
 	return nil
 }
