@@ -143,8 +143,7 @@ func update(msgs []string, critical, application, trivial int) error {
 	if err != nil {
 		return err
 	}
-	result.Execution.Stdout = string(bytes)
-	result.Execution.Stderr = logger.String()
+	fmt.Println(string(bytes))
 
 	return nil
 }
