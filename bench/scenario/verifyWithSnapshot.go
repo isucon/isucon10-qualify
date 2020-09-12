@@ -100,6 +100,10 @@ func verifyChairDetail(ctx context.Context, c *client.Client, filePath string) e
 			return failure.Translate(err, fails.ErrBenchmarker, failure.Message("GET /api/chair/:id: SnapshotのResponse BodyのUnmarshalでエラーが発生しました"), failure.Messagef("snapshot: %s", filePath))
 		}
 
+		if actual == nil {
+			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
+		}
+
 		if !cmp.Equal(*expected, *actual, ignoreChairUnexported) {
 			reporter.Logf("%s\n%s\n", filePath, cmp.Diff(*expected, *actual, ignoreChairUnexported))
 			return failure.New(fails.ErrApplication, failure.Message("GET /api/chair/:id: レスポンスが不正です"), failure.Messagef("snapshot: %s", filePath))
