@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/isucon/isucon10-portal/bench-tool.go/benchrun"
 	isuxportalResources "github.com/isucon/isucon10-portal/proto.go/isuxportal/resources"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/score"
 )
@@ -42,7 +41,6 @@ func (w *Logger) String() string {
 	return w.buf.String()
 }
 
-var reporter benchrun.Reporter
 var result *isuxportalResources.BenchmarkResult
 var mu sync.RWMutex
 var logger Logger
@@ -50,7 +48,6 @@ var writer io.Writer
 
 func init() {
 	var err error
-	reporter, err = benchrun.NewReporter(false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -85,10 +82,6 @@ func Report(msgs []string, critical, application, trivial int) error {
 
 	mu.RLock()
 	defer mu.RUnlock()
-	err = reporter.Report(result)
-	if err != nil {
-		return err
-	}
 
 	if result.Finished {
 		fmt.Println(result.Execution.Stdout)
