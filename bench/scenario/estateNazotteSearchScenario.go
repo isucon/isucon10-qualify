@@ -174,19 +174,19 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 	t := time.Now()
 	chairs, estates, err := c.AccessTopPage(ctx)
 	if err != nil {
-		fails.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 
 	if err := checkChairsOrderedByPrice(chairs.Chairs, t); err != nil {
 		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/chair/low_priced: レスポンスの内容が不正です"))
-		fails.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 
 	if err := checkEstatesOrderedByRent(estates.Estates); err != nil {
 		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/low_priced: レスポンスの内容が不正です"))
-		fails.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 
@@ -197,7 +197,7 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 	t = time.Now()
 	err = c.AccessEstateNazottePage(ctx)
 	if err != nil {
-		fails.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 	if time.Since(t) > parameter.ThresholdTimeOfAbandonmentPage {
@@ -213,7 +213,7 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 	t = time.Now()
 	er, err := c.SearchEstatesNazotte(ctx, polygon)
 	if err != nil {
-		fails.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 
@@ -223,13 +223,13 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 
 	if len(er.Estates) > parameter.MaxLengthOfNazotteResponse {
 		err = failure.New(fails.ErrApplication, failure.Message("POST /api/estate/nazotte: レスポンスの内容が不正です"))
-		fails.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 
 	if err := checkEstatesInBoundingBox(er.Estates, boundingBox); err != nil {
 		err = failure.Translate(err, fails.ErrApplication, failure.Message("GET /api/estate/nazotte: レスポンスの内容が不正です"))
-		fails.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 
@@ -242,7 +242,7 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 	t = time.Now()
 	e, err := c.AccessEstateDetailPage(ctx, targetID)
 	if err != nil {
-		fails.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 
@@ -253,13 +253,13 @@ func estateNazotteSearchScenario(ctx context.Context, c *client.Client) error {
 	estate, err := asset.GetEstateFromID(e.ID)
 	if err != nil || !e.Equal(estate) {
 		err = failure.New(fails.ErrApplication, failure.Message("GET /api/estate/:id: レスポンスの内容が不正です"))
-		fails.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 
 	err = c.RequestEstateDocument(ctx, strconv.FormatInt(targetID, 10))
 	if err != nil {
-		fails.Add(err, fails.ErrorOfEstateNazotteSearchScenario)
+		fails.Add(err)
 		return failure.New(fails.ErrApplication)
 	}
 

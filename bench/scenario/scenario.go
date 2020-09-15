@@ -21,9 +21,9 @@ func Initialize(ctx context.Context) *client.InitializeResponse {
 	if err != nil {
 		if ctx.Err() != nil {
 			err = failure.New(fails.ErrCritical, failure.Message("POST /initialize: リクエストがタイムアウトしました"))
-			fails.Add(err, fails.ErrorOfInitialize)
+			fails.Add(err)
 		} else {
-			fails.Add(err, fails.ErrorOfInitialize)
+			fails.Add(err)
 		}
 	}
 	return res

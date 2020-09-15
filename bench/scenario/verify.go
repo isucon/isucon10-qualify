@@ -39,13 +39,13 @@ func Verify(ctx context.Context, dataDir, fixtureDir string) {
 	verifyWithSnapshot(ctx, c, filepath.Join(dataDir, "result/verification_data"))
 	if ctx.Err() != nil {
 		err := failure.New(fails.ErrCritical, failure.Message("アプリケーション互換性チェックがタイムアウトしました"))
-		fails.Add(err, fails.ErrorOfVerify)
+		fails.Add(err)
 	}
 
 	verifyWithScenario(ctx, c, fixtureDir, dataDir)
 	if ctx.Err() != nil {
 		err := failure.New(fails.ErrCritical, failure.Message("アプリケーション互換性チェックがタイムアウトしました"))
-		fails.Add(err, fails.ErrorOfVerify)
+		fails.Add(err)
 	}
 
 	cancel()
@@ -177,7 +177,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir, snaps
 	})
 
 	if err := eg.Wait(); err != nil {
-		fails.Add(failure.Translate(err, fails.ErrBenchmarker), fails.ErrorOfVerify)
+		fails.Add(failure.Translate(err, fails.ErrBenchmarker))
 		return
 	}
 
@@ -187,7 +187,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir, snaps
 		defer wg.Done()
 		err := verifyPostEstates(ctx, c, estates)
 		if err != nil {
-			fails.Add(err, fails.ErrorOfVerify)
+			fails.Add(err)
 		}
 	}()
 
@@ -196,7 +196,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir, snaps
 		defer wg.Done()
 		err := verifyPostChairs(ctx, c, chairs)
 		if err != nil {
-			fails.Add(err, fails.ErrorOfVerify)
+			fails.Add(err)
 		}
 	}()
 
@@ -207,7 +207,7 @@ func verifyWithScenario(ctx context.Context, c *client.Client, fixtureDir, snaps
 		defer wg.Done()
 		err := verifyChairStock(ctx, c, chairs[0].ID)
 		if err != nil {
-			fails.Add(err, fails.ErrorOfVerify)
+			fails.Add(err)
 		}
 	}()
 

@@ -50,7 +50,7 @@ func main() {
 	err := flags.Parse(os.Args[1:])
 	if err != nil {
 		err = failure.Translate(err, fails.ErrBenchmarker, failure.Message("コマンドライン引数のパースに失敗しました"))
-		fails.Add(err, fails.ErrorOfInitialize)
+		fails.Add(err)
 		reporter.SetPassed(false)
 		reporter.SetReason("コマンドライン引数のパースに失敗しました")
 		return
@@ -61,7 +61,7 @@ func main() {
 		conf.TargetHost,
 	)
 	if err != nil {
-		fails.Add(failure.Translate(err, fails.ErrBenchmarker), fails.ErrorOfInitialize)
+		fails.Add(failure.Translate(err, fails.ErrBenchmarker))
 		reporter.SetPassed(false)
 		reporter.SetReason("ベンチ対象サーバーのURLが不正です")
 		return
