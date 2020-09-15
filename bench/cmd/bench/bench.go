@@ -40,7 +40,7 @@ func main() {
 		err := recover()
 		if err, ok := err.(error); ok {
 			err = failure.Translate(err, fails.ErrBenchmarker)
-			fails.Add(err, fails.ErrorOfVerify)
+			fails.Add(err)
 		}
 	}()
 
