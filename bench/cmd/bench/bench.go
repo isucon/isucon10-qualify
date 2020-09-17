@@ -107,7 +107,7 @@ func main() {
 
 	log.Println("=== validation ===")
 	scenario.Validation(context.Background())
-	log.Println("最終的な負荷レベル: %d", score.GetLevel())
+	log.Printf("最終的な負荷レベル: %d", score.GetLevel())
 
 	// ベンチマーク終了時にcritical errorが1つ以上、もしくはapplication errorが10回以上で失格
 	msgs, critical, application, _ := fails.Get()
