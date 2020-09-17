@@ -5,7 +5,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/asset"
 )
 
@@ -16,7 +15,7 @@ func checkEstateEqualToAsset(e *asset.Estate) error {
 	}
 
 	if !estate.Equal(e) {
-		return fmt.Errorf(cmp.Diff(*estate, *e, ignoreEstateUnexported))
+		return fmt.Errorf("物件の情報が不正です")
 	}
 
 	return nil
@@ -91,7 +90,7 @@ func checkChairEqualToAsset(c *asset.Chair) error {
 	}
 
 	if !chair.Equal(c) {
-		return fmt.Errorf(cmp.Diff(*chair, *c, ignoreChairUnexported))
+		return fmt.Errorf("イスの情報が不正です")
 	}
 
 	return nil
@@ -170,7 +169,7 @@ func checkEstatesInBoundingBox(estates []asset.Estate, boundingBox [2]point) err
 	for _, estate := range estates {
 		e, err := asset.GetEstateFromID(estate.ID)
 		if err != nil || !e.Equal(&estate) {
-			return fmt.Errorf(cmp.Diff(estate, *e, ignoreEstateUnexported))
+			return fmt.Errorf("物件の情報が不正です")
 		}
 
 		if !(boundingBox[0].Latitude <= e.Latitude && boundingBox[1].Latitude >= e.Latitude) {
