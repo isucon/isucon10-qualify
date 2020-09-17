@@ -1,18 +1,12 @@
 package reporter
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
-	"os"
 	"sort"
 	"sync"
-	"time"
 
-	"github.com/isucon/isucon10-portal/bench-tool.go/benchrun"
-	isuxportalResources "github.com/isucon/isucon10-portal/proto.go/isuxportal/resources"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/score"
 )
 
@@ -20,62 +14,22 @@ type Stdout struct {
 	Pass     bool      `json:"pass"`
 	Score    int64     `json:"score"`
 	Messages []Message `json:"messages"`
+	Reason   string    `json:"reason"`
 	Language string    `json:"language"`
 }
 
-type Logger struct {
-	buf    *bytes.Buffer
-	writer *io.Writer
-}
-
-func NewLogger() Logger {
-	return Logger{
-		buf: &bytes.Buffer{},
-	}
-}
-
-func (w Logger) Write(p []byte) (n int, err error) {
-	return w.buf.Write(p)
-}
-
-func (w *Logger) String() string {
-	return w.buf.String()
-}
-
-var reporter benchrun.Reporter
-var result *isuxportalResources.BenchmarkResult
 var mu sync.RWMutex
-var logger Logger
 var writer io.Writer
-var stdout string
+var stdout *Stdout
 
 func init() {
-	var err error
-	reporter, err = benchrun.NewReporter(false)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	result = &isuxportalResources.BenchmarkResult{
-		Finished: false,
-		Passed:   false,
+	stdout = &Stdout{
+		Pass:     false,
 		Score:    0,
-		ScoreBreakdown: &isuxportalResources.BenchmarkResult_ScoreBreakdown{
-			Raw:       0,
-			Deduction: 0,
-		},
-		Execution: &isuxportalResources.BenchmarkResult_Execution{
-			Reason: "",
-			Stdout: "",
-			Stderr: "",
-		},
-		SurveyResponse: &isuxportalResources.SurveyResponse{
-			Language: "",
-		},
+		Messages: make([]Message, 0),
+		Reason:   "",
+		Language: "",
 	}
-
-	logger = NewLogger()
-	writer = io.MultiWriter(logger, os.Stderr)
 }
 
 func Report(msgs []string, critical, application, trivial int) error {
@@ -86,33 +40,24 @@ func Report(msgs []string, critical, application, trivial int) error {
 
 	mu.RLock()
 	defer mu.RUnlock()
-	err = reporter.Report(result)
+	bytes, err := json.Marshal(stdout)
 	if err != nil {
 		return err
 	}
-
-	if result.Finished {
-		fmt.Println(stdout)
-	}
+	fmt.Println(string(bytes))
 	return nil
 }
 
-func SetFinished(finished bool) {
+func SetPassed(p bool) {
 	mu.Lock()
 	defer mu.Unlock()
-	result.Finished = finished
-}
-
-func SetPassed(passed bool) {
-	mu.Lock()
-	defer mu.Unlock()
-	result.Passed = passed
+	stdout.Pass = p
 }
 
 func SetReason(reason string) {
 	mu.Lock()
 	defer mu.Unlock()
-	result.Execution.Reason = reason
+	stdout.Reason = reason
 }
 
 func update(msgs []string, critical, application, trivial int) error {
@@ -123,47 +68,20 @@ func update(msgs []string, critical, application, trivial int) error {
 	deducation := int64(application * 50)
 	score := row - deducation
 	if score < 0 {
+		stdout.Pass = false
+		stdout.Reason = "スコアが0点を下回りました"
 		score = 0
 	}
+	stdout.Score = score
 
-	result.ScoreBreakdown.Raw = row
-	result.ScoreBreakdown.Deduction = deducation
-	result.Score = score
-
-	if result.Score < 0 {
-		result.Execution.Reason = "スコアが0点を下回りました"
-	}
-
-	output := Stdout{
-		Pass:     result.Passed && result.Score > 0,
-		Score:    score,
-		Messages: UniqMsgs(msgs),
-		Language: result.SurveyResponse.Language,
-	}
-	bytes, err := json.Marshal(output)
-	if err != nil {
-		return err
-	}
-	stdout = string(bytes)
-
+	stdout.Messages = UniqMsgs(msgs)
 	return nil
-}
-
-func Logf(format string, v ...interface{}) {
-	t := time.Now()
-	year, month, day := t.Date()
-	hour, min, sec := t.Clock()
-	prefix := fmt.Sprintf("%04d/%02d/%02d %02d:%02d:%02d: ", year, month, day, hour, min, sec)
-
-	mu.Lock()
-	defer mu.Unlock()
-	fmt.Fprintf(writer, prefix+format+"\n", v...)
 }
 
 func SetLanguage(language string) {
 	mu.Lock()
 	defer mu.Unlock()
-	result.SurveyResponse.Language = language
+	stdout.Language = language
 }
 
 type Message struct {

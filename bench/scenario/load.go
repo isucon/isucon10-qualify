@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"context"
+	"log"
 	"math/rand"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/client"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/fails"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/parameter"
-	"github.com/isucon10-qualify/isucon10-qualify/bench/reporter"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/score"
 	"github.com/morikuni/failure"
 )
@@ -178,7 +178,7 @@ func checkWorkers(ctx context.Context) {
 	for {
 		select {
 		case level := <-score.LevelUp():
-			reporter.Logf("負荷レベルが上昇しました。")
+			log.Println("負荷レベルが上昇しました。")
 			incWorkers := parameter.ListOfIncWorkers[level]
 			for i := 0; i < incWorkers.ChairSearchWorker; i++ {
 				go runChairSearchWorker(ctx)

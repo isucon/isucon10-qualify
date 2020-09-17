@@ -3,9 +3,9 @@ package fails
 import (
 	"context"
 	"errors"
+	"log"
 	"sync"
 
-	"github.com/isucon10-qualify/isucon10-qualify/bench/reporter"
 	"github.com/morikuni/failure"
 )
 
@@ -102,7 +102,7 @@ func Add(err error) {
 		failChan <- true
 	}
 
-	reporter.Logf("%+v", err)
+	log.Printf("%+v", err)
 }
 
 func Fail() chan bool {
