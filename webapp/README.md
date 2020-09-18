@@ -21,12 +21,12 @@
 ## 起動方法
 
 ```sh
-docker-compose up --build mysql api-server nginx frontend
+make isuumo/{lang}
 ```
 
 ベンチマーカーはフロントエンド側へのリクエストを行わないため、以下のコマンドでも計測は可能です。
 
 ```sh
-docker-compose up --build mysql api-server
+make api-server/{lang}
 ```
 
