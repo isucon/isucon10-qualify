@@ -183,7 +183,7 @@ services:
   nginx:
     build: ./nginx
     volumes:
-        - ../provisioning/ansible/roles/web-bootstrap/files/accesslog-nginx.conf.template:/etc/nginx/nginx.conf.template
+        - ../provisioning/ansible/roles/web-bootstrap/files/nginx.conf.template:/etc/nginx/nginx.conf.template
         - ./logs/nginx:/var/log/nginx
         - ./nginx/cond.d:/etc/nginx/conf.d
         - ./nginx/out:/www/data
