@@ -26,7 +26,7 @@
     sha256sum: 5ca7445cfd48dd27c5a84aa005a47b4d9fd91132313830609875df3a6973708f
     mode: 0755
 
-- name: Install isuumo.perl Pacakges
+- name: Install isuumo.php Pacakges
   become: yes
   become_user: isucon
   environment:
