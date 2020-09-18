@@ -18,7 +18,8 @@ services:
 
   api-server:
     build: ../php
-    command: -c "make run"
+    command: /bin/sh -c "make run"
+    working_dir: /php
     entrypoint:
       - dockerize
       - -timeout
