@@ -25,8 +25,8 @@ services:
       - -wait
       - tcp://mysql:3306
     volumes:
-      - ../mysql/db:/go/src/mysql/db
-      - ../fixture:/go/src/fixture
+      - ../mysql/db:/usr/src/mysql/db
+      - ../fixture:/usr/src/fixture
     environment:
       MYSQL_DATABASE: isuumo
       MYSQL_USER: isucon
@@ -37,7 +37,7 @@ services:
       - "1323:1323"
     depends_on:
       - mysql
-    command: /usr/src/isuumo/target/release/isuumo
+    command: cargo run --release
 
   frontend:
     build: ../frontend
