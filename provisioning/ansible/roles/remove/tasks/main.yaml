@@ -38,5 +38,5 @@
     - webapp/php/Dockerfile
     - webapp/nginx/Dockerfile
     - webapp/ruby/Dockerfile
-    - webapp/docker-compose.yaml
+    - webapp/docker-compose
     - webapp/php/docker-compose.override.yml
