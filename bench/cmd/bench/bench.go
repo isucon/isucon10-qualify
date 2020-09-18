@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"math/rand"
 	"net"
 	"os"
@@ -15,8 +16,6 @@ import (
 	"github.com/isucon10-qualify/isucon10-qualify/bench/scenario"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/score"
 	"github.com/morikuni/failure"
-
-	"github.com/isucon/isucon10-portal/bench-tool.go/benchrun"
 )
 
 type Config struct {
@@ -28,11 +27,11 @@ type Config struct {
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 
 func main() {
 	defer func() {
-		reporter.SetFinished(true)
 		reporter.Report(fails.Get())
 	}()
 
@@ -51,7 +50,7 @@ func main() {
 	dataDir := ""
 	fixtureDir := ""
 
-	flags.StringVar(&conf.TargetURLStr, "target-url", "http://" + benchrun.GetTargetAddress(), "target url")
+	flags.StringVar(&conf.TargetURLStr, "target-url", "http://localhost:1323", "target url")
 	flags.StringVar(&dataDir, "data-dir", "../initial-data", "data directory")
 	flags.StringVar(&fixtureDir, "fixture-dir", "../webapp/fixture", "fixture directory")
 
@@ -75,22 +74,20 @@ func main() {
 		return
 	}
 
-	// 初期データの準備
 	asset.Initialize(context.Background(), dataDir, fixtureDir)
 	msgs := fails.GetMsgs()
 	if len(msgs) > 0 {
-		reporter.Logf("asset initialize failed")
+		log.Println("asset initialize failed")
 		reporter.SetPassed(false)
 		reporter.SetReason("ベンチマーカーの初期化に失敗しました")
 		return
 	}
 
-	reporter.Logf("=== initialize ===")
-	// 初期化：/initialize にリクエストを送ることで、外部リソースのURLを指定する・DBのデータを初期データのみにする
+	log.Println("=== initialize ===")
 	initRes := scenario.Initialize(context.Background())
 	msgs = fails.GetMsgs()
 	if len(msgs) > 0 {
-		reporter.Logf("initialize failed")
+		log.Println("initialize failed")
 		reporter.SetPassed(false)
 		reporter.SetReason("POST /initializeに失敗しました")
 		return
@@ -98,26 +95,19 @@ func main() {
 
 	reporter.SetLanguage(initRes.Language)
 
-	reporter.Logf("=== verify ===")
-	// 初期チェック：正しく動いているかどうかを確認する
-	// 明らかにおかしいレスポンスを返しているアプリケーションはさっさと停止させることで、運営側のリソースを使い果たさない・他サービスへの攻撃に利用されるを防ぐ
+	log.Println("=== verify ===")
 	scenario.Verify(context.Background(), dataDir, fixtureDir)
 	msgs = fails.GetMsgs()
 	if len(msgs) > 0 {
-		reporter.Logf("verify failed")
+		log.Println("verify failed")
 		reporter.SetPassed(false)
 		reporter.SetReason("アプリケーション互換性チェックに失敗しました")
 		return
 	}
 
-	reporter.Logf("=== validation ===")
-	// 一番大切なメイン処理：checkとloadの大きく2つの処理を行う
-	// checkはアプリケーションが正しく動いているか常にチェックする
-	// 理想的には全リクエストはcheckされるべきだが、それをやるとパフォーマンスが出し切れず、最適化されたアプリケーションよりも遅くなる
-	// checkとloadは区別がつかないようにしないといけない。loadのリクエストはログアウト状態しかなかったので、ログアウト時のキャッシュを強くするだけでスコアがはねる問題が過去にあった
-	// 今回はほぼ全リクエストがログイン前提になっているので、checkとloadの区別はできないはず
+	log.Println("=== validation ===")
 	scenario.Validation(context.Background())
-	reporter.Logf("最終的な負荷レベル: %d", score.GetLevel())
+	log.Printf("最終的な負荷レベル: %d", score.GetLevel())
 
 	// ベンチマーク終了時にcritical errorが1つ以上、もしくはapplication errorが10回以上で失格
 	msgs, critical, application, _ := fails.Get()
