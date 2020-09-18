@@ -2,15 +2,6 @@
   become: yes
   become_user: isucon
   command: curl -X POST http://localhost/initialize
-- name: Copy GitConfig
-  copy:
-    src: "{{ item }}"
-    dest: "/home/isucon/.gitconfig"
-    owner: "isucon"
-    group: "isucon"
-    mode: "0644"
-  with_items:
-    - .gitconfig
 
 - name : Snapshot isucon10
   become: yes
@@ -31,82 +22,6 @@
   environment:
     PATH: "/home/isucon/local/go/bin:/home/isucon/local/node/bin:/home/isucon/local/ruby/bin:/home/isucon/local/python/bin:/home/isucon/local/perl/bin:/home/isucon/local/php/bin:/home/isucon/.cargo/bin:/home/isucon/.deno/bin:/home/isucon/bin:/home/isucon/.local/bin:/usr/bin:/sbin:/bin"
   shell: |
-    mkdir -p ~/.ssh && ssh-keyscan github.com > ~/.ssh/known_hosts && make && rm ~/.gitconfig
+    make
 
-- name: Disable Unused Services
-  become: yes
-  become_user: root
-  shell: |
-    systemctl disable isucon-go && \
-    systemctl disable mysql && \
-    systemctl disable nginx
 
-- name: Check isucon10-portal
-  become: no
-  stat:
-    path: "/home/isucon/portal"
-  register: chk_file
-
-- name: Delete isucon10-portal if exists
-  become: yes
-  become_user: root
-  file:
-    path: /home/isucon/poratl
-    state: absent
-  when: chk_file.stat.exists
-
-- name: Clone isucon10-portal
-  become: no
-  git:
-    repo: git@github.com:isucon/isucon10-portal.git
-    version: master
-    dest: /tmp/isucon10-portal
-    accept_hostkey: yes
-
-- name: Chgroup sisucon10-portal repo
-  become: yes
-  become_user: root
-  file:
-    path: /tmp/isucon10-portal
-    state: directory
-    owner: isucon
-    group: isucon
-    recurse: yes
-
-- name: Deploy isucon10-portal
-  become: yes
-  become_user: isucon
-  command: mv /tmp/isucon10-portal /home/isucon/portal
-
-- name: Make Supervisor
-  become: yes
-  become_user: isucon
-  args:
-    chdir: /home/isucon/portal/supervisor
-  environment:
-    PATH: "/home/isucon/local/go/bin:/home/isucon/local/node/bin:/home/isucon/local/ruby/bin:/home/isucon/local/python/bin:/home/isucon/local/perl/bin:/home/isucon/local/php/bin:/home/isucon/.cargo/bin:/home/isucon/.deno/bin:/home/isucon/bin:/home/isucon/.local/bin:/usr/bin:/sbin:/bin"
-  shell: |
-    cargo build --release
-
-- name: Copy env.sh for supervisor
-  become: yes
-  become_user: isucon
-  copy:
-    src: "env.sh"
-    dest: /home/isucon/portal
-
-- name: Copy service file
-  copy:
-    src: "{{ item }}"
-    dest: "/etc/systemd/system"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  with_items:
-    - isuumo.supervisor.service
-- name: Start "supevisor"
-  systemd:
-    daemon_reload: "yes"
-    name: "isuumo.supervisor"
-    state: "stopped"
-    enabled: "yes"

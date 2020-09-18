@@ -55,7 +55,7 @@
     --enable-sysvsem --enable-sysvshm --enable-sysvmsg --enable-mbregex
     --enable-mbstring --enable-pcntl --enable-sockets --with-curl --enable-zip
   environment:
-    PHP_BUILD_EXTRA_MAKE_ARGUMENTS: "-j 4"
+    PHP_BUILD_EXTRA_MAKE_ARGUMENTS: "-j {{ ansible_processor_vcpus }}"
 
 - name: Add PATH for PHP
   become: yes
@@ -82,7 +82,7 @@
 - name: Install perl v5.32.0
   become: yes
   become_user: isucon
-  command: /tmp/xbuild/perl-install 5.32.0 /home/isucon/local/perl -- -Duselongdouble -j 4
+  command: /tmp/xbuild/perl-install 5.32.0 /home/isucon/local/perl -- -Duselongdouble -j {{ ansible_processor_vcpus }}
 
 - name: Add PATH for perl 
   become: yes
