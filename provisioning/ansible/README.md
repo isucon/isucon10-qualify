@@ -12,14 +12,22 @@ ansible 2.9.13で動作確認しています
 
 ## Vagrantを利用して，環境をセットアップする
 
-本Vagrantファイルは1台構成で，allinone.yamlを実行した結果を提供します
-別の，設定を実行したい場合は
+本Vagrantファイルは1台構成で，allinone.yamlを実行した結果を提供しています
+別の，設定を利用したい場合は,
+- Vagrant ファイルの書き換え
+      ansible.playbook = "allinone.yaml"
+- inventory/hostsの書き換え
+を行ってから，下記の操作を行ってください．
 
 ### 初回構築
-下記コマンドで，VMの作り直しから始まります
-- make vagrant/init
+下記コマンドで，VMを一度破棄して，新しく作り直します
+
+make vagrant/init
 
 ### ファイル初期化/再構築
 ansibleの実行中に，通信環境エラーなどが起きた場合，下記のコマンドで再実行できます
-- vagrant provision
+vagrant provision
 
+
+## サーバーへのprovisionning
+- inventory/hostsを書き換えて，ansible playbookを実行してください．
