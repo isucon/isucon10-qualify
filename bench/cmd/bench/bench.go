@@ -35,14 +35,6 @@ func main() {
 		reporter.Report(fails.Get())
 	}()
 
-	defer func() {
-		err := recover()
-		if err, ok := err.(error); ok {
-			err = failure.Translate(err, fails.ErrBenchmarker)
-			fails.Add(err)
-		}
-	}()
-
 	flags := flag.NewFlagSet("isucon10-qualify", flag.ContinueOnError)
 	flags.SetOutput(os.Stderr)
 
