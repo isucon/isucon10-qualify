@@ -572,12 +572,12 @@ router.get("/api/recommended_estate/:id", async (ctx) => {
 router.post("/api/chair", async (ctx) => {
   try {
     const form = await multiParser(ctx.request.serverRequest);
-    if (!form || !form.chairs) {
+    if (!form || !form.fields.chairs) {
       ctx.response.status = 400;
       ctx.response.body = "Bad Request";
       return;
     }
-    const content = decoder.decode((form.chairs as any).content);
+    const content = decoder.decode((form.fields.chairs as any).content);
     const csv = await parse(content);
     await db.transaction(async (conn) => {
       for (let i = 0; i < csv.length; i++) {
@@ -599,12 +599,12 @@ router.post("/api/chair", async (ctx) => {
 router.post("/api/estate", async (ctx) => {
   try {
     const form = await multiParser(ctx.request.serverRequest);
-    if (!form || !form.estates) {
+    if (!form || !form.fields.estates) {
       ctx.response.status = 400;
       ctx.response.body = "Bad Request";
       return;
     }
-    const content = decoder.decode((form.estates as any).content);
+    const content = decoder.decode((form.fields.estates as any).content);
     const csv = await parse(content);
     await db.transaction(async (conn) => {
       for (let i = 0; i < csv.length; i++) {
