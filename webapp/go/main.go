@@ -298,7 +298,7 @@ func aaa(c echo.Context) error {
 
 	w := ""
 	for _, s := range stats {
-		w += fmt.Sprintf(w, "%s,%d,%f,%f,%f,%f,%f,%f\n",
+		w += fmt.Sprintf("%s,%d,%f,%f,%f,%f,%f,%f\n",
 			s.Key, s.Count, s.Sum, s.Min, s.Max, s.Avg, s.Rate, s.P95)
 	}
 	return c.JSON(http.StatusOK, w)
