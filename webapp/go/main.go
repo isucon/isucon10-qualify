@@ -296,7 +296,7 @@ func aaa(c echo.Context) error {
 	stats := measure.GetStats()
 	stats.SortDesc("sum")
 
-	w += ""
+	w := ""
 	for _, s := range stats {
 		w += fmt.Sprintf(w, "%s,%d,%f,%f,%f,%f,%f,%f\n",
 			s.Key, s.Count, s.Sum, s.Min, s.Max, s.Avg, s.Rate, s.P95)
