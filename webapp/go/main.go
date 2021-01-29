@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -29,6 +30,8 @@ var db *sqlx.DB
 var mySQLConnectionData *MySQLConnectionEnv
 var chairSearchCondition ChairSearchCondition
 var estateSearchCondition EstateSearchCondition
+
+var rep = regexp.MustCompile(`ISUCONbot(-Mobile)?|ISUCONbot-Image\/|Mediapartners-ISUCON|ISUCONCoffee|ISUCONFeedSeeker(Beta)?|crawler \(https:\/\/isucon\.invalid\/(support\/faq\/|help\/jp\/)| isubot| Isupider|Isupider(-image)?\+|(bot|crawler|spider)(?:[-_ .\/;@()]|$)`)
 
 type InitializeResponse struct {
 	Language string `json:"language"`
@@ -261,24 +264,24 @@ func main() {
 	e.POST("/initialize", initialize)
 
 	// Chair Handler
-	e.GET("/api/chair/:id", getChairDetail)
-	e.POST("/api/chair", postChair)
-	e.GET("/api/chair/search", searchChairs)
-	e.GET("/api/chair/low_priced", getLowPricedChair)
-	e.GET("/api/chair/search/condition", getChairSearchCondition)
-	e.POST("/api/chair/buy/:id", buyChair)
+	e.GET("/api/chair/:id", getChairDetail, skipMiddleware)
+	e.POST("/api/chair", postChair, skipMiddleware)
+	e.GET("/api/chair/search", searchChairs, skipMiddleware)
+	e.GET("/api/chair/low_priced", getLowPricedChair, skipMiddleware)
+	e.GET("/api/chair/search/condition", getChairSearchCondition, skipMiddleware)
+	e.POST("/api/chair/buy/:id", buyChair, skipMiddleware)
 
 	// Estate Handler
-	e.GET("/api/estate/:id", getEstateDetail)
-	e.POST("/api/estate", postEstate)
-	e.GET("/api/estate/search", searchEstates)
-	e.GET("/api/estate/low_priced", getLowPricedEstate)
-	e.POST("/api/estate/req_doc/:id", postEstateRequestDocument)
-	e.POST("/api/estate/nazotte", searchEstateNazotte)
-	e.GET("/api/estate/search/condition", getEstateSearchCondition)
-	e.GET("/api/recommended_estate/:id", searchRecommendedEstateWithChair)
+	e.GET("/api/estate/:id", getEstateDetail, skipMiddleware, skipMiddleware)
+	e.POST("/api/estate", postEstate, skipMiddleware)
+	e.GET("/api/estate/search", searchEstates, skipMiddleware)
+	e.GET("/api/estate/low_priced", getLowPricedEstate, skipMiddleware)
+	e.POST("/api/estate/req_doc/:id", postEstateRequestDocument, skipMiddleware)
+	e.POST("/api/estate/nazotte", searchEstateNazotte, skipMiddleware)
+	e.GET("/api/estate/search/condition", getEstateSearchCondition, skipMiddleware)
+	e.GET("/api/recommended_estate/:id", searchRecommendedEstateWithChair, skipMiddleware)
 
-	e.GET("/api/aaa", aaa)
+	e.GET("/api/aaa", aaa, skipMiddleware)
 
 	mySQLConnectionData = NewMySQLConnectionEnv()
 
@@ -293,6 +296,17 @@ func main() {
 	// Start server
 	serverPort := fmt.Sprintf(":%v", getEnv("SERVER_PORT", "1323"))
 	e.Logger.Fatal(e.Start(serverPort))
+}
+
+func skipMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ua := c.Request().Header.Get("User-Agent")
+		if rep.MatchString(ua) {
+			return c.NoContent(http.StatusServiceUnavailable)
+		}
+		err := next(c)
+		return err
+	}
 }
 
 func aaa(c echo.Context) error {
