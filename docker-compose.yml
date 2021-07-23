@@ -1,0 +1,38 @@
+version: "3"
+services:
+  db:
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    command: ["--character-set-server=utf8mb4"]
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: isuumo
+      MYSQL_USER: isucon
+      MYSQL_PASSWORD: isucon
+    volumes:
+      - ./webapp/mysql/docker.cnf:/etc/mysql/conf.d/docker.cnf
+      - ./webapp/mysql/slow.log:/var/log/mysql/slow.log
+
+  api-servers:
+    build:
+      context: ./webapp/nodejs
+    volumes:
+      - .:/home/isucon
+    depends_on:
+      - db
+    ports:
+      - "1323:1323"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: isucon
+      MYSQL_PASS: isucon
+      MYSQL_DBNAME: isuumo
+    command: ["npm", "start"]
+
+  frontend:
+    build:
+      context: ./webapp/frontend
+    image: isucon10-qualifier-app:frontend
+    volumes:
+      - ./:/home/isucon/frontend
