@@ -24,7 +24,7 @@ services:
     ports:
       - "1323:1323"
     environment:
-      MYSQL_HOST: mysql
+      MYSQL_HOST: db
       MYSQL_USER: isucon
       MYSQL_PASS: isucon
       MYSQL_DBNAME: isuumo
