@@ -8,7 +8,7 @@
     "build": "next build",
     "prod": "cross-env ENV=production node server.js",
     "start": "next start",
-    "export": "next export",
+    "export": "next build && next export",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -31,7 +31,6 @@
     "leaflet": "^1.6.0",
     "monotone-convex-hull-2d": "^1.0.1",
     "next": "^9.4.2",
-    "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-leaflet": "^2.7.0"
   },
@@ -51,6 +50,7 @@
     "eslint-plugin-react": "^7.20.0",
     "eslint-plugin-react-hooks": "^4.0.4",
     "eslint-plugin-standard": "^4.0.1",
+    "react": "^16.14.0",
     "serve": "^11.3.1",
     "typescript": "^3.9.3"
   }

@@ -5,6 +5,8 @@ services:
     ports:
       - "3306:3306"
     command: ["--character-set-server=utf8mb4"]
+    networks:
+      - backend
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: isuumo
@@ -14,7 +16,8 @@ services:
       - ./webapp/mysql/docker.cnf:/etc/mysql/conf.d/docker.cnf
       - ./webapp/mysql/slow.log:/var/log/mysql/slow.log
 
-  api-servers:
+  api-server:
+    container_name: api-server
     build:
       context: ./webapp/nodejs
     volumes:
@@ -23,6 +26,8 @@ services:
       - db
     ports:
       - "1323:1323"
+    networks:
+      - backend
     environment:
       MYSQL_HOST: db
       MYSQL_USER: isucon
@@ -30,9 +35,36 @@ services:
       MYSQL_DBNAME: isuumo
     command: ["npm", "start"]
 
+  nginx:
+    # build: ./webapp/nginx
+    container_name: nginx
+    image: nginx:1.13.5-alpine
+    depends_on:
+      - api-server
+    networks:
+      - backend
+    volumes:
+        - ./webapp/nginx/conf.d:/etc/nginx/conf.d
+        - ./webapp/frontend/out:/www/data
+
+    ports:
+      - "8080:80"
+    # entrypoint:
+    #   - dockerize
+    #   - -timeout
+    #   - 60s
+    #   - -wait
+    #   - http://api-server:1323/api/estate/search/condition
+    environment:
+      API_SERVER: api-server
+
+
   frontend:
     build:
       context: ./webapp/frontend
     image: isucon10-qualifier-app:frontend
     volumes:
-      - ./:/home/isucon/frontend
+      - ./webapp/frontend:/frontend
+
+networks:
+  backend:
