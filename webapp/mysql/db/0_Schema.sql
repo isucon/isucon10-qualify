@@ -20,6 +20,8 @@ CREATE TABLE isuumo.estate
     popularity  INTEGER             NOT NULL
 );
 
+ALTER TABLE isuumo.estate ADD INDEX esate_popularity(popularity);
+
 CREATE TABLE isuumo.chair
 (
     id          INTEGER         NOT NULL PRIMARY KEY,
