@@ -2,6 +2,7 @@ version: "3"
 services:
   db:
     image: mysql:5.7
+    # image: mysql:8.0
     ports:
       - "3306:3306"
     command: ["--character-set-server=utf8mb4"]
@@ -13,8 +14,9 @@ services:
       MYSQL_USER: isucon
       MYSQL_PASSWORD: isucon
     volumes:
+      - ./webapp/mysql/db/:/docker-entrypoint-initdb.d/
+      - ./webapp/mysql/data/:/var/lib/mysql/
       - ./webapp/mysql/docker.cnf:/etc/mysql/conf.d/docker.cnf
-      - ./webapp/mysql/slow.log:/var/log/mysql/slow.log
 
   api-server:
     container_name: api-server

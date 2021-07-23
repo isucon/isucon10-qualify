@@ -3,6 +3,7 @@ CREATE DATABASE isuumo;
 
 DROP TABLE IF EXISTS isuumo.estate;
 DROP TABLE IF EXISTS isuumo.chair;
+SET GLOBAL sql_mode = 'NO_ENGINE_SUBSTITUTION';
 
 CREATE TABLE isuumo.estate
 (
