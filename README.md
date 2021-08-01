@@ -10,6 +10,15 @@
 └── webapp          # 各言語の参考実装
 ```
 
+## ベンチマーク実行
+
+```
+$ ssh isucon10-1
+$ sudo su iscuon
+$ cd /home/isucon/isuumo/bench
+$ ./bench http://instance.ip
+```
+
 ## 問題の起動方法
 
 1. `initial-data` で初期データを生成する
