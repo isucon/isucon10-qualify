@@ -61,12 +61,12 @@ services:
       API_SERVER: api-server
 
 
-  frontend:
-    build:
-      context: ./webapp/frontend
-    image: isucon10-qualifier-app:frontend
-    volumes:
-      - ./webapp/frontend:/frontend
+  # frontend:
+  #   build:
+  #     context: ./webapp/frontend
+  #   image: isucon10-qualifier-app:frontend
+  #   volumes:
+  #     - ./webapp/frontend:/frontend
 
 networks:
   backend:
