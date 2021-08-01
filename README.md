@@ -19,6 +19,12 @@ $ cd /home/isucon/isuumo/bench
 $ ./bench http://instance.ip
 ```
 
+## alp実行
+
+```
+$ alp ltsv --file=docker/web/access.log  --sort=sum -r -m /icons/,/profile/
+```
+
 ## 問題の起動方法
 
 1. `initial-data` で初期データを生成する
