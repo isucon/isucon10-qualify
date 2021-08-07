@@ -354,24 +354,25 @@ async fn post_chair(db: web::Data<Pool>, mut payload: Multipart) -> Result<HttpR
     web::block(move || {
         let mut conn = db.get().expect("Failed to checkout database connection");
         let mut tx = conn.start_transaction(mysql::TxOpts::default())?;
+	let mut params: Vec<mysql::Value> = Vec::with_capacity(13 * chairs.len());
+	let mut values: Vec<&'static str> = Vec::with_capacity(chairs.len());
         for chair in chairs {
-            let params: Vec<mysql::Value> = vec![
-                chair.id.into(),
-                chair.name.into(),
-                chair.description.into(),
-                chair.thumbnail.into(),
-                chair.price.into(),
-                chair.height.into(),
-                chair.width.into(),
-                chair.depth.into(),
-                chair.color.into(),
-                chair.features.into(),
-                chair.kind.into(),
-                chair.popularity.into(),
-                chair.stock.into(),
-            ];
-            tx.exec_drop("insert into chair (id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params)?;
+            params.push(chair.id.into());
+            params.push(chair.name.into());
+            params.push(chair.description.into());
+            params.push(chair.thumbnail.into());
+            params.push(chair.price.into());
+            params.push(chair.height.into());
+            params.push(chair.width.into());
+            params.push(chair.depth.into());
+            params.push(chair.color.into());
+            params.push(chair.features.into());
+            params.push(chair.kind.into());
+            params.push(chair.popularity.into());
+            params.push(chair.stock.into());
+            values.push("(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         }
+        tx.exec_drop(format!("insert into chair (id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) values {}", values.join(",")), params)?;
         tx.commit()?;
         Ok(())
     })
@@ -767,9 +768,24 @@ async fn post_estate(db: web::Data<Pool>, mut payload: Multipart) -> Result<Http
     web::block(move || {
         let mut conn = db.get().expect("Failed to checkout database connection");
         let mut tx = conn.start_transaction(mysql::TxOpts::default())?;
+	let mut params: Vec<mysql::Value> = Vec::with_capacity(estates.len() * 12);
+	let mut values: Vec<&'static str> = Vec::with_capacity(estates.len());
         for estate in estates {
-            tx.exec_drop("insert into estate (id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (estate.id, estate.name, estate.description, estate.thumbnail, estate.address, estate.latitude, estate.longitude, estate.rent, estate.door_height, estate.door_width, estate.features, estate.popularity))?;
+		params.push(estate.id.into());
+		params.push(estate.name.into());
+		params.push(estate.description.into());
+		params.push(estate.thumbnail.into());
+		params.push(estate.address.into());
+		params.push(estate.latitude.into());
+		params.push(estate.longitude.into());
+		params.push(estate.rent.into());
+		params.push(estate.door_height.into());
+		params.push(estate.door_width.into());
+		params.push(estate.features.into());
+		params.push(estate.popularity.into());
+		values.push("(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         }
+        tx.exec_drop(format!("insert into estate (id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) values {}", values.join(",")), params)?;
         tx.commit()?;
         Ok(())
     }).await.map_err(
