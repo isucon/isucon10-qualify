@@ -18,6 +18,8 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
+
+	"go.elastic.co/apm/module/apmecho"
 )
 
 const Limit = 20
@@ -247,6 +249,8 @@ func main() {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	// add elastic
+	e.Use(apmecho.Middleware())
 
 	// Initialize
 	e.POST("/initialize", initialize)
