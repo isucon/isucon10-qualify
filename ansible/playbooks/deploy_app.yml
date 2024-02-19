@@ -1,0 +1,5 @@
+- hosts: apps
+  become: true
+  become_user: isucon
+  roles:
+    - ../roles/app.deploy

@@ -1,0 +1,4 @@
+- hosts: nginx_main
+  become: true
+  roles:
+    - ../roles/nginx.config

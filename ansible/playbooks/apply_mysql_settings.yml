@@ -1,0 +1,4 @@
+- hosts: mysql
+  become: true
+  roles:
+    - ../roles/mysql.config

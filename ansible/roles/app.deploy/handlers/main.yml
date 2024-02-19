@@ -1,0 +1,8 @@
+---
+- name: restart isuumo.node
+  become: true
+  become_user: root
+  service:
+    name: isuumo.nodejs
+    state: restarted
+

@@ -1,0 +1,4 @@
+- hosts: apps
+  become: true
+  roles:
+    - ../roles/set_enviroment

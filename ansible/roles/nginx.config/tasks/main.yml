@@ -1,0 +1,25 @@
+---
+- name: Copy nginx conf
+  copy:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nginx.service
+
+- name: Copy site-available file
+  copy:
+    src: site-available/isuumo.conf
+    dest: /etc/nginx/sites-available/isuumo.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nginx.service
+
+- name: Symlink site-available file
+  file:
+    src: /etc/nginx/sites-available/isuumo.conf
+    dest: /etc/nginx/sites-enabled/isuumo.conf
+    state: link
+  notify: restart nginx.service

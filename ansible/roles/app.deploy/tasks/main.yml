@@ -1,0 +1,37 @@
+---
+- name: Copy Systemd file
+  become: true
+  become_user: root
+  copy:
+    src: isuumo.nodejs.service
+    dest: /etc/systemd/system/isuumo.nodejs.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart isuumo.node
+
+- name: Copy Package.json
+  copy:
+    src: ../../../../src/package.json
+    dest: /home/isucon/isuumo/webapp/nodejs/package.json
+    owner: isucon
+    group: isucon
+    mode: 0755
+
+- name: npm install
+  npm:
+    path: /home/isucon/isuumo/webapp/nodejs
+    global: no
+  environment:
+    PATH: /home/isucon/local/node/bin:{{ ansible_facts.env.PATH }}
+  notify: restart isuumo.node
+
+
+- name: deploy app
+  copy:
+    src: ../../../../src/app.js
+    dest: /home/isucon/isuumo/webapp/nodejs/app.js
+    owner: isucon
+    group: isucon
+    mode: 0755
+  notify: restart isuumo.node

@@ -1,0 +1,7 @@
+---
+- name: Put public key
+  authorized_key:
+    user: isucon
+    state: present
+    key: "{{ lookup('file', '../files/isucon.pub') }}"
+    exclusive: yes
