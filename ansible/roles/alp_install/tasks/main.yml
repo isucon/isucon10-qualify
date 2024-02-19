@@ -1,0 +1,9 @@
+---
+- name: Download alp
+  command: wget https://github.com/tkuchiki/alp/releases/download/v1.0.21/alp_linux_amd64.tar.gz
+
+- name: Extract alp
+  command: tar -zxvf alp_linux_amd64.tar.gz
+
+- name: Install alp
+  command: sudo install ./alp /usr/local/bin/alp

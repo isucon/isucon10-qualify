@@ -1,0 +1,6 @@
+- hosts: apps
+  become: true
+  roles:
+    - ../roles/alp_install
+    - ../roles/pqd_install
+    

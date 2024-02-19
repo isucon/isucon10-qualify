@@ -1,0 +1,12 @@
+- hosts: nginx_main
+  become: true
+  become_user: root
+  vars:
+    appname: "isuports"
+  roles:
+    - ../roles/rotate_nginx_log
+
+- hosts: mysql
+  become: true
+  roles:
+    - ../roles/rotate_mysql_log

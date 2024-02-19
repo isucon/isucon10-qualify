@@ -1,0 +1,10 @@
+---
+- name: Update APT cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600  # キャッシュが1時間以内に更新されていない場合のみ更新する
+
+- name: Install pt-query-digest
+  apt: 
+    name: percona-toolkit
+  # CentOS command: sudo yum install -y https://repo.percona.com/yum/percona-release-latest.noarch.rpm && sudo yum install -y percona-toolkit

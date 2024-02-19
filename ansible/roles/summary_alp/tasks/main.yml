@@ -1,0 +1,20 @@
+---
+- name: install nodejs
+  ansible.builtin.apt:
+    name: nodejs
+    state: latest
+
+- name: copy discord.js
+  copy:
+    src: discord.js
+    dest: /home/isucon/discord.js
+    owner: isucon
+    group: isucon
+    mode: 0644
+
+- name: execute discord.js
+  become: true
+  become_user: isucon
+  shell: |
+    cd /home/isucon
+    node discord.js

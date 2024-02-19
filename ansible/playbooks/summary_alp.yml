@@ -1,0 +1,12 @@
+- hosts: nginx_main
+  become: true
+  become_user: root
+  roles:
+    - ../roles/summary_alp
+  
+# - hosts: mysql
+#   become: true
+#   become_user: root
+#   roles:
+#     - ../roles/summary_slow_query
+    
