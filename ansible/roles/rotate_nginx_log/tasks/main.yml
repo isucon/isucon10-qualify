@@ -1,0 +1,5 @@
+---
+- name: Truncate nginx log
+  command: truncate -s 0 /var/log/nginx/access.log
+  become: yes
+  become_user: root

@@ -6,7 +6,7 @@
   roles:
     - ../roles/rotate_nginx_log
 
-- hosts: mysql
-  become: true
-  roles:
-    - ../roles/rotate_mysql_log
+# - hosts: mysql
+#   become: true
+#   roles:
+#     - ../roles/rotate_mysql_log
